@@ -5,8 +5,8 @@ go 1.25.1
 require (
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/mattn/go-sqlite3 v1.14.32
+	github.com/mdp/qrterminal v1.0.1
 	go.mau.fi/whatsmeow v0.0.0-20250922112717-258fd9454b95
-	google.golang.org/protobuf v1.36.9
 )
 
 require (
@@ -27,4 +27,6 @@ require (
 	golang.org/x/net v0.44.0 // indirect
 	golang.org/x/sys v0.36.0 // indirect
 	golang.org/x/text v0.29.0 // indirect
+	google.golang.org/protobuf v1.36.9 // indirect
+	rsc.io/qr v0.2.0 // indirect
 )

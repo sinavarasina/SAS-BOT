@@ -3,8 +3,10 @@ package whatsapp
 import (
 	"context"
 	"log"
+	"os"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/mdp/qrterminal"
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/store/sqlstore"
 	waLog "go.mau.fi/whatsmeow/util/log"
@@ -47,11 +49,10 @@ func QRLogin(ctx context.Context, client *whatsmeow.Client) error {
 	for evt := range qrChan {
 		switch evt.Event {
 		case "code":
-			log.Println("Scan QR Code:", evt.Code)
+			qrterminal.Generate(evt.Code, qrterminal.L, os.Stdout)
 		default:
 			log.Println("QR Event:", evt.Event)
 		}
 	}
 	return nil
 }
-
