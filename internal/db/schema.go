@@ -16,7 +16,7 @@ func InitDB(path string) (*sqlx.DB, error) {
 		jid TEXT PRIMARY KEY,
 		number TEXT,
 		username TEXT,
-		previlege TEXT,
+		previlege TEXT
 	);
 	`
 	_, err = db.Exec(schema)

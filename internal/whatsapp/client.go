@@ -27,6 +27,8 @@ func InitClient(appDB *sqlx.DB, ctx context.Context) (*whatsmeow.Client, error) 
 	clientLog := waLog.Stdout("Client", "INFO", true)
 	client := whatsmeow.NewClient(deviceStore, clientLog)
 
+	client.AddEventHandler(EventHandler(client, appDB))
+
 	if client.Store.ID == nil {
 		if err := QRLogin(ctx, client); err != nil {
 			return nil, err

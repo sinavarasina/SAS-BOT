@@ -9,10 +9,10 @@ type User struct {
 	Previlege string `db:"previlege"`
 }
 
-func SaveUser(db *sqlx.DB, user User) error {
-	_, err := db.Exec(`
-	INSERT INTO users (jid, number, username, previlege, updated_at)
-	VALUES (?, ?, ?, ?, ?)
+func SaveUser(dbConn *sqlx.DB, user User) error {
+	_, err := dbConn.Exec(`
+	INSERT INTO users (jid, number, username, previlege)
+	VALUES (?, ?, ?, ?)
 	ON CONFLICT(jid) DO UPDATE SET
 		number = excluded.number,
 		username = excluded.username,
@@ -21,9 +21,9 @@ func SaveUser(db *sqlx.DB, user User) error {
 	return err
 }
 
-func GetUser(db *sqlx.DB, jid string) (*User, error) {
+func GetUser(dbConn *sqlx.DB, jid string) (*User, error) {
 	var user User
-	err := db.Get(&user, "SELECT * FROM users WHERE jid = ?", jid)
+	err := dbConn.Get(&user, "SELECT * FROM users WHERE jid = ?", jid)
 	if err != nil {
 		return nil, err
 	}
