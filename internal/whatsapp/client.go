@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/mdp/qrterminal"
 	"go.mau.fi/whatsmeow"
@@ -15,7 +16,14 @@ import (
 
 func InitClient(appDB *sqlx.DB, ctx context.Context) (*whatsmeow.Client, error) {
 	dbLog := waLog.Stdout("Database", "INFO", true)
-	dsn := "postgres://avnadmin:AVNS_ufUAE5DXZUEYoiPu8-1@sasdb-student-5e9a.e.aivencloud.com:21599/defaultdb?sslmode=require"
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error at loading .env file")
+	}
+	dsn := os.Getenv("POSTGRES_DSN")
+	if dsn == "" {
+		log.Printf("Error at os.Getenv('POSTGRES_DSN')")
+	}
 	container, err := sqlstore.New(ctx, "postgres", dsn, dbLog)
 	if err != nil {
 		return nil, err
