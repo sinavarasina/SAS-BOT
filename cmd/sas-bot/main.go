@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/joho/godotenv"
 	"github.com/sinavarasina/SAS-BOT/internal/db"
 	"github.com/sinavarasina/SAS-BOT/internal/whatsapp"
 )
@@ -15,12 +16,21 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	appDB, err := db.InitDB("./app_user.db")
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error at loading .env file")
+	}
+	dsn := os.Getenv("POSTGRES_DSN")
+	if dsn == "" {
+		log.Printf("Error at os.Getenv('POSTGRES_DSN')")
+	}
+
+	appDB, err := db.InitDB(dsn)
 	if err != nil {
 		log.Fatal("Error at db.InitDB(), Message :", err)
 	}
 
-	WaClient, err := whatsapp.InitClient(appDB, ctx)
+	WaClient, err := whatsapp.InitClient(dsn, appDB, ctx)
 	if err != nil {
 		log.Fatal("Error at whatsapp.InitClient(), Message :", err)
 	}

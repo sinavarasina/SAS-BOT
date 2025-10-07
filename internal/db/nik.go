@@ -1,6 +1,9 @@
 package db
 
-import "github.com/jmoiron/sqlx"
+import (
+	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
+)
 
 type UserNIK struct {
 	JID string `db:"jid"`
@@ -10,11 +13,9 @@ type UserNIK struct {
 func SaveNIK(dbConn *sqlx.DB, userNik UserNIK) error {
 	_, err := dbConn.Exec(`
 	INSERT INTO user_nik (jid, nik)
-	VALUES (?, ?)
-	ON CONFLICT(jid) DO UPDATE SET
-		nik = excluded.nik`,
+	VALUES ($1, $2)
+	ON CONFLICT (jid) DO UPDATE
+	SET nik = EXCLUDED.nik`,
 		userNik.JID, userNik.NIK)
 	return err
 }
-
-// incomplete (let my friend working on it)

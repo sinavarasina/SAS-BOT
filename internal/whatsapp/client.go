@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/mdp/qrterminal"
 	"go.mau.fi/whatsmeow"
@@ -14,16 +13,9 @@ import (
 	waLog "go.mau.fi/whatsmeow/util/log"
 )
 
-func InitClient(appDB *sqlx.DB, ctx context.Context) (*whatsmeow.Client, error) {
+func InitClient(dsn string, appDB *sqlx.DB, ctx context.Context) (*whatsmeow.Client, error) {
 	dbLog := waLog.Stdout("Database", "INFO", true)
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error at loading .env file")
-	}
-	dsn := os.Getenv("POSTGRES_DSN")
-	if dsn == "" {
-		log.Printf("Error at os.Getenv('POSTGRES_DSN')")
-	}
+
 	container, err := sqlstore.New(ctx, "postgres", dsn, dbLog)
 	if err != nil {
 		return nil, err
