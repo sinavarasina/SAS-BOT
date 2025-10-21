@@ -1,11 +1,7 @@
 package bot
 
 import (
-	"bytes"
-	"encoding/json"
-	"io/ioutil"
 	"log"
-	"net/http"
 	"strings"
 
 	"github.com/jmoiron/sqlx"
@@ -13,88 +9,71 @@ import (
 )
 
 func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string) string {
-	text = strings.TrimSpace(text)
+	// Debug raw message content first
+	log.Printf("[DEBUG] Raw message - Text: '%s', Length: %d", text, len(text))
 
+	text = strings.TrimSpace(text)
+	log.Printf("[DEBUG] After trim - Text: '%s', Length: %d, Username: %s, Number: %s",
+		text, len(text), username, number)
+
+	// Handle empty or whitespace-only messages
+	if len(strings.TrimSpace(text)) == 0 {
+		log.Printf("[DEBUG] Message contains only whitespace or is empty")
+		return ""
+	}
+
+	// Save user info
 	WAUser := db.User{
 		JID:       jid,
 		Number:    number,
 		Username:  username,
 		Previlege: "user",
 	}
+	if err := db.SaveUser(dbConn, WAUser); err != nil {
+		log.Printf("[ERROR] Failed to save user: %v", err)
+	}
 
-	err := db.SaveUser(dbConn, WAUser)
+	// Handle reset command first
+	if strings.ToLower(text) == "reset" || strings.ToLower(text) == "!batal" {
+		if err := db.StartNewSession(dbConn, jid); err != nil {
+			log.Printf("[ERROR] Failed to reset session: %v", err)
+			return "Terjadi kesalahan sistem."
+		}
+		log.Printf("[DEBUG] Session reset successful")
+		return "Sesi telah direset. Silakan pilih menu. Kirim '1' untuk memulai pendataan."
+	}
+
+	// Get current session
+	session, err := db.GetOrCreateDataEntrySession(dbConn, jid)
 	if err != nil {
-		log.Printf("Error at db.SaveUser for jid: %s, Message : %v", jid, err)
+		log.Printf("[ERROR] Session error: %v", err)
+		return "Terjadi kesalahan sistem."
 	}
 
-	switch text {
-	case "!batal":
-		ResetSession(jid)
-		return "Sesi Dibatalkan"
+	log.Printf("[DEBUG] Current session state - Step: %d, Awaiting: %v",
+		session.CurrentStep, session.AwaitingAnswer)
+
+	// Start new session if user sends "1"
+	if text == "1" {
+		if err := db.StartNewSession(dbConn, jid); err != nil {
+			log.Printf("[ERROR] Failed to start new session: %v", err)
+			return "Terjadi kesalahan sistem."
+		}
+		log.Printf("[DEBUG] Started new session, sending first question")
+		return steps[1].Question
 	}
 
-	// Semua pesan dilempar ke Gemini, materi dikosongkan
-	materi := "Materi: "
-	pertanyaan := "Pertanyaan: " + text
-	geminiResp, err := askGemini(materi, pertanyaan)
-	if err != nil {
-		log.Printf("Error Gemini API: %v", err)
-		return "Maaf, terjadi kesalahan saat memproses permintaan Anda."
+	// Handle ongoing session
+	if session.AwaitingAnswer {
+		log.Printf("[DEBUG] Processing answer for step %d", session.CurrentStep)
+		return HandleDataEntry(dbConn, jid, text, session)
 	}
-	return geminiResp
+
+	log.Printf("[DEBUG] No active session, showing menu")
+	return "Silakan pilih menu. Kirim '1' untuk memulai pendataan."
 }
 
 func HandlerRouteGroup(dbConn *sqlx.DB, jid, text, username, number string) string {
 	// Hapus pesan template, bisa return kosong atau pesan singkat lain jika diinginkan
 	return ""
-}
-
-// askGemini mengirim permintaan ke Gemini API dan mengembalikan responnya sebagai string.
-func askGemini(materi, pertanyaan string) (string, error) {
-	url := "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyCR3Weo_JBPE_PnWNLEfo4T57Uw0bqCQM4"
-
-	payload := map[string]interface{}{
-		"contents": []map[string]interface{}{
-			{
-				"parts": []map[string]string{
-					{"text": materi},
-					{"text": pertanyaan},
-				},
-			},
-		},
-	}
-
-	body, err := json.Marshal(payload)
-	if err != nil {
-		return "", err
-	}
-
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(body))
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	respBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-
-	// Parsing response Gemini
-	var result struct {
-		Candidates []struct {
-			Content struct {
-				Parts []struct {
-					Text string `json:"text"`
-				} `json:"parts"`
-			} `json:"content"`
-		} `json:"candidates"`
-	}
-	if err := json.Unmarshal(respBody, &result); err != nil {
-		return "", err
-	}
-	if len(result.Candidates) > 0 && len(result.Candidates[0].Content.Parts) > 0 {
-		return result.Candidates[0].Content.Parts[0].Text, nil
-	}
-	return "Maaf, tidak ada respon dari AI.", nil
 }
