@@ -1,0 +1,48 @@
+{
+    "kk_level": [
+    {
+      "kk_level_id": 1,
+      "nama": "KEPALA KELUARGA"
+    },
+    {
+      "kk_level_id": 2,
+      "nama": "SUAMI"
+    },
+    {
+      "kk_level_id": 3,
+      "nama": "ISTRI"
+    },
+    {
+      "kk_level_id": 4,
+      "nama": "ANAK"
+    },
+    {
+      "kk_level_id": 5,
+      "nama": "MENANTU"
+    },
+    {
+      "kk_level_id": 6,
+      "nama": "CUCU"
+    },
+    {
+      "kk_level_id": 7,
+      "nama": "ORANGTUA"
+    },
+    {
+      "kk_level_id": 8,
+      "nama": "MERTUA"
+    },
+    {
+      "kk_level_id": 9,
+      "nama": "FAMILI LAIN"
+    },
+    {
+      "kk_level_id": 10,
+      "nama": "PEMBANTU"
+    },
+    {
+      "kk_level_id": 11,
+      "nama": "LAINNYA"
+    }
+  ]
+}

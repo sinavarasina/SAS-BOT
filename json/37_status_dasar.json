@@ -1,0 +1,28 @@
+{
+    "status_dasar": [
+    {
+      "status_dasar_id": 1,
+      "nama": "HIDUP"
+    },
+    {
+      "status_dasar_id": 2,
+      "nama": "MATI"
+    },
+    {
+      "status_dasar_id": 3,
+      "nama": "PINDAH"
+    },
+    {
+      "status_dasar_id": 4,
+      "nama": "HILANG"
+    },
+    {
+      "status_dasar_id": 6,
+      "nama": "PERGI"
+    },
+    {
+      "status_dasar_id": 9,
+      "nama": "TIDAK VALID"
+    }
+  ]
+}

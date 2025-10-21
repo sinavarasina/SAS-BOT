@@ -1,0 +1,12 @@
+{
+    "hamil": [
+    {
+      "hamil_id": 1,
+      "nama": "HAMIL"
+    },
+    {
+      "hamil_id": 2,
+      "nama": "TIDAK HAMIL"
+    }
+  ]
+}

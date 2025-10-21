@@ -1,0 +1,32 @@
+{
+    "cacat_id": [
+    {
+      "cacat_id_id": 1,
+      "nama": "CACAT_id FISIK"
+    },
+    {
+      "cacat_id_id": 2,
+      "nama": "CACAT_id NETRA/BUTA"
+    },
+    {
+      "cacat_id_id": 3,
+      "nama": "CACAT_id RUNGU/WICARA"
+    },
+    {
+      "cacat_id_id": 4,
+      "nama": "CACAT_id MENTAL/JIWA"
+    },
+    {
+      "cacat_id_id": 5,
+      "nama": "CACAT_id FISIK DAN MENTAL"
+    },
+    {
+      "cacat_id_id": 6,
+      "nama": "CACAT_id LAINNYA"
+    },
+    {
+      "cacat_id_id": 7,
+      "nama": "TIDAK CACAT_id"
+    }
+  ]
+}
