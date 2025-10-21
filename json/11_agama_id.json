@@ -1,0 +1,32 @@
+{
+    "agama_id": [
+    {
+      "agama_id_id": 1,
+      "nama": "ISLAM"
+    },
+    {
+      "agama_id_id": 2,
+      "nama": "KRISTEN"
+    },
+    {
+      "agama_id_id": 3,
+      "nama": "KATHOLIK"
+    },
+    {
+      "agama_id_id": 4,
+      "nama": "HINDU"
+    },
+    {
+      "agama_id_id": 5,
+      "nama": "BUDHA"
+    },
+    {
+      "agama_id_id": 6,
+      "nama": "KHONGHUCU"
+    },
+    {
+      "agama_id_id": 7,
+      "nama": "Kepercayaan Terhadap Tuhan YME / Lainnya"
+    }
+  ]
+}

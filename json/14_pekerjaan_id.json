@@ -1,0 +1,360 @@
+{
+    "pekerjaan_id": [
+    {
+      "pekerjaan_id_id": 1,
+      "nama": "BELUM/TIDAK BEKERJA"
+    },
+    {
+      "pekerjaan_id_id": 2,
+      "nama": "MENGURUS RUMAH TANGGA"
+    },
+    {
+      "pekerjaan_id_id": 3,
+      "nama": "PELAJAR/MAHASISWA"
+    },
+    {
+      "pekerjaan_id_id": 4,
+      "nama": "PENSIUNAN"
+    },
+    {
+      "pekerjaan_id_id": 5,
+      "nama": "PEGAWAI NEGERI SIPIL (PNS)"
+    },
+    {
+      "pekerjaan_id_id": 6,
+      "nama": "TENTARA NASIONAL INDONESIA (TNI)"
+    },
+    {
+      "pekerjaan_id_id": 7,
+      "nama": "KEPOLISIAN RI (POLRI)"
+    },
+    {
+      "pekerjaan_id_id": 8,
+      "nama": "PERDAGANGAN"
+    },
+    {
+      "pekerjaan_id_id": 9,
+      "nama": "PETANI/PEKEBUN"
+    },
+    {
+      "pekerjaan_id_id": 10,
+      "nama": "PETERNAK"
+    },
+    {
+      "pekerjaan_id_id": 11,
+      "nama": "NELAYAN/PERIKANAN"
+    },
+    {
+      "pekerjaan_id_id": 12,
+      "nama": "INDUSTRI"
+    },
+    {
+      "pekerjaan_id_id": 13,
+      "nama": "KONSTRUKSI"
+    },
+    {
+      "pekerjaan_id_id": 14,
+      "nama": "TRANSPORTASI"
+    },
+    {
+      "pekerjaan_id_id": 15,
+      "nama": "KARYAWAN SWASTA"
+    },
+    {
+      "pekerjaan_id_id": 16,
+      "nama": "KARYAWAN BUMN"
+    },
+    {
+      "pekerjaan_id_id": 17,
+      "nama": "KARYAWAN BUMD"
+    },
+    {
+      "pekerjaan_id_id": 18,
+      "nama": "KARYAWAN HONORER"
+    },
+    {
+      "pekerjaan_id_id": 19,
+      "nama": "BURUH HARIAN LEPAS"
+    },
+    {
+      "pekerjaan_id_id": 20,
+      "nama": "BURUH TANI/PERKEBUNAN"
+    },
+    {
+      "pekerjaan_id_id": 21,
+      "nama": "BURUH NELAYAN/PERIKANAN"
+    },
+    {
+      "pekerjaan_id_id": 22,
+      "nama": "BURUH PETERNAKAN"
+    },
+    {
+      "pekerjaan_id_id": 23,
+      "nama": "PEMBANTU RUMAH TANGGA"
+    },
+    {
+      "pekerjaan_id_id": 24,
+      "nama": "TUKANG CUKUR"
+    },
+    {
+      "pekerjaan_id_id": 25,
+      "nama": "TUKANG LISTRIK"
+    },
+    {
+      "pekerjaan_id_id": 26,
+      "nama": "TUKANG BATU"
+    },
+    {
+      "pekerjaan_id_id": 27,
+      "nama": "TUKANG KAYU"
+    },
+    {
+      "pekerjaan_id_id": 28,
+      "nama": "TUKANG SOL SEPATU"
+    },
+    {
+      "pekerjaan_id_id": 29,
+      "nama": "TUKANG LAS/PANDAI BESI"
+    },
+    {
+      "pekerjaan_id_id": 30,
+      "nama": "TUKANG JAHIT"
+    },
+    {
+      "pekerjaan_id_id": 31,
+      "nama": "TUKANG GIGI"
+    },
+    {
+      "pekerjaan_id_id": 32,
+      "nama": "PENATA RIAS"
+    },
+    {
+      "pekerjaan_id_id": 33,
+      "nama": "PENATA BUSANA"
+    },
+    {
+      "pekerjaan_id_id": 34,
+      "nama": "PENATA RAMBUT"
+    },
+    {
+      "pekerjaan_id_id": 35,
+      "nama": "MEKANIK"
+    },
+    {
+      "pekerjaan_id_id": 36,
+      "nama": "SENIMAN"
+    },
+    {
+      "pekerjaan_id_id": 37,
+      "nama": "TABIB"
+    },
+    {
+      "pekerjaan_id_id": 38,
+      "nama": "PARAJI"
+    },
+    {
+      "pekerjaan_id_id": 39,
+      "nama": "PERANCANG BUSANA"
+    },
+    {
+      "pekerjaan_id_id": 40,
+      "nama": "PENTERJEMAH"
+    },
+    {
+      "pekerjaan_id_id": 41,
+      "nama": "IMAM MASJID"
+    },
+    {
+      "pekerjaan_id_id": 42,
+      "nama": "PENDETA"
+    },
+    {
+      "pekerjaan_id_id": 43,
+      "nama": "PASTOR"
+    },
+    {
+      "pekerjaan_id_id": 44,
+      "nama": "WARTAWAN"
+    },
+    {
+      "pekerjaan_id_id": 45,
+      "nama": "USTADZ/MUBALIGH"
+    },
+    {
+      "pekerjaan_id_id": 46,
+      "nama": "JURU MASAK"
+    },
+    {
+      "pekerjaan_id_id": 47,
+      "nama": "PROMOTOR ACARA"
+    },
+    {
+      "pekerjaan_id_id": 48,
+      "nama": "ANGGOTA DPR-RI"
+    },
+    {
+      "pekerjaan_id_id": 49,
+      "nama": "ANGGOTA DPD"
+    },
+    {
+      "pekerjaan_id_id": 50,
+      "nama": "ANGGOTA BPK"
+    },
+    {
+      "pekerjaan_id_id": 51,
+      "nama": "PRESIDEN"
+    },
+    {
+      "pekerjaan_id_id": 52,
+      "nama": "WAKIL PRESIDEN"
+    },
+    {
+      "pekerjaan_id_id": 53,
+      "nama": "ANGGOTA MAHKAMAH KONSTITUSI"
+    },
+    {
+      "pekerjaan_id_id": 54,
+      "nama": "ANGGOTA KABINET KEMENTERIAN"
+    },
+    {
+      "pekerjaan_id_id": 55,
+      "nama": "DUTA BESAR"
+    },
+    {
+      "pekerjaan_id_id": 56,
+      "nama": "GUBERNUR"
+    },
+    {
+      "pekerjaan_id_id": 57,
+      "nama": "WAKIL GUBERNUR"
+    },
+    {
+      "pekerjaan_id_id": 58,
+      "nama": "BUPATI"
+    },
+    {
+      "pekerjaan_id_id": 59,
+      "nama": "WAKIL BUPATI"
+    },
+    {
+      "pekerjaan_id_id": 60,
+      "nama": "WALIKOTA"
+    },
+    {
+      "pekerjaan_id_id": 61,
+      "nama": "WAKIL WALIKOTA"
+    },
+    {
+      "pekerjaan_id_id": 62,
+      "nama": "ANGGOTA DPRD PROVINSI"
+    },
+    {
+      "pekerjaan_id_id": 63,
+      "nama": "ANGGOTA DPRD KABUPATEN/KOTA"
+    },
+    {
+      "pekerjaan_id_id": 64,
+      "nama": "DOSEN"
+    },
+    {
+      "pekerjaan_id_id": 65,
+      "nama": "GURU"
+    },
+    {
+      "pekerjaan_id_id": 66,
+      "nama": "PILOT"
+    },
+    {
+      "pekerjaan_id_id": 67,
+      "nama": "PENGACARA"
+    },
+    {
+      "pekerjaan_id_id": 68,
+      "nama": "NOTARIS"
+    },
+    {
+      "pekerjaan_id_id": 69,
+      "nama": "ARSITEK"
+    },
+    {
+      "pekerjaan_id_id": 70,
+      "nama": "AKUNTAN"
+    },
+    {
+      "pekerjaan_id_id": 71,
+      "nama": "KONSULTAN"
+    },
+    {
+      "pekerjaan_id_id": 72,
+      "nama": "DOKTER"
+    },
+    {
+      "pekerjaan_id_id": 73,
+      "nama": "BIDAN"
+    },
+    {
+      "pekerjaan_id_id": 74,
+      "nama": "PERAWAT"
+    },
+    {
+      "pekerjaan_id_id": 75,
+      "nama": "APOTEKER"
+    },
+    {
+      "pekerjaan_id_id": 76,
+      "nama": "PSIKIATER/PSIKOLOG"
+    },
+    {
+      "pekerjaan_id_id": 77,
+      "nama": "PENYIAR TELEVISI"
+    },
+    {
+      "pekerjaan_id_id": 78,
+      "nama": "PENYIAR RADIO"
+    },
+    {
+      "pekerjaan_id_id": 79,
+      "nama": "PELAUT"
+    },
+    {
+      "pekerjaan_id_id": 80,
+      "nama": "PENELITI"
+    },
+    {
+      "pekerjaan_id_id": 81,
+      "nama": "SOPIR"
+    },
+    {
+      "pekerjaan_id_id": 82,
+      "nama": "PIALANG"
+    },
+    {
+      "pekerjaan_id_id": 83,
+      "nama": "PARANORMAL"
+    },
+    {
+      "pekerjaan_id_id": 84,
+      "nama": "PEDAGANG"
+    },
+    {
+      "pekerjaan_id_id": 85,
+      "nama": "PERANGKAT DESA"
+    },
+    {
+      "pekerjaan_id_id": 86,
+      "nama": "KEPALA DESA"
+    },
+    {
+      "pekerjaan_id_id": 87,
+      "nama": "BIARAWATI"
+    },
+    {
+      "pekerjaan_id_id": 88,
+      "nama": "WIRASWASTA"
+    },
+    {
+      "pekerjaan_id_id": 89,
+      "nama": "LAINNYA"
+    }
+  ]
+}
