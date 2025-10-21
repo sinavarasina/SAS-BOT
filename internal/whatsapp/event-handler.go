@@ -10,13 +10,14 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/sinavarasina/SAS-BOT/internal/bot"
 	"github.com/sinavarasina/SAS-BOT/internal/db"
+	"github.com/sinavarasina/SAS-BOT/internal/sheets"
 	"go.mau.fi/whatsmeow"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
 	"go.mau.fi/whatsmeow/types/events"
 	"google.golang.org/protobuf/proto"
 )
 
-func EventHandler(client *whatsmeow.Client, appDB *sqlx.DB) func(interface{}) {
+func EventHandler(client *whatsmeow.Client, appDB *sqlx.DB, sheetsClient *sheets.SheetsClient) func(interface{}) {
 	return func(evt interface{}) {
 		switch v := evt.(type) {
 		case *events.Message:
@@ -66,6 +67,7 @@ func EventHandler(client *whatsmeow.Client, appDB *sqlx.DB) func(interface{}) {
 					return
 				}
 
+				go sheetsClient.WritePengaduan(aduan)
 				//5. konfirmasi pengaduan
 				reply := "Terima kasih, pengaduan Anda sudah kami terima dan akan segera diproses."
 				client.SendMessage(context.Background(), v.Info.Chat, &waProto.Message{
