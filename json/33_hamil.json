@@ -1,11 +1,11 @@
 {
     "hamil": [
     {
-      "hamil_id": 1,
+      "id": 1,
       "nama": "HAMIL"
     },
     {
-      "hamil_id": 2,
+      "id": 2,
       "nama": "TIDAK HAMIL"
     }
   ]

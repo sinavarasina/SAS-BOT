@@ -1,43 +1,43 @@
 {
     "pendidikan_kk": [
     {
-      "pendidikan_kk_id": 1,
+      "id": 1,
       "nama": "TIDAK / BELUM SEKOLAH"
     },
     {
-      "pendidikan_kk_id": 2,
+      "id": 2,
       "nama": "BELUM TAMAT SD/SEDERAJAT"
     },
     {
-      "pendidikan_kk_id": 3,
+      "id": 3,
       "nama": "TAMAT SD / SEDERAJAT"
     },
     {
-      "pendidikan_kk_id": 4,
+      "id": 4,
       "nama": "SLTP/SEDERAJAT"
     },
     {
-      "pendidikan_kk_id": 5,
+      "id": 5,
       "nama": "SLTA / SEDERAJAT"
     },
     {
-      "pendidikan_kk_id": 6,
+      "id": 6,
       "nama": "DIPLOMA I / II"
     },
     {
-      "pendidikan_kk_id": 7,
+      "id": 7,
       "nama": "AKADEMI/ DIPLOMA III/S. MUDA"
     },
     {
-      "pendidikan_kk_id": 8,
+      "id": 8,
       "nama": "DIPLOMA IV/ STRATA I"
     },
     {
-      "pendidikan_kk_id": 9,
+      "id": 9,
       "nama": "STRATA II"
     },
     {
-      "pendidikan_kk_id": 10,
+      "id": 10,
       "nama": "STRATA III"
     }
   ]

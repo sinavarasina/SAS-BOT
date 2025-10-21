@@ -1,35 +1,35 @@
 {
     "status_rekam": [
     {
-      "status_rekam_id": 1,
+      "id": 1,
       "nama": "BELUM WAJIB "
     },
     {
-      "status_rekam_id": 2,
+      "id": 2,
       "nama": "BELUM REKAM"
     },
     {
-      "status_rekam_id": 3,
+      "id": 3,
       "nama": "SUDAH REKAM"
     },
     {
-      "status_rekam_id": 4,
+      "id": 4,
       "nama": "CARD PRINTED"
     },
     {
-      "status_rekam_id": 5,
+      "id": 5,
       "nama": "PRINT READY RECORD"
     },
     {
-      "status_rekam_id": 6,
+      "id": 6,
       "nama": "CARD SHIPPED"
     },
     {
-      "status_rekam_id": 7,
+      "id": 7,
       "nama": "SENT FOR CARD PRINTING"
     },
     {
-      "status_rekam_id": 8,
+      "id": 8,
       "nama": "CARD ISSUED"
     }
   ]
