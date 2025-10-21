@@ -1,55 +1,55 @@
 {
     "golongan_darah": [
     {
-      "golongan_darah_id": 1,
+      "id": 1,
       "nama": "A"
     },
     {
-      "golongan_darah_id": 2,
+      "id": 2,
       "nama": "B"
     },
     {
-      "golongan_darah_id": 3,
+      "id": 3,
       "nama": "AB"
     },
     {
-      "golongan_darah_id": 4,
+      "id": 4,
       "nama": "O"
     },
     {
-      "golongan_darah_id": 5,
+      "id": 5,
       "nama": "A+"
     },
     {
-      "golongan_darah_id": 6,
+      "id": 6,
       "nama": "A-"
     },
     {
-      "golongan_darah_id": 7,
+      "id": 7,
       "nama": "B+"
     },
     {
-      "golongan_darah_id": 8,
+      "id": 8,
       "nama": "B-"
     },
     {
-      "golongan_darah_id": 9,
+      "id": 9,
       "nama": "AB+"
     },
     {
-      "golongan_darah_id": 10,
+      "id": 10,
       "nama": "AB-"
     },
     {
-      "golongan_darah_id": 11,
+      "id": 11,
       "nama": "O+"
     },
     {
-      "golongan_darah_id": 12,
+      "id": 12,
       "nama": "O-"
     },
     {
-      "golongan_darah_id": 13,
+      "id": 13,
       "nama": "TIDAK TAHU"
     }
   ]

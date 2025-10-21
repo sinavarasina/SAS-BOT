@@ -1,8 +1,8 @@
 {
     "akta_perkawinan": [
         {
-            "akta_perkawinan_id": 1,
-            "akta_perkawinan": ""
+            "id": 1,
+            "nama": ""
         }
     ]
 }

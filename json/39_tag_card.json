@@ -1,8 +1,8 @@
 {
-    "tag_id_card": [
+    "tag_card": [
         {
-            "tag_id_card_id": 1,
-            "tag_id_card": ""
+            "id": 1,
+            "nama": ""
         }
     ]
 }

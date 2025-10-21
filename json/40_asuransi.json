@@ -1,23 +1,23 @@
 {
   "id_asuransi": [
     {
-      "id_asuransi_id": 1,
+      "id": 1,
       "nama": "TIDAK/BELUM PUNYA"
     },
     {
-      "id_asuransi_id": 2,
+      "id": 2,
       "nama": "BPJS PENERIMA BANTUAN IURAN"
     },
     {
-      "id_asuransi_id": 3,
+      "id": 3,
       "nama": "BPJS NON PENERIMA BANTUAN IURAN"
     },
     {
-      "id_asuransi_id": 4,
+      "id": 4,
       "nama": "BPJS BANTUAN DAERAH"
     },
     {
-      "id_asuransi_id": 99,
+      "id": 99,
       "nama": "id_ASURANSI LAINNYA"
     }
   ]

@@ -1,27 +1,27 @@
 {
     "status_kawin": [
     {
-      "status_kawin_id": 1,
+      "id": 1,
       "nama": "BELUM KAWIN"
     },
     {
-      "status_kawin_id": 2,
+      "id": 2,
       "nama": "KAWIN TERCATAT"
     },
     {
-      "status_kawin_id": 3,
+      "id": 3,
       "nama": "KAWIN TIDAK TERCATAT"
     },
     {
-      "status_kawin_id": 4,
+      "id": 4,
       "nama": "CERAI HIDUP TERCATAT"
     },
     {
-      "status_kawin_id": 5,
+      "id": 5,
       "nama": "CERAI HIDUP TIDAK TERCATAT"
     },
     {
-      "status_kawin_id": 6,
+      "id": 6,
       "nama": "CERAI MATI"
     }
   ]
