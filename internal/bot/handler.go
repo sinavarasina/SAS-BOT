@@ -26,11 +26,20 @@ func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string) st
 	if err != nil {
 		log.Printf("Error at db.SaveUser for jid: %s, Message : %v", jid, err)
 	}
-
+	
+	//sesi pengaduan
+	s := GetSession(jid)
+	if s.Step == "menunggu_pengaduan" {
+		return "Mohon kirimkan gambar beserta deskripsi pengaduan Anda."
+	}
+	
 	switch text {
 	case "!batal":
 		ResetSession(jid)
 		return "Sesi Dibatalkan"
+		case "2":
+		s.Step = "menunggu_pengaduan"
+		return "Anda memilih buat pengaduan.\n\nSilakan kirimkan *satu foto* pengaduan Anda, dan *tulis deskripsi* di bagian caption/keterangan gambar tersebut."
 	}
 
 	// Semua pesan dilempar ke Gemini, materi dikosongkan
