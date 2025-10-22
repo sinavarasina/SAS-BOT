@@ -11,13 +11,14 @@ import (
 	"github.com/sinavarasina/SAS-BOT/internal/bot"
 	"github.com/sinavarasina/SAS-BOT/internal/db"
 	"github.com/sinavarasina/SAS-BOT/internal/sheets"
+	"github.com/sinavarasina/SAS-BOT/internal/uploader"
 	"go.mau.fi/whatsmeow"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
 	"go.mau.fi/whatsmeow/types/events"
 	"google.golang.org/protobuf/proto"
 )
 
-func EventHandler(client *whatsmeow.Client, appDB *sqlx.DB, sheetsClient *sheets.SheetsClient) func(interface{}) {
+func EventHandler(client *whatsmeow.Client, appDB *sqlx.DB, sheetsClient *sheets.SheetsClient, driveClient *uploader.DriveClient) func(interface{}) {
 	return func(evt interface{}) {
 		switch v := evt.(type) {
 		case *events.Message:
@@ -53,6 +54,15 @@ func EventHandler(client *whatsmeow.Client, appDB *sqlx.DB, sheetsClient *sheets
 				if err != nil {
 					log.Printf("Gagal menyimpan gambar dari %s: %v", senderJID, err)
 					return
+				}
+
+				//tambahan kirim ke google drive 
+				fileName := fmt.Sprintf("pengaduan-%s.jpg", v.Info.ID)
+				fileID, err := driveClient.UploadToDrive(data, fileName)
+				if err != nil {
+						log.Printf("Gagal mengunggah file ke Drive: %v", err)
+						// Beri pesan error ke user
+						return
 				}
 
 				// 4. post ke db 
