@@ -39,7 +39,7 @@ func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string) []
 	}
 
 	// -----------------------------
-	// Handle database session (data entry)
+	// Handle database session
 	// -----------------------------
 	session, err := db.GetOrCreateDataEntrySession(dbConn, jid)
 	if err != nil {
@@ -98,10 +98,10 @@ func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string) []
 
 		log.Printf("[DEBUG] No matching command found. Showing default menu.")
 		return []string{"Silakan pilih menu:\n1. Pendataan\n 2. Pengaduan"}
-		return []string{"Silakan pilih menu. Kirim '1' untuk memulai pendataan."}
 	}
 }
 
 func HandlerRouteGroup(dbConn *sqlx.DB, jid, text, username, number string) string {
 	return ""
 }
+
