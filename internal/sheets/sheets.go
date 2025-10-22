@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"time"
+	"fmt"
 
 	"github.com/sinavarasina/SAS-BOT/internal/db"
 	"google.golang.org/api/option"
@@ -48,13 +49,14 @@ func InitSheetsClient() (*SheetsClient, error) {
 // WritePengaduan menulis satu baris data pengaduan ke spreadsheet.
 func (c *SheetsClient) WritePengaduan(aduan db.Pengaduan) {
 	rangeData := "A2" // Menulis ke sheet pertama, mulai dari sel A1 (akan di-append).
-
+	gambarFormula := fmt.Sprintf("=IMAGE(\"https://drive.google.com/uc?export=view&id=%s\")", aduan.PictPath)
 	var vr sheets.ValueRange
 	vr.Values = append(vr.Values, []interface{}{
 		time.Now().Format("2006-01-02 15:04:05"), // Timestamp
 		aduan.UserJID,
 		aduan.Deskripsi,
 		aduan.PictPath,
+		gambarFormula,
 	})
 
 	_, err := c.Service.Spreadsheets.Values.Append(c.SpreadsheetID, rangeData, &vr).ValueInputOption("USER_ENTERED").Do()
