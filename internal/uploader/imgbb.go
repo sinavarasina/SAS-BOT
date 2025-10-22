@@ -26,7 +26,7 @@ type ImgbbResponse struct {
 func UploadToImgbb(data []byte) (string, error) {
 	apiKey := os.Getenv("IMGBB_API_KEY")
 	if apiKey == "" {
-		log.Fatal("Environment variable IMGBB_API_KEY tidak di-set")
+		log.Fatal("[FATAL] Environment variable IMGBB_API_KEY is not set")
 	}
 
 	// Data gambar perlu di-encode ke Base64 untuk dikirim via form
@@ -42,7 +42,7 @@ func UploadToImgbb(data []byte) (string, error) {
 	// Buat request
 	req, err := http.NewRequest("POST", "https://api.imgbb.com/1/upload", body)
 	if err != nil {
-		return "", fmt.Errorf("gagal membuat request: %w", err)
+		return "", fmt.Errorf("[ERROR] Failed to create request: %v", err)
 	}
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 
@@ -50,27 +50,27 @@ func UploadToImgbb(data []byte) (string, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("gagal mengirim request ke imgbb: %w", err)
+		return "", fmt.Errorf("[ERROR] Failed to send request to imgbb: %v", err)
 	}
 	defer resp.Body.Close()
 
 	// Baca respons
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", fmt.Errorf("gagal membaca respons: %w", err)
+		return "", fmt.Errorf("[ERROR] Failed to read response: %v", err)
 	}
 
 	// Parse JSON
 	var imgbbResp ImgbbResponse
 	if err := json.Unmarshal(respBody, &imgbbResp); err != nil {
-		log.Printf("Respons non-JSON dari imgbb: %s", string(respBody))
-		return "", fmt.Errorf("gagal parse JSON: %w", err)
+		log.Printf("[WARN] Non-JSON response received from imgbb: %s", string(respBody))
+		return "", fmt.Errorf("[ERROR] Failed to parse JSON: %v", err)
 	}
 
 	if !imgbbResp.Success {
-		return "", fmt.Errorf("imgbb API mengembalikan error: %s", string(respBody))
+		return "", fmt.Errorf("[ERROR] imgbb API returned an error response: %s", string(respBody))
 	}
 
-	log.Printf("Gambar berhasil diunggah ke imgbb: %s", imgbbResp.Data.URL)
+	log.Printf("[INFO] Image successfully uploaded to imgbb: %s", imgbbResp.Data.URL)
 	return imgbbResp.Data.URL, nil
 }

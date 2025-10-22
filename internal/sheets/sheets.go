@@ -4,10 +4,10 @@ package sheets
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"time"
-	"fmt"
 
 	"github.com/sinavarasina/SAS-BOT/internal/db"
 	"google.golang.org/api/option"
@@ -23,21 +23,21 @@ type SheetsClient struct {
 // InitSheetsClient membuat koneksi ke Google Sheets API.
 func InitSheetsClient() (*SheetsClient, error) {
 	ctx := context.Background()
-	
+
 	// Nama file kredensial diambil dari environment variable
 	credentialFile := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
 	if credentialFile == "" {
-		log.Fatal("Environment variable GOOGLE_APPLICATION_CREDENTIALS tidak di-set")
+		log.Fatal("[FATAL] Environment variable GOOGLE_APPLICATION_CREDENTIALS tidak di-set")
 	}
 
 	srv, err := sheets.NewService(ctx, option.WithCredentialsFile(credentialFile))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("[ERROR] Failed to create Sheets service: %w", err)
 	}
-	
+
 	spreadsheetID := os.Getenv("SPREADSHEET_ID")
 	if spreadsheetID == "" {
-		log.Fatal("Environment variable SPREADSHEET_ID tidak di-set")
+		log.Fatal("[FATAL] Environment variable SPREADSHEET_ID tidak di-set")
 	}
 
 	return &SheetsClient{
@@ -62,8 +62,8 @@ func (c *SheetsClient) WritePengaduan(aduan db.Pengaduan) {
 
 	_, err := c.Service.Spreadsheets.Values.Append(c.SpreadsheetID, rangeData, &vr).ValueInputOption("USER_ENTERED").Do()
 	if err != nil {
-		log.Printf("Gagal menulis ke Google Sheet: %v", err)
+		log.Printf("[ERROR] Failed to write to Google Sheet: %v", err)
 	} else {
-		log.Println("Berhasil menulis pengaduan ke Google Sheet.")
+		log.Println("[INFO] Successfully wrote complaint to Google Sheet.")
 	}
 }
