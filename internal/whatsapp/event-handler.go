@@ -42,13 +42,16 @@ func EventHandler(client *whatsmeow.Client, appDB *sqlx.DB) func(interface{}) {
 					}
 				}
 			} else {
-				reply := bot.HandlerRoutePrivate(appDB, chatJID, text, username, number)
-				if reply != "" {
-					_, err := client.SendMessage(context.Background(), v.Info.Chat, &waProto.Message{
-						Conversation: proto.String(reply),
-					})
-					if err != nil {
-						log.Printf("Error sending private reply to %s: %v", chatJID, err)
+				replies := bot.HandlerRoutePrivate(appDB, chatJID, text, username, number)
+				// Send multiple messages if there are multiple replies
+				for _, reply := range replies {
+					if reply != "" {
+						_, err := client.SendMessage(context.Background(), v.Info.Chat, &waProto.Message{
+							Conversation: proto.String(reply),
+						})
+						if err != nil {
+							log.Printf("Error sending private reply to %s: %v", chatJID, err)
+						}
 					}
 				}
 			}
