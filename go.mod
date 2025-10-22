@@ -8,6 +8,7 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/mdp/qrterminal v1.0.1
 	go.mau.fi/whatsmeow v0.0.0-20250922112717-258fd9454b95
+	google.golang.org/api v0.252.0
 	google.golang.org/protobuf v1.36.10
 )
 
@@ -44,7 +45,6 @@ require (
 	golang.org/x/oauth2 v0.31.0 // indirect
 	golang.org/x/sys v0.36.0 // indirect
 	golang.org/x/text v0.29.0 // indirect
-	google.golang.org/api v0.252.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20251002232023-7c0ddcbb5797 // indirect
 	google.golang.org/grpc v1.75.1 // indirect
 	rsc.io/qr v0.2.0 // indirect
