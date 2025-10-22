@@ -10,7 +10,6 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/sinavarasina/SAS-BOT/internal/db"
 	"github.com/sinavarasina/SAS-BOT/internal/sheets"
-	"github.com/sinavarasina/SAS-BOT/internal/uploader"
 	"github.com/sinavarasina/SAS-BOT/internal/whatsapp"
 )
 
@@ -37,12 +36,8 @@ func main() {
 		log.Fatal("Error at sheets.InitSheetsClient(), Message :", err)
 	}
 
-	driveClient, err := uploader.InitDriveClient()
-    if err != nil {
-        log.Fatal("Error at uploader.InitDriveClient(), Message :", err)
-    }
 
-	WaClient, err := whatsapp.InitClient(dsn, appDB, ctx, sheetsClient, driveClient)
+	WaClient, err := whatsapp.InitClient(dsn, appDB, ctx, sheetsClient)
 	if err != nil {
 		log.Fatal("Error at whatsapp.InitClient(), Message :", err)
 	}
