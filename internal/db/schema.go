@@ -3,9 +3,10 @@ package db
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/jmoiron/sqlx"
-	_"github.com/lib/pq"
 	"os"
+
+	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 )
 
 func InitDB(dsn string) (*sqlx.DB, error) {
@@ -235,10 +236,10 @@ func insertDataFromJSON(db *sqlx.DB, filePath, tableName, idColumn string) error
 		return fmt.Errorf("failed to parse %s: %v", filePath, err)
 	}
 
-	// Clear existing data
-	if _, err := db.Exec(fmt.Sprintf("DELETE FROM %s", tableName)); err != nil {
-		return fmt.Errorf("failed to clear %s: %v", tableName, err)
-	}
+	// DO NOT clear existing data to avoid FK constraint errors
+	// if _, err := db.Exec(fmt.Sprintf("DELETE FROM %s", tableName)); err != nil {
+	// 	return fmt.Errorf("failed to clear %s: %v", tableName, err)
+	// }
 
 	// Get the key from the JSON (usually matches the table name)
 	var records []map[string]interface{}
@@ -247,7 +248,7 @@ func insertDataFromJSON(db *sqlx.DB, filePath, tableName, idColumn string) error
 		break
 	}
 
-	// Insert new data
+	// Insert or update data
 	for _, record := range records {
 		query := fmt.Sprintf("INSERT INTO %s (%s, nama) VALUES ($1, $2) ON CONFLICT (%s) DO UPDATE SET nama = EXCLUDED.nama",
 			tableName, idColumn, idColumn)
