@@ -43,7 +43,7 @@ func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string) st
 		return "Sesi telah direset. Silakan pilih menu. Kirim '1' untuk memulai pendataan."
 	}
 
-	// Get current session
+	// Get current session before handling "1" command
 	session, err := db.GetOrCreateDataEntrySession(dbConn, jid)
 	if err != nil {
 		log.Printf("[ERROR] Session error: %v", err)
@@ -53,8 +53,8 @@ func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string) st
 	log.Printf("[DEBUG] Current session state - Step: %d, Awaiting: %v",
 		session.CurrentStep, session.AwaitingAnswer)
 
-	// Start new session if user sends "1"
-	if text == "1" {
+	// Start new session if user sends "1" AND there's no active session
+	if text == "1" && !session.AwaitingAnswer {
 		if err := db.StartNewSession(dbConn, jid); err != nil {
 			log.Printf("[ERROR] Failed to start new session: %v", err)
 			return "Terjadi kesalahan sistem."
