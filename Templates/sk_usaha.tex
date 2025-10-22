@@ -1,0 +1,99 @@
+\documentclass[a4paper, 12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[left=2.5cm, right=2.5cm, top=2cm, bottom=2.5cm]{geometry} % Margin
+\usepackage{graphicx} % Untuk logo
+\usepackage{fancyhdr} % Untuk layout header
+\usepackage{helvet} % Font Sans-serif (Arial/Helvetica) untuk Kop
+\usepackage{times} % Font Serif (Times) untuk body
+\usepackage{parskip} % Spasi antar paragraf
+\usepackage[none]{hyphenat} % Hentikan pemotongan kata
+\usepackage[printwatermark]{draftwatermark} % Paket untuk watermark
+\usepackage{tabularx} % Untuk tabel data yang lebih rapi
+
+% --- PENGATURAN WATERMARK (BACKGROUND) ---
+% Ganti teks di bawah ini sesuai kebutuhan Anda
+\SetWatermarkText{SURAT KETERANGAN USAHA}
+\SetWatermarkScale{0.6} % Sesuaikan ukuran teks watermark
+\SetWatermarkColor[gray]{0.92} % Sesuaikan kecerahan (0.92 = sangat pudar)
+% -----------------------------------------
+
+% --- PENGATURAN HEADER (KOP SURAT) ---
+\pagestyle{fancy}
+\fancyhf{} % Hapus semua header/footer default
+\renewcommand{\headrulewidth}{1.5pt} % Garis tebal di bawah kop
+
+% Menggunakan \fancyhead[C] (blok tengah) untuk kontrol penuh atas layout
+\fancyhead[C]{%
+    \sffamily % Font Sans-serif untuk KOP
+    \begin{tabular*}{\textwidth}{@{}l@{\hspace{0.5cm}}l@{}} % Tabel: Logo [spasi] Teks
+        % Kolom 1: Logo
+        % \raisebox untuk menengahkan logo secara vertikal dengan blok teks
+        \raisebox{-0.5\height}{\includegraphics[width=1.8cm]{logo/logo.jpg}} &
+        
+        % Kolom 2: Blok Teks (rata kiri)
+        \parbox[c]{0.8\textwidth}{ % parbox[c] = tengahkan vertikal
+            \centering
+            \textbf{PEMERINTAH KABUPATEN LAMPUNG TIMUR} \\
+            \textbf{KECAMATAN SEKAMPUNG UDIK} \\
+            \textbf{DESA SINDANG ANOM} \\
+            \small Alamat : Jalan Pasar Desa Sindang Anom Kode Pos 34183
+        }
+    \end{tabular*}
+}
+\cfoot{} % Hapus footer
+\setlength{\headheight}{2.2cm} % Sesuaikan tinggi header agar pas
+% -----------------------------------------
+
+% --- START DOKUMEN ---
+\begin{document}
+
+% --- JUDUL SURAT ---
+\vspace{2cm} % Beri spasi setelah garis kop
+\begin{center}
+    \rmfamily % Kembali ke font Times
+    \large\textbf{\underline{SURAT KETERANGAN USAHA}} \\
+    \normalsize Nomor : 522/ \hspace{1cm} / 12/2007/ \hspace{1cm}
+\end{center}
+\vspace{1cm}
+
+% --- ISI SURAT ---
+\rmfamily % Pastikan font body adalah Times
+Yang bertanda tangan dibawah ini Kepala Desa Sindang Anom Kecamatan Sekampung Udik, Kabupaten Lampung Timur dengan ini menerangkan bahwa:
+\vspace{0.5cm}
+
+% Menggunakan tabel agar rapi
+\begin{tabularx}{\textwidth}{l X}
+    \makebox[5cm][l]{N a m a} & : .................................................................... \\
+    \makebox[5cm][l]{Jenis Kelamin} & : .................................................................... \\
+    \makebox[5cm][l]{Tempat tgl lahir/ Umur} & : .................................................................... \\
+    \makebox[5cm][l]{NIK} & : .................................................................... \\
+    \makebox[5cm][l]{Agama} & : .................................................................... \\
+    \makebox[5cm][l]{Pekerjaan} & : .................................................................... \\
+    \makebox[5cm][l]{Alamat} & : .................................................................... \\
+\end{tabularx}
+\vspace{0.5cm}
+
+Nama tersebut adalah benar berdomisili pada alamat tersebut di atas dan benar memiliki usaha:
+\begin{center}
+    \textbf{....................................................................}
+\end{center}
+\vspace{0.2cm}
+Yang terletak di Dusun .......... Desa Sindang Anom Kecamatan Sekampung Udik Kabupaten Lampung Timur.
+\vspace{0.5cm}
+
+Keterangan Usaha ini berlaku satu tahun sejak tanggal pembuatan.
+\vspace{0.2cm}
+
+Demikian surat keterangan usaha ini dibuat dengan sebenarnya untuk dapat dipergunakan sebagaimana mestinya.
+\vspace{1.5cm}
+
+% --- TANDA TANGAN ---
+\begin{flushright}
+    Sindang Anom, .................................... \\
+    Kepala Desa Sindang Anom \\
+    \vspace{2.5cm} % Spasi untuk TTD
+    \textbf{AMINUDIN} \\
+\end{flushright}
+
+\end{document}
