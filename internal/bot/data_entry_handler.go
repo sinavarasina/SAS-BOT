@@ -481,7 +481,7 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 				if err := updateChangedFields(dbConn, jid, changes); err != nil {
 					log.Printf("[ERROR] Failed to update fields: %v", err)
 					return []string{
-						fmt.Sprintf("Gagal mengupdate data: %v", err),
+						fmt.Sprintf("[ERROR] Failed to update data: %v", err),
 						"Pastikan nilai yang dimasukkan sesuai dengan tipe data yang diharapkan.",
 						"Untuk field ID (seperti Jenis Kelamin, Agama, dll) gunakan angka yang valid.",
 					}

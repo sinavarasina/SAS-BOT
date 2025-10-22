@@ -24,12 +24,12 @@ func InitDriveClient() (*DriveClient, error) {
 
 	srv, err := drive.NewService(ctx, option.WithCredentialsFile(credentialFile), option.WithScopes(drive.DriveFileScope))
 	if err != nil {
-		return nil, fmt.Errorf("gagal membuat Drive service: %w", err)
+		return nil, fmt.Errorf("[ERROR] Failed to create Drive service: %w", err)
 	}
 
 	folderID := os.Getenv("GOOGLE_DRIVE_FOLDER_ID")
 	if folderID == "" {
-		log.Fatal("Environment variable GOOGLE_DRIVE_FOLDER_ID tidak di-set")
+		log.Fatal("[FATAL] Environment variable GOOGLE_DRIVE_FOLDER_ID is not set")
 	}
 
 	return &DriveClient{
@@ -47,7 +47,7 @@ func (c *DriveClient) UploadToDrive(data []byte, fileName string) (string, error
 
 	file, err := c.Service.Files.Create(fileMetadata).Media(bytes.NewReader(data)).Do()
 	if err != nil {
-		return "", fmt.Errorf("gagal mengunggah file ke Drive: %w", err)
+		return "", fmt.Errorf("[ERROR] Failed to upload file to Google Drive: %v", err)
 	}
 
 	// Setelah upload, buat file menjadi publik (bisa dilihat siapa saja dengan link)
@@ -56,9 +56,9 @@ func (c *DriveClient) UploadToDrive(data []byte, fileName string) (string, error
 		Role: "reader",
 	}).Do()
 	if err != nil {
-		return "", fmt.Errorf("gagal mengatur izin file: %w", err)
+		return "", fmt.Errorf("[ERROR] Failed to set file permissions: %v", err)
 	}
 
-	log.Printf("File berhasil diunggah ke Drive dengan ID: %s", file.Id)
+	log.Printf("[INFO] File successfully uploaded to Google Drive with ID: %s", file.Id)
 	return file.Id, nil
 }

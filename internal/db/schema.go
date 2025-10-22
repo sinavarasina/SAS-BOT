@@ -140,7 +140,7 @@ func InitDB(dsn string) (*sqlx.DB, error) {
 
 	// Populate lookup tables
 	if err := populateLookupTables(db); err != nil {
-		return nil, fmt.Errorf("failed to populate lookup tables: %v", err)
+		return nil, fmt.Errorf("[ERROR] Failed to populate lookup tables: %v", err)
 	}
 
 	return db, err
@@ -204,12 +204,12 @@ func populateLookupTables(db *sqlx.DB) error {
 func insertDataFromJSON(db *sqlx.DB, filePath, tableName, idColumn string) error {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
-		return fmt.Errorf("failed to read %s: %v", filePath, err)
+		return fmt.Errorf("[ERROR] Failed to read %s: %v", filePath, err)
 	}
 
 	var jsonData map[string][]map[string]interface{}
 	if err := json.Unmarshal(data, &jsonData); err != nil {
-		return fmt.Errorf("failed to parse %s: %v", filePath, err)
+		return fmt.Errorf("[ERROR] Failed to parse %s: %v", filePath, err)
 	}
 
 	var records []map[string]interface{}
@@ -229,4 +229,3 @@ func insertDataFromJSON(db *sqlx.DB, filePath, tableName, idColumn string) error
 
 	return nil
 }
-
