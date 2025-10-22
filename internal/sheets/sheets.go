@@ -57,6 +57,7 @@ func (c *SheetsClient) WritePengaduan(aduan db.Pengaduan) {
 		aduan.Deskripsi,
 		aduan.PictPath,
 		gambarFormula,
+		"Belum Diproses",
 	})
 
 	_, err := c.Service.Spreadsheets.Values.Append(c.SpreadsheetID, rangeData, &vr).ValueInputOption("USER_ENTERED").Do()
