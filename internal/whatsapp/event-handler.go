@@ -7,13 +7,14 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/sinavarasina/SAS-BOT/internal/bot"
+	"github.com/sinavarasina/SAS-BOT/internal/sheets"
 	"go.mau.fi/whatsmeow"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
 	"go.mau.fi/whatsmeow/types/events"
 	"google.golang.org/protobuf/proto"
 )
 
-func EventHandler(client *whatsmeow.Client, appDB *sqlx.DB) func(interface{}) {
+func EventHandler(client *whatsmeow.Client, appDB *sqlx.DB, sheetsClient *sheets.SheetsClient) func(interface{}) {
 	return func(evt interface{}) {
 		switch v := evt.(type) {
 		case *events.Message:
@@ -27,6 +28,16 @@ func EventHandler(client *whatsmeow.Client, appDB *sqlx.DB) func(interface{}) {
 			username := v.Info.PushName
 			number := senderJID[:strings.Index(senderJID, "@")]
 
+			s := bot.GetSession(senderJID)
+
+			// Cek apakah pesan adalah gambar dan user sedang dalam sesi pengaduan
+			imageMsg := v.Message.GetImageMessage()
+			if !v.Info.IsGroup && imageMsg != nil && s.Step == "menunggu_pengaduan" {
+				bot.HandleImagePengaduan(client, appDB, sheetsClient, senderJID, imageMsg, v.Info.ID, v.Info.Chat)
+				return
+			}
+
+			text = v.Message.GetConversation()
 			if v.Info.IsGroup {
 				reply := bot.HandlerRouteGroup(appDB, chatJID, text, username, number)
 				if reply != "" {
