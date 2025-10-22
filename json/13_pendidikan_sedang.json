@@ -1,75 +1,75 @@
 {
-    "pendidikan_sedang_id": [
+  "pendidikan_sedang": [
     {
-      "pendidikan_sedang_id_id": 1,
+      "id": 1,
       "nama": "BELUM MASUK TK/KELOMPOK BERMAIN"
     },
     {
-      "pendidikan_sedang_id_id": 2,
+      "id": 2,
       "nama": "SEDANG TK/KELOMPOK BERMAIN"
     },
     {
-      "pendidikan_sedang_id_id": 3,
+      "id": 3,
       "nama": "TIDAK PERNAH SEKOLAH"
     },
     {
-      "pendidikan_sedang_id_id": 4,
+      "id": 4,
       "nama": "SEDANG SD/SEDERAJAT"
     },
     {
-      "pendidikan_sedang_id_id": 5,
+      "id": 5,
       "nama": "TIDAK TAMAT SD/SEDERAJAT"
     },
     {
-      "pendidikan_sedang_id_id": 6,
+      "id": 6,
       "nama": "SEDANG SLTP/SEDERAJAT"
     },
     {
-      "pendidikan_sedang_id_id": 7,
+      "id": 7,
       "nama": "SEDANG SLTA/SEDERAJAT"
     },
     {
-      "pendidikan_sedang_id_id": 8,
+      "id": 8,
       "nama": "SEDANG  D-1/SEDERAJAT"
     },
     {
-      "pendidikan_sedang_id_id": 9,
+      "id": 9,
       "nama": "SEDANG D-2/SEDERAJAT"
     },
     {
-      "pendidikan_sedang_id_id": 10,
+      "id": 10,
       "nama": "SEDANG D-3/SEDERAJAT"
     },
     {
-      "pendidikan_sedang_id_id": 11,
+      "id": 11,
       "nama": "SEDANG  S-1/SEDERAJAT"
     },
     {
-      "pendidikan_sedang_id_id": 12,
+      "id": 12,
       "nama": "SEDANG S-2/SEDERAJAT"
     },
     {
-      "pendidikan_sedang_id_id": 13,
+      "id": 13,
       "nama": "SEDANG S-3/SEDERAJAT"
     },
     {
-      "pendidikan_sedang_id_id": 14,
+      "id": 14,
       "nama": "SEDANG SLB A/SEDERAJAT"
     },
     {
-      "pendidikan_sedang_id_id": 15,
+      "id": 15,
       "nama": "SEDANG SLB B/SEDERAJAT"
     },
     {
-      "pendidikan_sedang_id_id": 16,
+      "id": 16,
       "nama": "SEDANG SLB C/SEDERAJAT"
     },
     {
-      "pendidikan_sedang_id_id": 17,
+      "id": 17,
       "nama": "TIDAK DAPAT MEMBACA DAN MENULIS HURUF LATIN/ARAB"
     },
     {
-      "pendidikan_sedang_id_id": 18,
+      "id": 18,
       "nama": "TIDAK SEDANG SEKOLAH"
     }
   ]

@@ -1,8 +1,8 @@
 {
-    "tanggallahir": [
-        {
-            "tanggallahir_id": 1,
-            "tanggallahir": ""
-        }
-    ]
+  "tanggallahir": [
+    {
+      "id": 1,
+      "nama": ""
+    }
+  ]
 }

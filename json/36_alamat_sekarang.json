@@ -1,8 +1,8 @@
 {
-    "alamat_sekarang": [
-        {
-            "alamat_sekarang_id": 1,
-            "alamat_sekarang": ""
-        }
-    ]
+  "alamat_sekarang": [
+    {
+      "id": 1,
+      "nama": ""
+    }
+  ]
 }

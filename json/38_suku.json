@@ -1,655 +1,655 @@
 {
-    "suku": [
+  "suku": [
     {
-      "suku_id": 1,
+      "id": 1,
       "nama": "Aceh"
     },
     {
-      "suku_id": 2,
+      "id": 2,
       "nama": "Alas"
     },
     {
-      "suku_id": 3,
+      "id": 3,
       "nama": "Alor"
     },
     {
-      "suku_id": 4,
+      "id": 4,
       "nama": "Ambon"
     },
     {
-      "suku_id": 5,
+      "id": 5,
       "nama": "Ampana"
     },
     {
-      "suku_id": 6,
+      "id": 6,
       "nama": "Anak"
     },
     {
-      "suku_id": 7,
+      "id": 7,
       "nama": "Aneuk"
     },
     {
-      "suku_id": 8,
+      "id": 8,
       "nama": "Arab:"
     },
     {
-      "suku_id": 9,
+      "id": 9,
       "nama": "Aru"
     },
     {
-      "suku_id": 10,
+      "id": 10,
       "nama": "Asmat"
     },
     {
-      "suku_id": 11,
+      "id": 11,
       "nama": "Bare?e"
     },
     {
-      "suku_id": 12,
+      "id": 12,
       "nama": "Banten"
     },
     {
-      "suku_id": 13,
+      "id": 13,
       "nama": "Besemah"
     },
     {
-      "suku_id": 14,
+      "id": 14,
       "nama": "Bali"
     },
     {
-      "suku_id": 15,
+      "id": 15,
       "nama": "Balantak"
     },
     {
-      "suku_id": 16,
+      "id": 16,
       "nama": "Banggai"
     },
     {
-      "suku_id": 17,
+      "id": 17,
       "nama": "Baduy"
     },
     {
-      "suku_id": 18,
+      "id": 18,
       "nama": "Bajau"
     },
     {
-      "suku_id": 19,
+      "id": 19,
       "nama": "Banjar"
     },
     {
-      "suku_id": 20,
+      "id": 20,
       "nama": "Batak"
     },
     {
-      "suku_id": 21,
+      "id": 21,
       "nama": "Batak"
     },
     {
-      "suku_id": 22,
+      "id": 22,
       "nama": "Mandailing"
     },
     {
-      "suku_id": 23,
+      "id": 23,
       "nama": "Angkola"
     },
     {
-      "suku_id": 24,
+      "id": 24,
       "nama": "Toba"
     },
     {
-      "suku_id": 25,
+      "id": 25,
       "nama": "Pakpak"
     },
     {
-      "suku_id": 26,
+      "id": 26,
       "nama": "Simalungun"
     },
     {
-      "suku_id": 27,
+      "id": 27,
       "nama": "Batin"
     },
     {
-      "suku_id": 28,
+      "id": 28,
       "nama": "Bawean"
     },
     {
-      "suku_id": 29,
+      "id": 29,
       "nama": "Bentong"
     },
     {
-      "suku_id": 30,
+      "id": 30,
       "nama": "Berau"
     },
     {
-      "suku_id": 31,
+      "id": 31,
       "nama": "Betawi"
     },
     {
-      "suku_id": 32,
+      "id": 32,
       "nama": "Bima"
     },
     {
-      "suku_id": 33,
+      "id": 33,
       "nama": "Boti"
     },
     {
-      "suku_id": 34,
+      "id": 34,
       "nama": "Bolang"
     },
     {
-      "suku_id": 35,
+      "id": 35,
       "nama": "Bugis"
     },
     {
-      "suku_id": 36,
+      "id": 36,
       "nama": "Bungku"
     },
     {
-      "suku_id": 37,
+      "id": 37,
       "nama": "Buru"
     },
     {
-      "suku_id": 38,
+      "id": 38,
       "nama": "Buol"
     },
     {
-      "suku_id": 39,
+      "id": 39,
       "nama": "Bulungan"
     },
     {
-      "suku_id": 40,
+      "id": 40,
       "nama": "Buton"
     },
     {
-      "suku_id": 41,
+      "id": 41,
       "nama": "Bonai"
     },
     {
-      "suku_id": 42,
+      "id": 42,
       "nama": "Cham"
     },
     {
-      "suku_id": 43,
+      "id": 43,
       "nama": "Cirebon"
     },
     {
-      "suku_id": 44,
+      "id": 44,
       "nama": "Damal"
     },
     {
-      "suku_id": 45,
+      "id": 45,
       "nama": "Dampeles"
     },
     {
-      "suku_id": 46,
+      "id": 46,
       "nama": "Dani"
     },
     {
-      "suku_id": 47,
+      "id": 47,
       "nama": "Dairi"
     },
     {
-      "suku_id": 48,
+      "id": 48,
       "nama": "Daya"
     },
     {
-      "suku_id": 49,
+      "id": 49,
       "nama": "Dayak"
     },
     {
-      "suku_id": 50,
+      "id": 50,
       "nama": "Dompu"
     },
     {
-      "suku_id": 51,
+      "id": 51,
       "nama": "Donggo"
     },
     {
-      "suku_id": 52,
+      "id": 52,
       "nama": "Dongga"
     },
     {
-      "suku_id": 53,
+      "id": 53,
       "nama": "Dondo"
     },
     {
-      "suku_id": 54,
+      "id": 54,
       "nama": "Duri"
     },
     {
-      "suku_id": 55,
+      "id": 55,
       "nama": "Eropa"
     },
     {
-      "suku_id": 56,
+      "id": 56,
       "nama": "Flores"
     },
     {
-      "suku_id": 57,
+      "id": 57,
       "nama": "Lamaholot"
     },
     {
-      "suku_id": 58,
+      "id": 58,
       "nama": "Gayo"
     },
     {
-      "suku_id": 59,
+      "id": 59,
       "nama": "Gorontalo"
     },
     {
-      "suku_id": 60,
+      "id": 60,
       "nama": "Gumai"
     },
     {
-      "suku_id": 61,
+      "id": 61,
       "nama": "India"
     },
     {
-      "suku_id": 62,
+      "id": 62,
       "nama": "Jawa"
     },
     {
-      "suku_id": 63,
+      "id": 63,
       "nama": "Tengger"
     },
     {
-      "suku_id": 64,
+      "id": 64,
       "nama": "Osing"
     },
     {
-      "suku_id": 65,
+      "id": 65,
       "nama": "Samin"
     },
     {
-      "suku_id": 66,
+      "id": 66,
       "nama": "Bawean"
     },
     {
-      "suku_id": 67,
+      "id": 67,
       "nama": "Jambi"
     },
     {
-      "suku_id": 68,
+      "id": 68,
       "nama": "Jepang"
     },
     {
-      "suku_id": 69,
+      "id": 69,
       "nama": "Kei"
     },
     {
-      "suku_id": 70,
+      "id": 70,
       "nama": "Kaili"
     },
     {
-      "suku_id": 71,
+      "id": 71,
       "nama": "Kampar"
     },
     {
-      "suku_id": 72,
+      "id": 72,
       "nama": "Kaur"
     },
     {
-      "suku_id": 73,
+      "id": 73,
       "nama": "Kayu"
     },
     {
-      "suku_id": 74,
+      "id": 74,
       "nama": "Kerinci"
     },
     {
-      "suku_id": 75,
+      "id": 75,
       "nama": "Komering"
     },
     {
-      "suku_id": 76,
+      "id": 76,
       "nama": "Konjo"
     },
     {
-      "suku_id": 77,
+      "id": 77,
       "nama": "Konjo"
     },
     {
-      "suku_id": 78,
+      "id": 78,
       "nama": "Koto"
     },
     {
-      "suku_id": 79,
+      "id": 79,
       "nama": "Kubu"
     },
     {
-      "suku_id": 80,
+      "id": 80,
       "nama": "Kulawi"
     },
     {
-      "suku_id": 81,
+      "id": 81,
       "nama": "Kutai"
     },
     {
-      "suku_id": 82,
+      "id": 82,
       "nama": "Kluet"
     },
     {
-      "suku_id": 83,
+      "id": 83,
       "nama": "Korea"
     },
     {
-      "suku_id": 84,
+      "id": 84,
       "nama": "Krui"
     },
     {
-      "suku_id": 85,
+      "id": 85,
       "nama": "Laut"
     },
     {
-      "suku_id": 86,
+      "id": 86,
       "nama": "Lampung"
     },
     {
-      "suku_id": 87,
+      "id": 87,
       "nama": "Lematang"
     },
     {
-      "suku_id": 88,
+      "id": 88,
       "nama": "Lembak"
     },
     {
-      "suku_id": 89,
+      "id": 89,
       "nama": "Lintang"
     },
     {
-      "suku_id": 90,
+      "id": 90,
       "nama": "Lom"
     },
     {
-      "suku_id": 91,
+      "id": 91,
       "nama": "Lore"
     },
     {
-      "suku_id": 92,
+      "id": 92,
       "nama": "Lubu"
     },
     {
-      "suku_id": 93,
+      "id": 93,
       "nama": "Moronene"
     },
     {
-      "suku_id": 94,
+      "id": 94,
       "nama": "Madura"
     },
     {
-      "suku_id": 95,
+      "id": 95,
       "nama": "Makassar"
     },
     {
-      "suku_id": 96,
+      "id": 96,
       "nama": "Mamasa"
     },
     {
-      "suku_id": 97,
+      "id": 97,
       "nama": "Manda"
     },
     {
-      "suku_id": 98,
+      "id": 98,
       "nama": "Melayu"
     },
     {
-      "suku_id": 99,
+      "id": 99,
       "nama": "Mentawai"
     },
     {
-      "suku_id": 100,
+      "id": 100,
       "nama": "Minahasa"
     },
     {
-      "suku_id": 101,
+      "id": 101,
       "nama": "Ponosakan"
     },
     {
-      "suku_id": 102,
+      "id": 102,
       "nama": "Minangkabau"
     },
     {
-      "suku_id": 103,
+      "id": 103,
       "nama": "Mongondow"
     },
     {
-      "suku_id": 104,
+      "id": 104,
       "nama": "Mori"
     },
     {
-      "suku_id": 105,
+      "id": 105,
       "nama": "Muko-Muko"
     },
     {
-      "suku_id": 106,
+      "id": 106,
       "nama": "Muna"
     },
     {
-      "suku_id": 107,
+      "id": 107,
       "nama": "Muyu"
     },
     {
-      "suku_id": 108,
+      "id": 108,
       "nama": "Mekongga"
     },
     {
-      "suku_id": 109,
+      "id": 109,
       "nama": "Moro"
     },
     {
-      "suku_id": 110,
+      "id": 110,
       "nama": "Nias"
     },
     {
-      "suku_id": 111,
+      "id": 111,
       "nama": "Ngada"
     },
     {
-      "suku_id": 112,
+      "id": 112,
       "nama": "Osing"
     },
     {
-      "suku_id": 113,
+      "id": 113,
       "nama": "Ogan"
     },
     {
-      "suku_id": 114,
+      "id": 114,
       "nama": "Ocu"
     },
     {
-      "suku_id": 115,
+      "id": 115,
       "nama": "Padoe"
     },
     {
-      "suku_id": 116,
+      "id": 116,
       "nama": "Papua"
     },
     {
-      "suku_id": 117,
+      "id": 117,
       "nama": "Palembang"
     },
     {
-      "suku_id": 118,
+      "id": 118,
       "nama": "Pamona"
     },
     {
-      "suku_id": 119,
+      "id": 119,
       "nama": "Pesisi"
     },
     {
-      "suku_id": 120,
+      "id": 120,
       "nama": "Pasir"
     },
     {
-      "suku_id": 121,
+      "id": 121,
       "nama": "Pubian"
     },
     {
-      "suku_id": 122,
+      "id": 122,
       "nama": "Pattae"
     },
     {
-      "suku_id": 123,
+      "id": 123,
       "nama": "Pakistani"
     },
     {
-      "suku_id": 124,
+      "id": 124,
       "nama": "Peranakan"
     },
     {
-      "suku_id": 125,
+      "id": 125,
       "nama": "Rawa"
     },
     {
-      "suku_id": 126,
+      "id": 126,
       "nama": "Rejang"
     },
     {
-      "suku_id": 127,
+      "id": 127,
       "nama": "Rote"
     },
     {
-      "suku_id": 128,
+      "id": 128,
       "nama": "Rongga"
     },
     {
-      "suku_id": 129,
+      "id": 129,
       "nama": "Rohingya"
     },
     {
-      "suku_id": 130,
+      "id": 130,
       "nama": "Sabu"
     },
     {
-      "suku_id": 131,
+      "id": 131,
       "nama": "Saluan"
     },
     {
-      "suku_id": 132,
+      "id": 132,
       "nama": "Sambas"
     },
     {
-      "suku_id": 133,
+      "id": 133,
       "nama": "Samin"
     },
     {
-      "suku_id": 134,
+      "id": 134,
       "nama": "Sangi"
     },
     {
-      "suku_id": 135,
+      "id": 135,
       "nama": "Sasak"
     },
     {
-      "suku_id": 136,
+      "id": 136,
       "nama": "Sekak"
     },
     {
-      "suku_id": 137,
+      "id": 137,
       "nama": "Sekayu"
     },
     {
-      "suku_id": 138,
+      "id": 138,
       "nama": "Semendo"
     },
     {
-      "suku_id": 139,
+      "id": 139,
       "nama": "Serawai"
     },
     {
-      "suku_id": 140,
+      "id": 140,
       "nama": "Simeulue"
     },
     {
-      "suku_id": 141,
+      "id": 141,
       "nama": "Sigulai"
     },
     {
-      "suku_id": 142,
+      "id": 142,
       "nama": "Suluk"
     },
     {
-      "suku_id": 143,
+      "id": 143,
       "nama": "Sumbawa"
     },
     {
-      "suku_id": 144,
+      "id": 144,
       "nama": "Sumba"
     },
     {
-      "suku_id": 145,
+      "id": 145,
       "nama": "Sunda"
     },
     {
-      "suku_id": 146,
+      "id": 146,
       "nama": "Sungkai"
     },
     {
-      "suku_id": 147,
+      "id": 147,
       "nama": "Talau"
     },
     {
-      "suku_id": 148,
+      "id": 148,
       "nama": "Talang"
     },
     {
-      "suku_id": 149,
+      "id": 149,
       "nama": "Tamiang"
     },
     {
-      "suku_id": 150,
+      "id": 150,
       "nama": "Tengger"
     },
     {
-      "suku_id": 151,
+      "id": 151,
       "nama": "Ternate"
     },
     {
-      "suku_id": 152,
+      "id": 152,
       "nama": "Tidore"
     },
     {
-      "suku_id": 153,
+      "id": 153,
       "nama": "Tidung"
     },
     {
-      "suku_id": 154,
+      "id": 154,
       "nama": "Timor"
     },
     {
-      "suku_id": 155,
+      "id": 155,
       "nama": "Tionghoa"
     },
     {
-      "suku_id": 156,
+      "id": 156,
       "nama": "Tojo"
     },
     {
-      "suku_id": 157,
+      "id": 157,
       "nama": "Toraja"
     },
     {
-      "suku_id": 158,
+      "id": 158,
       "nama": "Tolaki"
     },
     {
-      "suku_id": 159,
+      "id": 159,
       "nama": "Toli"
     },
     {
-      "suku_id": 160,
+      "id": 160,
       "nama": "Tomini"
     },
     {
-      "suku_id": 161,
+      "id": 161,
       "nama": "Una-una"
     },
     {
-      "suku_id": 162,
+      "id": 162,
       "nama": "Ulu"
     },
     {
-      "suku_id": 163,
+      "id": 163,
       "nama": "Wolio"
     }
   ]

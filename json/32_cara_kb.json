@@ -1,39 +1,39 @@
 {
-    "cara_kb": [
+  "cara_kb": [
     {
-      "cara_kb_id": 1,
+      "id": 1,
       "nama": "Pil"
     },
     {
-      "cara_kb_id": 2,
+      "id": 2,
       "nama": "IUD"
     },
     {
-      "cara_kb_id": 3,
+      "id": 3,
       "nama": "Suntik"
     },
     {
-      "cara_kb_id": 4,
+      "id": 4,
       "nama": "Kondom"
     },
     {
-      "cara_kb_id": 5,
+      "id": 5,
       "nama": "Susuk KB"
     },
     {
-      "cara_kb_id": 6,
+      "id": 6,
       "nama": "Sterilisasi Wanita"
     },
     {
-      "cara_kb_id": 7,
+      "id": 7,
       "nama": "Sterilisasi Pria"
     },
     {
-      "cara_kb_id": 8,
+      "id": 8,
       "nama": "Lainnya"
     },
     {
-      "cara_kb_id": 1002,
+      "id": 1002,
       "nama": "Tidak Menggunakan"
     }
   ]
