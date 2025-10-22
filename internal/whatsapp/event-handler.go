@@ -25,6 +25,10 @@ func EventHandler(client *whatsmeow.Client, appDB *sqlx.DB, sheetsClient *sheets
 			chatJID := v.Info.Chat.String()
 			senderJID := v.Info.Sender.String()
 			text := v.Message.GetConversation()
+			if text == "" && v.Message.ExtendedTextMessage != nil {
+				text = v.Message.ExtendedTextMessage.GetText()
+			}
+
 			username := v.Info.PushName
 			number := senderJID[:strings.Index(senderJID, "@")]
 
@@ -49,13 +53,16 @@ func EventHandler(client *whatsmeow.Client, appDB *sqlx.DB, sheetsClient *sheets
 					}
 				}
 			} else {
-				reply := bot.HandlerRoutePrivate(appDB, chatJID, text, username, number)
-				if reply != "" {
-					_, err := client.SendMessage(context.Background(), v.Info.Chat, &waProto.Message{
-						Conversation: proto.String(reply),
-					})
-					if err != nil {
-						log.Printf("Error sending private reply to %s: %v", chatJID, err)
+				replies := bot.HandlerRoutePrivate(appDB, chatJID, text, username, number)
+				// Send multiple messages if there are multiple replies
+				for _, reply := range replies {
+					if reply != "" {
+						_, err := client.SendMessage(context.Background(), v.Info.Chat, &waProto.Message{
+							Conversation: proto.String(reply),
+						})
+						if err != nil {
+							log.Printf("Error sending private reply to %s: %v", chatJID, err)
+						}
 					}
 				}
 			}

@@ -1,8 +1,8 @@
 {
-    "nama_ibu": [
-        {
-            "nama_ibu_id": 1,
-            "nama_ibu": ""
-        }
-    ]
+  "nama_ibu": [
+    {
+      "id": 1,
+      "nama": ""
+    }
+  ]
 }
