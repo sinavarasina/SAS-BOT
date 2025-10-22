@@ -227,6 +227,12 @@ var (
 	}
 )
 
+const (
+	STEP_START        = 1
+	STEP_CONFIRMATION = 42
+	STEP_EDIT         = 43
+)
+
 func loadJSONOptions() (map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string) {
 	sexOptions := make(map[int]string)
 	agamaOptions := make(map[int]string)
@@ -421,17 +427,107 @@ func loadJSONOptions() (map[int]string, map[int]string, map[int]string, map[int]
 	return sexOptions, agamaOptions, pendidikanKKOptions, pendidikanSedangOptions, pekerjaanOptions, statusKawinOptions, kkLevelOptions, warganegaraOptions, golonganDarahOptions, cacatOptions, caraKBOptions, hamilOptions, ktpElOptions, statusRekamOptions, statusDasarOptions, sukuOptions, asuransiOptions
 }
 
-func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySession) string {
-	log.Printf("[DEBUG] Handling data entry for step %d", session.CurrentStep)
+func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySession) []string {
+	log.Printf("[DEBUG] Handling data entry for step %d with input: '%s'", session.CurrentStep, text)
 
+	// Handle "fast" command first - only if we're in data entry mode (step > 0)
+	if text == "fast" && session.CurrentStep > 0 {
+		if err := FastTrackDataEntry(dbConn, jid); err != nil {
+			log.Printf("[ERROR] Fast track failed: %v", err)
+			return []string{"Maaf, terjadi kesalahan sistem."}
+		}
+		// Return step 41 question directly
+		return []string{steps[41].Question}
+	}
+
+	if session.CurrentStep == STEP_CONFIRMATION {
+		switch strings.ToLower(text) {
+		case "valid":
+			if err := db.DeleteDataEntrySession(dbConn, jid); err != nil {
+				return []string{"Maaf, terjadi kesalahan sistem."}
+			}
+			return []string{"Terima kasih! Semua data telah berhasil dimasukkan."}
+		case "edit":
+			data, err := db.GetFormattedSessionData(dbConn, jid)
+			if err != nil {
+				return []string{"Maaf, terjadi kesalahan sistem."}
+			}
+			session.CurrentStep = STEP_EDIT
+			return []string{"Salin pesan dibawah ini dan ubah jika tidak valid\n\n" + data}
+		default:
+			if session.CurrentStep == STEP_EDIT {
+				log.Printf("[DEBUG] Validating edited data")
+
+				// Validate the text format first
+				if !strings.Contains(text, ":") {
+					return []string{
+						"Format input tidak valid.",
+						"Pastikan data yang diedit menggunakan format yang benar (nomor. label: nilai)",
+						"Contoh: 41. No. Asuransi: 23",
+					}
+				}
+
+				changes := parseEditedData(dbConn, jid, text)
+				if len(changes) == 0 {
+					return []string{
+						"Tidak ada perubahan yang terdeteksi.",
+						"Pastikan format penulisan sesuai dan ada perubahan nilai.",
+						"Contoh cara edit:",
+						"41. No. Asuransi: 23",
+					}
+				}
+
+				log.Printf("[DEBUG] Applying changes: %+v", changes)
+				if err := updateChangedFields(dbConn, jid, changes); err != nil {
+					log.Printf("[ERROR] Failed to update fields: %v", err)
+					return []string{
+						fmt.Sprintf("Gagal mengupdate data: %v", err),
+						"Pastikan nilai yang dimasukkan sesuai dengan tipe data yang diharapkan.",
+						"Untuk field ID (seperti Jenis Kelamin, Agama, dll) gunakan angka yang valid.",
+					}
+				}
+
+				data, err := db.GetFormattedSessionData(dbConn, jid)
+				if err != nil {
+					return []string{"Maaf, terjadi kesalahan sistem saat membaca data."}
+				}
+
+				// Show success message with changes
+				var changeList strings.Builder
+				changeList.WriteString("Perubahan berhasil disimpan:\n")
+				for field, newValue := range changes {
+					changeList.WriteString(fmt.Sprintf("- %s: %s\n", field, newValue))
+				}
+
+				return []string{
+					changeList.String(),
+					"Berikut data terbaru:",
+					data,
+					"Ketik 'valid' jika sudah benar atau salin dan edit lagi untuk mengubah.",
+				}
+			}
+			return []string{
+				"Perintah tidak dikenali.",
+				"Ketik 'valid' untuk menyimpan atau 'edit' untuk mengubah data.",
+			}
+		}
+	}
+
+	// After fast track, continue with current step
+	// Handle regular steps
 	stepInfo, ok := steps[session.CurrentStep]
 	if !ok {
-		log.Printf("[DEBUG] No more steps available, completing session")
-		err := db.DeleteDataEntrySession(dbConn, jid)
+		data, err := db.GetFormattedSessionData(dbConn, jid)
 		if err != nil {
-			log.Printf("[ERROR] Failed to delete completed session: %v", err)
+			return []string{"Maaf, terjadi kesalahan sistem."}
 		}
-		return "Terima kasih! Semua data telah berhasil dimasukkan."
+		if err := db.UpdateStepOnly(dbConn, jid, STEP_CONFIRMATION); err != nil {
+			return []string{"Maaf, terjadi kesalahan sistem."}
+		}
+		return []string{
+			"Berikut data yang telah diinput:\n\n" + data,
+			"\n\nSilakan ketik 'valid' untuk menyimpan atau 'edit' untuk mengubah data.",
+		}
 	}
 
 	// Validate input
@@ -439,48 +535,97 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 	if err != nil {
 		log.Printf("[DEBUG] Input validation failed: %v", err)
 		if stepInfo.Options != nil {
-			return formatQuestionWithOptions(stepInfo.Question, stepInfo.Options)
+			return []string{formatQuestionWithOptions(stepInfo.Question, stepInfo.Options)}
 		}
-		return stepInfo.Question
+		return []string{stepInfo.Question}
 	}
 
-	log.Printf("[DEBUG] Updating session with valid input for step %d", session.CurrentStep)
 	// Update session with valid input
 	if err := db.UpdateDataEntrySession(dbConn, jid, stepInfo.Field, value); err != nil {
-		log.Printf("Error updating session: %v", err)
-		return "Maaf, terjadi kesalahan sistem."
+		log.Printf("[ERROR] Failed to update session: %v", err)
+		return []string{"Maaf, terjadi kesalahan sistem."}
 	}
 
-	// Get next question
+	// Get next question or show confirmation
 	nextStep := session.CurrentStep + 1
-	if nextStepInfo, ok := steps[nextStep]; ok {
-		return formatQuestion(nextStepInfo)
+	if stepInfo, ok := steps[nextStep]; ok {
+		return []string{formatQuestion(stepInfo)}
 	}
 
-	// Finish session
-	if err := db.DeleteDataEntrySession(dbConn, jid); err != nil {
-		log.Printf("Error deleting session: %v", err)
+	// Show confirmation for last step
+	data, err := db.GetFormattedSessionData(dbConn, jid)
+	if err != nil {
+		return []string{"Maaf, terjadi kesalahan sistem."}
 	}
-	return "Terima kasih! Semua data telah berhasil dimasukkan."
+	if err := db.UpdateStepOnly(dbConn, jid, STEP_CONFIRMATION); err != nil {
+		return []string{"Maaf, terjadi kesalahan sistem."}
+	}
+	return []string{
+		"Ketik 'valid' jika sudah benar atau edit dengan salin pesan dibawah ini dan edit lalu kirim untuk mengubah:",
+		data,
+	}
+}
+
+func FastTrackDataEntry(dbConn *sqlx.DB, jid string) error {
+	// Add default IDs for all lookup tables
+	query := `
+        UPDATE data_entry_sessions 
+        SET alamat = 'Jl. Contoh No. 1',
+            dusun = 'Dusun Contoh',
+            rw = '001',
+            rt = '002',
+            nama = 'Budi Santoso',
+            no_kk = '1234567890123456',
+            nik = '9876543210987654',
+            sex_id = 1,
+            tempat_lahir = 'Jakarta',
+            tanggal_lahir = '1990-01-01'::date,
+            agama_id = 1,
+            pendidikan_kk_id = 1,
+            pendidikan_sedang_id = 1,
+            pekerjaan_id = 1,
+            status_kawin_id = 1,
+            kk_level_id = 1,
+            warganegara_id = 1,
+            nik_ayah = '1234567890123456',
+            nama_ayah = 'John',
+            nik_ibu = '1234567890123456',
+            nama_ibu = 'Jane',
+            golongan_darah_id = 1,
+            akta_lahir = 'AKTA123',
+            dokumen_passport = 'PASPOR123',
+            tanggal_akhir_passport = '2025-12-31'::date,
+            dokumen_kitas = 'KITAS123',
+            akta_perkawinan = 'AKTA456',
+            tanggal_perkawinan = '1990-01-01'::date,
+            akta_perceraian = 'AKTA789',
+            tanggal_perceraian = '1990-01-01'::date,
+            cacat_id = 1,
+            cara_kb_id = 1,
+            hamil_id = 1,
+            ktp_el_id = 2,             -- Set to KTP-EL
+            status_rekam_id = 1,
+            alamat_sekarang = 'Alamat Sekarang',
+            status_dasar_id = 1,
+            suku_id = 1,
+            tag_card = 'TAG123',
+            id_asuransi_id = 1,
+            no_asuransi = '23',
+            current_step = 41
+        WHERE jid = $1`
+
+	_, err := dbConn.Exec(query, jid)
+	return err
 }
 
 func validateInput(text string, step Step) (interface{}, error) {
 	if step.Options != nil {
 		choice, err := strconv.Atoi(text)
 		if err != nil {
-			return nil, fmt.Errorf("nomor pilihan tidak valid\n\nPilihan yang tersedia:")
+			return nil, fmt.Errorf("nomor pilihan tidak valid")
 		}
 		if _, valid := step.Options[choice]; !valid {
-			optionsStr := "\n\nPilihan yang tersedia:"
-			ids := make([]int, 0, len(step.Options))
-			for id := range step.Options {
-				ids = append(ids, id)
-			}
-			sort.Ints(ids)
-			for _, id := range ids {
-				optionsStr += fmt.Sprintf("\n%d. %s", id, step.Options[id])
-			}
-			return nil, fmt.Errorf("pilihan tidak valid%s", optionsStr)
+			return nil, fmt.Errorf("pilihan tidak valid")
 		}
 		return choice, nil
 	} else if step.IsInt {
@@ -523,4 +668,136 @@ func formatQuestionWithOptions(question string, options map[int]string) string {
 		builder.WriteString(fmt.Sprintf("\n%d. %s", id, options[id]))
 	}
 	return builder.String()
+}
+
+func parseEditedData(dbConn *sqlx.DB, jid string, text string) map[string]string {
+	changes := make(map[string]string)
+
+	// Get current data
+	oldData, err := db.GetFormattedSessionData(dbConn, jid)
+	if err != nil {
+		log.Printf("[ERROR] Failed to get old data: %v", err)
+		return changes
+	}
+
+	// Split both texts into lines
+	oldLines := strings.Split(oldData, "\n")
+	newLines := strings.Split(text, "\n")
+
+	// Create maps of field:value for both old and new data
+	oldFields := make(map[string]string)
+	newFields := make(map[string]string)
+
+	// Helper function to parse line
+	parseLine := func(line string) (string, string, bool) {
+		parts := strings.SplitN(line, ":", 2)
+		if len(parts) != 2 {
+			return "", "", false
+		}
+
+		fieldName := strings.TrimSpace(parts[0])
+		value := strings.TrimSpace(parts[1])
+
+		// Remove the number prefix (e.g., "41. ")
+		if idx := strings.Index(fieldName, ". "); idx >= 0 {
+			fieldName = fieldName[idx+2:]
+		}
+
+		return fieldName, value, true
+	}
+
+	// Parse old data
+	for _, line := range oldLines {
+		if fieldName, value, ok := parseLine(line); ok {
+			oldFields[fieldName] = value
+			log.Printf("[DEBUG] Old field: %s = %s", fieldName, value)
+		}
+	}
+
+	// Parse new data
+	for _, line := range newLines {
+		if fieldName, value, ok := parseLine(line); ok {
+			newFields[fieldName] = value
+			log.Printf("[DEBUG] New field: %s = %s", fieldName, value)
+		}
+	}
+
+	// Compare and find changes
+	for field, newValue := range newFields {
+		if oldValue, exists := oldFields[field]; exists && oldValue != newValue {
+			changes[field] = newValue
+			log.Printf("[DEBUG] Found change - Field: %s, Old: %s, New: %s", field, oldValue, newValue)
+		}
+	}
+
+	return changes
+}
+
+func updateChangedFields(dbConn *sqlx.DB, jid string, changes map[string]string) error {
+	log.Printf("[DEBUG] Processing changes: %+v", changes)
+
+	fieldMap := map[string]string{
+		"Alamat":            "alamat",
+		"Dusun":             "dusun",
+		"RW":                "rw",
+		"RT":                "rt",
+		"Nama":              "nama",
+		"No KK":             "no_kk",
+		"NIK":               "nik",
+		"Tempat Lahir":      "tempat_lahir",
+		"NIK Ayah":          "nik_ayah",
+		"Nama Ayah":         "nama_ayah",
+		"NIK Ibu":           "nik_ibu",
+		"Nama Ibu":          "nama_ibu",
+		"No. Akta Lahir":    "akta_lahir",
+		"No. Paspor":        "dokumen_passport",
+		"No. KITAS":         "dokumen_kitas",
+		"No. Akta Kawin":    "akta_perkawinan",
+		"No. Akta Cerai":    "akta_perceraian",
+		"Alamat Sekarang":   "alamat_sekarang",
+		"Tag Card":          "tag_card",
+		"No. Asuransi":      "no_asuransi",
+		"Jenis Kelamin":     "sex_id",
+		"Agama":             "agama_id",
+		"Pendidikan KK":     "pendidikan_kk_id",
+		"Pendidikan Sedang": "pendidikan_sedang_id",
+		"Pekerjaan":         "pekerjaan_id",
+		"Status Kawin":      "status_kawin_id",
+		"Level KK":          "kk_level_id",
+		"Warganegara":       "warganegara_id",
+		"Golongan Darah":    "golongan_darah_id",
+		"Cacat":             "cacat_id",
+		"Cara KB":           "cara_kb_id",
+		"Status Hamil":      "hamil_id",
+		"KTP Elektronik":    "ktp_el_id",
+		"Status Rekam":      "status_rekam_id",
+		"Status Dasar":      "status_dasar_id",
+		"Suku":              "suku_id",
+		"Asuransi":          "id_asuransi_id",
+	}
+
+	for field, value := range changes {
+		if dbField, ok := fieldMap[field]; ok {
+			query := fmt.Sprintf("UPDATE data_entry_sessions SET %s = $1, updated_at = NOW() WHERE jid = $2", dbField)
+			log.Printf("[DEBUG] Executing update query: %s with value: %s", query, value)
+
+			if _, err := dbConn.Exec(query, value, jid); err != nil {
+				log.Printf("[ERROR] Failed to update field %s: %v", field, err)
+				return err
+			}
+			log.Printf("[DEBUG] Successfully updated field %s to %s", field, value)
+		} else {
+			log.Printf("[WARN] No mapping found for field: %s", field)
+		}
+	}
+
+	// After updates, verify the changes
+	data, err := db.GetFormattedSessionData(dbConn, jid)
+	if err != nil {
+		log.Printf("[ERROR] Failed to verify changes: %v", err)
+		return err
+	}
+	log.Printf("[DEBUG] Updated data: %s", data)
+
+	return nil
 }

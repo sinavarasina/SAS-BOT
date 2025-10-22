@@ -8,7 +8,7 @@ import (
 	"github.com/sinavarasina/SAS-BOT/internal/db"
 )
 
-func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string) string {
+func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string) []string {
 	// Debug raw message content first
 	log.Printf("[DEBUG] Raw message - Text: '%s', Length: %d", text, len(text))
 
@@ -19,7 +19,7 @@ func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string) st
 	// Handle empty or whitespace-only messages
 	if len(strings.TrimSpace(text)) == 0 {
 		log.Printf("[DEBUG] Message contains only whitespace or is empty")
-		return ""
+		return []string{""}
 	}
 
 	// Save user info
@@ -37,17 +37,17 @@ func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string) st
 	if strings.ToLower(text) == "reset" || strings.ToLower(text) == "!batal" {
 		if err := db.StartNewSession(dbConn, jid); err != nil {
 			log.Printf("[ERROR] Failed to reset session: %v", err)
-			return "Terjadi kesalahan sistem."
+			return []string{"Terjadi kesalahan sistem."}
 		}
 		log.Printf("[DEBUG] Session reset successful")
-		return "Sesi telah direset. Silakan pilih menu. Kirim '1' untuk memulai pendataan."
+		return []string{"Sesi telah direset. Silakan pilih menu. Kirim '1' untuk memulai pendataan."}
 	}
 
 	// Get current session before handling "1" command
 	session, err := db.GetOrCreateDataEntrySession(dbConn, jid)
 	if err != nil {
 		log.Printf("[ERROR] Session error: %v", err)
-		return "Terjadi kesalahan sistem."
+		return []string{"Terjadi kesalahan sistem."}
 	}
 
 	log.Printf("[DEBUG] Current session state - Step: %d, Awaiting: %v",
@@ -57,10 +57,10 @@ func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string) st
 	if text == "1" && !session.AwaitingAnswer {
 		if err := db.StartNewSession(dbConn, jid); err != nil {
 			log.Printf("[ERROR] Failed to start new session: %v", err)
-			return "Terjadi kesalahan sistem."
+			return []string{"Terjadi kesalahan sistem."}
 		}
 		log.Printf("[DEBUG] Started new session, sending first question")
-		return steps[1].Question
+		return []string{steps[1].Question}
 	}
 
 	// Handle ongoing session
@@ -70,7 +70,7 @@ func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string) st
 	}
 
 	log.Printf("[DEBUG] No active session, showing menu")
-	return "Silakan pilih menu. Kirim '1' untuk memulai pendataan."
+	return []string{"Silakan pilih menu. Kirim '1' untuk memulai pendataan."}
 }
 
 func HandlerRouteGroup(dbConn *sqlx.DB, jid, text, username, number string) string {
