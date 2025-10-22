@@ -18,7 +18,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func EventHandler(client *whatsmeow.Client, appDB *sqlx.DB, sheetsClient *sheets.SheetsClient, driveClient *uploader.DriveClient) func(interface{}) {
+func EventHandler(client *whatsmeow.Client, appDB *sqlx.DB, sheetsClient *sheets.SheetsClient) func(interface{}) {
 	return func(evt interface{}) {
 		switch v := evt.(type) {
 		case *events.Message:
@@ -57,19 +57,22 @@ func EventHandler(client *whatsmeow.Client, appDB *sqlx.DB, sheetsClient *sheets
 				}
 
 				//tambahan kirim ke google drive 
-				fileName := fmt.Sprintf("pengaduan-%s.jpg", v.Info.ID)
-				fileID, err := driveClient.UploadToDrive(data, fileName)
+				publicURL, err := uploader.UploadToImgbb(data)
 				if err != nil {
-						log.Printf("Gagal mengunggah file ke Drive: %v", err)
-						// Beri pesan error ke user
-						return
+					log.Printf("Gagal mengunggah file ke imgbb: %v", err)
+					// Beri pesan error ke user
+					reply := "Maaf, terjadi kesalahan saat mengunggah gambar. Laporan dibatalkan."
+					client.SendMessage(context.Background(), v.Info.Chat, &waProto.Message{
+						Conversation: proto.String(reply),
+					})
+					bot.ResetSession(senderJID)
+					return
 				}
-
 				// 4. post ke db 
 				aduan := db.Pengaduan{
 					UserJID:    senderJID,
 					Deskripsi:  imageMsg.GetCaption(), 
-					PictPath: filePath,
+					PictPath: publicURL,
 				}
 				err = db.SavePengaduan(appDB, aduan)
 				if err != nil {
