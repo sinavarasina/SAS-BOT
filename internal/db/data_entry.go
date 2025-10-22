@@ -54,7 +54,7 @@ type DataEntrySession struct {
 	NoAsuransi           sql.NullString `db:"no_asuransi"`
 	CreatedAt            time.Time      `db:"created_at"`
 	UpdatedAt            time.Time      `db:"updated_at"`
-	AwaitingAnswer        bool           `db:"awaiting_answer"`
+	AwaitingAnswer       bool           `db:"awaiting_answer"`
 }
 
 // GetOrCreateDataEntrySession retrieves an existing session or creates a new one.

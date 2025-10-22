@@ -24,6 +24,10 @@ func EventHandler(client *whatsmeow.Client, appDB *sqlx.DB) func(interface{}) {
 			chatJID := v.Info.Chat.String()
 			senderJID := v.Info.Sender.String()
 			text := v.Message.GetConversation()
+			if text == "" && v.Message.ExtendedTextMessage != nil {
+				text = v.Message.ExtendedTextMessage.GetText()
+			}
+
 			username := v.Info.PushName
 			number := senderJID[:strings.Index(senderJID, "@")]
 
