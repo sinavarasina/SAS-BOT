@@ -57,6 +57,7 @@ type DataEntrySession struct {
 	CreatedAt            time.Time      `db:"created_at"`
 	UpdatedAt            time.Time      `db:"updated_at"`
 	AwaitingAnswer       bool           `db:"awaiting_answer"`
+	EditField            sql.NullString `db:"edit_field"`
 
 	// Change lookup table name fields to use sql.NullString
 	SexNama              sql.NullString `db:"sex_nama"`
@@ -80,14 +81,25 @@ type DataEntrySession struct {
 
 // GetOrCreateDataEntrySession retrieves an existing session or creates a new one.
 func GetOrCreateDataEntrySession(dbConn *sqlx.DB, jid string) (*DataEntrySession, error) {
+	// Ensure edit_field column exists
+	if err := EnsureEditFieldColumn(dbConn); err != nil {
+		log.Printf("[ERROR] Failed to ensure edit_field column: %v", err)
+		return nil, err
+	}
+
 	var session DataEntrySession
 	err := dbConn.Get(&session, "SELECT * FROM data_entry_sessions WHERE jid = $1", jid)
 	if err == sql.ErrNoRows {
 		log.Printf("[DEBUG] Creating new session for jid: %s", jid)
-		newSession := DataEntrySession{JID: jid, CurrentStep: 1, AwaitingAnswer: false}
+		newSession := DataEntrySession{
+			JID:            jid,
+			CurrentStep:    1,
+			AwaitingAnswer: false,
+			EditField:      sql.NullString{String: "", Valid: false},
+		}
 		_, err := dbConn.NamedExec(`
-			INSERT INTO data_entry_sessions (jid, current_step, awaiting_answer) 
-			VALUES (:jid, :current_step, :awaiting_answer)`, newSession)
+			INSERT INTO data_entry_sessions (jid, current_step, awaiting_answer, edit_field) 
+			VALUES (:jid, :current_step, :awaiting_answer, :edit_field)`, newSession)
 		if err != nil {
 			log.Printf("[ERROR] Failed to create session: %v", err)
 			return nil, err
@@ -105,9 +117,11 @@ func GetOrCreateDataEntrySession(dbConn *sqlx.DB, jid string) (*DataEntrySession
 func StartNewSession(dbConn *sqlx.DB, jid string) error {
 	log.Printf("[DEBUG] Starting new session for jid: %s", jid)
 
-	// Clear all data and reset the session
+	// Updated query to set current_step = 1 and awaiting_answer = true
 	_, err := dbConn.Exec(`
-        UPDATE data_entry_sessions 
+        INSERT INTO data_entry_sessions (jid, current_step, awaiting_answer, created_at, updated_at)
+        VALUES ($1, 1, true, NOW(), NOW())
+        ON CONFLICT (jid) DO UPDATE 
         SET current_step = 1,
             awaiting_answer = true,
             alamat = NULL,
@@ -151,8 +165,8 @@ func StartNewSession(dbConn *sqlx.DB, jid string) error {
             tag_card = NULL,
             id_asuransi_id = NULL,
             no_asuransi = NULL,
-            updated_at = NOW()
-        WHERE jid = $1`, jid)
+            edit_field = NULL,
+            updated_at = NOW()`, jid)
 
 	if err != nil {
 		log.Printf("[ERROR] Failed to reset session: %v", err)
@@ -191,12 +205,6 @@ func DeleteDataEntrySession(dbConn *sqlx.DB, jid string) error {
 
 	log.Printf("[DEBUG] Deleted %d session rows", rows)
 	return nil
-}
-
-func appendField(builder *strings.Builder, label, value string) {
-	if value != "" {
-		fmt.Fprintf(builder, "%s: %s\n", label, value)
-	}
 }
 
 func GetFormattedSessionData(dbConn *sqlx.DB, jid string) (string, error) {
@@ -286,10 +294,15 @@ func GetFormattedSessionData(dbConn *sqlx.DB, jid string) (string, error) {
 
 	var result strings.Builder
 
-	// Modified appendNumberedField to only show ID for lookup fields
+	// Modified appendNumberedField to show names for lookup fields
 	appendNumberedField := func(num int, label string, value interface{}, name sql.NullString) {
 		if str, ok := value.(sql.NullInt64); ok && str.Valid {
-			fmt.Fprintf(&result, "%d. %s: %d\n", num, label, str.Int64)
+			if name.Valid && name.String != "" {
+				// For lookup fields, show the name instead of ID
+				fmt.Fprintf(&result, "%d. %s: %s\n", num, label, name.String)
+			} else {
+				fmt.Fprintf(&result, "%d. %s: %d\n", num, label, str.Int64)
+			}
 		} else if str, ok := value.(sql.NullString); ok && str.Valid {
 			fmt.Fprintf(&result, "%d. %s: %s\n", num, label, str.String)
 		} else if str, ok := value.(sql.NullTime); ok && str.Valid {
@@ -363,4 +376,60 @@ func UpdateStepOnly(dbConn *sqlx.DB, jid string, step int) error {
         WHERE jid = $2`
 	_, err := dbConn.Exec(query, step, jid)
 	return err
+}
+
+// Add these new functions
+func SetEditField(dbConn *sqlx.DB, jid string, field string) error {
+	_, err := dbConn.Exec(`UPDATE data_entry_sessions SET edit_field = $1 WHERE jid = $2`, field, jid)
+	return err
+}
+
+func GetEditField(dbConn *sqlx.DB, jid string) (string, error) {
+	var field string
+	err := dbConn.Get(&field, `SELECT edit_field FROM data_entry_sessions WHERE jid = $1`, jid)
+	return field, err
+}
+
+// Add new function to handle edit_field column
+func EnsureEditFieldColumn(dbConn *sqlx.DB) error {
+	// Check if column exists
+	var exists bool
+	err := dbConn.QueryRow(`
+        SELECT EXISTS (
+            SELECT 1 
+            FROM information_schema.columns 
+            WHERE table_schema = 'public'
+            AND table_name = 'data_entry_sessions' 
+            AND column_name = 'edit_field'
+        );
+    `).Scan(&exists)
+
+	if err != nil {
+		return fmt.Errorf("failed to check edit_field column: %v", err)
+	}
+
+	// Add column if it doesn't exist
+	if !exists {
+		_, err = dbConn.Exec(`
+            ALTER TABLE data_entry_sessions 
+            ADD COLUMN edit_field text;
+        `)
+		if err != nil {
+			return fmt.Errorf("failed to add edit_field column: %v", err)
+		}
+		log.Printf("[DEBUG] Added edit_field column to data_entry_sessions table")
+	}
+
+	return nil
+}
+
+// GetFieldValue gets a specific field value from data_entry_sessions
+func GetFieldValue(dbConn *sqlx.DB, jid string, field string) (string, error) {
+	var value string
+	query := fmt.Sprintf("SELECT %s FROM data_entry_sessions WHERE jid = $1", field)
+	err := dbConn.QueryRow(query, jid).Scan(&value)
+	if err == sql.ErrNoRows {
+		return "", nil
+	}
+	return value, err
 }
