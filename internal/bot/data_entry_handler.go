@@ -6,10 +6,10 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/sinavarasina/SAS-BOT/internal/db"
@@ -469,28 +469,25 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 		switch strings.ToLower(text) {
 		case "valid":
 			if err := db.DeleteDataEntrySession(dbConn, jid); err != nil {
-				return []string{"Maaf, terjadi kesalahan sistem."}
+				return []string{"maaf, terjadi kesalahan sistem"}
 			}
-			return []string{"Terima kasih! Semua data telah berhasil dimasukkan."}
+			return []string{"✅ terima kasih! semua data telah berhasil dimasukkan"}
 		case "edit":
 			log.Printf("[DEBUG] Starting edit mode")
-			// Get current session data first
 			data, err := db.GetFormattedSessionData(dbConn, jid)
 			if err != nil {
 				log.Printf("[ERROR] Failed to get formatted data: %v", err)
-				return []string{"Maaf, terjadi kesalahan sistem."}
+				return []string{"maaf, terjadi kesalahan sistem"}
 			}
 
-			// Clear any existing edit field
 			if err := db.SetEditField(dbConn, jid, ""); err != nil {
 				log.Printf("[ERROR] Failed to clear edit field: %v", err)
-				return []string{"Maaf, terjadi kesalahan sistem."}
+				return []string{"maaf, terjadi kesalahan sistem"}
 			}
 
-			// Update state to STEP_EDIT
 			if err := db.UpdateStepOnly(dbConn, jid, STEP_EDIT); err != nil {
 				log.Printf("[ERROR] Failed to update step: %v", err)
-				return []string{"Maaf, terjadi kesalahan sistem."}
+				return []string{"maaf, terjadi kesalahan sistem"}
 			}
 
 			log.Printf("[DEBUG] Successfully entered edit mode")
@@ -500,38 +497,40 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 			editField, err := db.GetEditField(dbConn, jid)
 			if err != nil {
 				log.Printf("[ERROR] Failed to get edit field: %v", err)
-				return []string{"Maaf, terjadi kesalahan sistem."}
+				return []string{"maaf, terjadi kesalahan sistem"}
 			}
 
-			// If in edit mode and no field selected yet
 			if session.CurrentStep == STEP_EDIT && editField == "" {
-				// Parse the field number
-				if num, err := strconv.Atoi(text); err == nil && num >= 1 && num <= 41 {
-					log.Printf("[DEBUG] Selected field to edit: %d", num)
-					step := steps[num]
-
-					// Set the field being edited
-					if err := db.SetEditField(dbConn, jid, step.Field); err != nil {
-						log.Printf("[ERROR] Failed to set edit field: %v", err)
-						return []string{"Maaf, terjadi kesalahan sistem."}
+				if text == "valid" {
+					if err := db.DeleteDataEntrySession(dbConn, jid); err != nil {
+						return []string{"maaf, terjadi kesalahan sistem"}
 					}
-
-					// Return the question for the selected field
-					if step.Options != nil {
-						return []string{formatQuestionWithOptions(step.Question, step.Options)}
-					}
-					return []string{step.Question}
+					return []string{"✅ terima kasih! semua data telah berhasil dimasukkan"}
 				}
 
-				// Get current data to show again when invalid number entered
-				data, err := db.GetFormattedSessionData(dbConn, jid)
-				if err != nil {
-					return []string{"Maaf, terjadi kesalahan sistem."}
+				num, err := strconv.Atoi(text)
+				if err != nil || num < 1 || num > 41 {
+					data, err := db.GetFormattedSessionData(dbConn, jid)
+					if err != nil {
+						return []string{"maaf, terjadi kesalahan sistem"}
+					}
+					return []string{fmt.Sprintf("⚠️ nomor tidak valid\n\nsilakan ketik:\n- nomor 1-41 untuk mengedit data\n- 'valid' untuk menyimpan\n\n%s", data)}
 				}
-				return []string{"Nomor tidak valid. Silakan pilih nomor 1-41\n\n" + data}
+
+				log.Printf("[DEBUG] Selected field to edit: %d", num)
+				step := steps[num]
+
+				if err := db.SetEditField(dbConn, jid, step.Field); err != nil {
+					log.Printf("[ERROR] Failed to set edit field: %v", err)
+					return []string{"maaf, terjadi kesalahan sistem"}
+				}
+
+				if step.Options != nil {
+					return []string{fmt.Sprintf("📝 edit data nomor %d:\n\n%s", num, formatQuestionWithOptions(step.Question, step.Options))}
+				}
+				return []string{fmt.Sprintf("📝 edit data nomor %d:\n\n%s", num, formatQuestion(step))}
 			}
 
-			// If we have a field selected, handle the input value
 			if editField != "" {
 				var currentStep Step
 				for _, step := range steps {
@@ -541,39 +540,30 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 					}
 				}
 
-				// Validate and update the value
 				value, err := validateInput(text, currentStep)
 				if err != nil {
-					// Return the options list again if validation fails
-					if currentStep.Options != nil {
-						return []string{formatQuestionWithOptions(currentStep.Question, currentStep.Options)}
-					}
-					return []string{currentStep.Question}
+					return []string{fmt.Sprintf("📝 mode edit aktif\n\n%s", err.Error())}
 				}
 
-				// Update the field
 				if err := db.UpdateDataEntrySession(dbConn, jid, editField, value); err != nil {
-					return []string{"Maaf, terjadi kesalahan sistem."}
+					return []string{"maaf, terjadi kesalahan sistem"}
 				}
 
-				// Clear edit field
 				if err := db.SetEditField(dbConn, jid, ""); err != nil {
-					return []string{"Maaf, terjadi kesalahan sistem."}
+					return []string{"maaf, terjadi kesalahan sistem"}
 				}
 
-				// Get updated data
 				data, err := db.GetFormattedSessionData(dbConn, jid)
 				if err != nil {
-					return []string{"Maaf, terjadi kesalahan sistem."}
+					return []string{"maaf, terjadi kesalahan sistem"}
 				}
 
-				// Stay in edit mode (STEP_EDIT) instead of going back to confirmation
 				if err := db.UpdateStepOnly(dbConn, jid, STEP_EDIT); err != nil {
-					return []string{"Maaf, terjadi kesalahan sistem."}
+					return []string{"maaf, terjadi kesalahan sistem"}
 				}
 
 				return []string{
-					"Data berhasil diupdate, ketik nomor (1-41) untuk mengedit data lain, atau ketik 'valid' jika sudah selesai.\n\n" + data,
+					"✅ data berhasil diupdate\n\nketik:\n- nomor 1-41 untuk mengedit data lain\n- 'valid' jika sudah selesai\n\n" + data,
 				}
 			}
 		}
@@ -606,15 +596,17 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 	value, err := validateInput(text, stepInfo)
 	if err != nil {
 		log.Printf("[DEBUG] Input validation failed: %v", err)
-		if stepInfo.Options != nil {
-			return []string{formatQuestionWithOptions(stepInfo.Question, stepInfo.Options)}
-		}
-		return []string{stepInfo.Question}
+		// Return the error message directly
+		return []string{err.Error()}
 	}
 
 	// Update session with valid input
 	if err := db.UpdateDataEntrySession(dbConn, jid, stepInfo.Field, value); err != nil {
 		log.Printf("[ERROR] Failed to update session: %v", err)
+		if strings.Contains(err.Error(), "violates foreign key constraint") {
+			return []string{fmt.Sprintf("⚠️ pilihan tidak valid\n\n%s",
+				formatQuestionWithOptions(stepInfo.Question, stepInfo.Options))}
+		}
 		return []string{"Maaf, terjadi kesalahan sistem."}
 	}
 
@@ -688,28 +680,91 @@ func FastTrackDataEntry(dbConn *sqlx.DB, jid string) error {
 }
 
 func validateInput(text string, step Step) (interface{}, error) {
+	text = strings.TrimSpace(text)
+
+	// Special validation for empty input
+	if text == "" {
+		return nil, fmt.Errorf("input tidak boleh kosong\n\n%s", step.Question)
+	}
+
+	// Handle options validation first
 	if step.Options != nil {
 		choice, err := strconv.Atoi(text)
 		if err != nil {
-			return nil, fmt.Errorf("nomor pilihan tidak valid")
+			return nil, fmt.Errorf("⚠️ mohon pilih nomor yang tersedia dari daftar di bawah\n\n%s",
+				formatQuestionWithOptions(step.Question, step.Options))
 		}
+
+		// Validate against available options
 		if _, valid := step.Options[choice]; !valid {
-			return nil, fmt.Errorf("pilihan tidak valid")
+			return nil, fmt.Errorf("⚠️ pilihan tidak valid. mohon pilih nomor yang tersedia dari daftar di bawah\n\n%s",
+				formatQuestionWithOptions(step.Question, step.Options))
 		}
+
 		return choice, nil
-	} else if step.IsInt {
-		value, err := strconv.Atoi(text)
-		if err != nil {
-			return nil, fmt.Errorf("input tidak valid, harap masukkan angka")
-		}
-		return value, nil
-	} else if step.IsDate {
-		value, err := time.Parse("02-01-2006", text)
-		if err != nil {
-			return nil, fmt.Errorf("format tanggal tidak valid, harap gunakan format DD-MM-YYYY")
-		}
-		return value, nil
 	}
+
+	// Field-specific validations
+	switch step.Field {
+	case "nik", "no_kk", "nik_ayah", "nik_ibu":
+		if len(text) != 16 {
+			return nil, fmt.Errorf("⚠️ %s harus 16 digit\npanjang input saat ini: %d digit\n\n%s",
+				strings.ToLower(step.Field), len(text), formatQuestion(step))
+		}
+		if _, err := strconv.ParseInt(text, 10, 64); err != nil {
+			return nil, fmt.Errorf("⚠️ %s hanya boleh berisi angka\n\n%s",
+				strings.ToLower(step.Field), formatQuestion(step))
+		}
+		return text, nil
+	case "rt", "rw":
+		if len(text) != 3 {
+			return nil, fmt.Errorf("⚠️ %s harus 3 digit\ncontoh format yang benar: 001\n\n%s",
+				strings.ToUpper(step.Field), step.Question)
+		}
+		if _, err := strconv.Atoi(text); err != nil {
+			return nil, fmt.Errorf("⚠️ %s hanya boleh berisi angka\n\n%s",
+				strings.ToUpper(step.Field), step.Question)
+		}
+	case "nama", "nama_ayah", "nama_ibu":
+		if len(text) < 2 {
+			return nil, fmt.Errorf("⚠️ %s terlalu pendek\nminimal 2 karakter\n\n%s",
+				strings.ToLower(step.Field), step.Question)
+		}
+		if strings.ContainsAny(text, "0123456789") {
+			return nil, fmt.Errorf("⚠️ %s tidak boleh mengandung angka\n\n%s",
+				strings.ToLower(step.Field), step.Question)
+		}
+		// Check for special characters
+		if strings.ContainsAny(text, "!@#$%^&*()_+=[]{};:'\"\\|,.<>/?") {
+			return nil, fmt.Errorf("⚠️ %s tidak boleh mengandung karakter khusus\n\n%s",
+				strings.ToLower(step.Field), step.Question)
+		}
+	case "alamat", "alamat_sekarang":
+		if len(text) < 5 {
+			return nil, fmt.Errorf("⚠️ %s terlalu pendek\nminimal 5 karakter\n\n%s",
+				strings.ToLower(step.Field), step.Question)
+		}
+	case "tempat_lahir":
+		if len(text) < 3 {
+			return nil, fmt.Errorf("⚠️ tempat lahir terlalu pendek\nminimal 3 karakter\n\n%s",
+				step.Question)
+		}
+		if strings.ContainsAny(text, "0123456789") {
+			return nil, fmt.Errorf("⚠️ tempat lahir tidak boleh mengandung angka\n\n%s",
+				step.Question)
+		}
+	case "akta_lahir", "dokumen_passport", "dokumen_kitas", "akta_perkawinan", "akta_perceraian":
+		if len(text) < 3 {
+			return nil, fmt.Errorf("⚠️ nomor dokumen terlalu pendek\nminimal 3 karakter\n\n%s",
+				step.Question)
+		}
+		// Allow alphanumeric but no special chars except dash and forward slash
+		if !regexp.MustCompile(`^[a-zA-Z0-9-/]+$`).MatchString(text) {
+			return nil, fmt.Errorf("⚠️ nomor dokumen hanya boleh berisi huruf, angka, dash (-) dan garis miring (/)\n\n%s",
+				step.Question)
+		}
+	}
+
 	return text, nil
 }
 
@@ -717,6 +772,17 @@ func formatQuestion(step Step) string {
 	if step.Options != nil {
 		return formatQuestionWithOptions(step.Question, step.Options)
 	}
+
+	// Add hints for specific fields
+	switch step.Field {
+	case "nik", "no_kk":
+		return fmt.Sprintf("%s\n(Masukkan 16 digit angka)", step.Question)
+	case "rt", "rw":
+		return fmt.Sprintf("%s\n(Masukkan 3 digit angka, contoh: 001)", step.Question)
+	case "tanggal_lahir", "tanggal_akhir_passport", "tanggal_perkawinan", "tanggal_perceraian":
+		return fmt.Sprintf("%s\n(Format: DD-MM-YYYY, contoh: 01-12-2024)", step.Question)
+	}
+
 	return step.Question
 }
 
