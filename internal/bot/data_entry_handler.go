@@ -13,6 +13,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/sinavarasina/SAS-BOT/internal/db"
+	"github.com/sinavarasina/SAS-BOT/internal/sheets"
 )
 
 // Type definitions
@@ -229,8 +230,11 @@ var (
 
 const (
 	STEP_START        = 1
+	STEP_NAMA_IBU     = 21
+	STEP_GOLONGAN_DARAH = 22
 	STEP_CONFIRMATION = 42
 	STEP_EDIT         = 43
+	STEP_CHECKPOINT_NAMA_IBU = 100
 )
 
 func loadJSONOptions() (map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string) {
@@ -427,7 +431,35 @@ func loadJSONOptions() (map[int]string, map[int]string, map[int]string, map[int]
 	return sexOptions, agamaOptions, pendidikanKKOptions, pendidikanSedangOptions, pekerjaanOptions, statusKawinOptions, kkLevelOptions, warganegaraOptions, golonganDarahOptions, cacatOptions, caraKBOptions, hamilOptions, ktpElOptions, statusRekamOptions, statusDasarOptions, sukuOptions, asuransiOptions
 }
 
-func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySession) []string {
+func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySession, sheetsClient *sheets.SheetsClient) []string {
+	if session.CurrentStep == STEP_CHECKPOINT_NAMA_IBU {
+		text = strings.ToLower(text)
+		if text == "lanjut" {
+			// 1. Lanjutkan ke langkah 22 (Gol. Darah)
+			if err := db.UpdateStepOnly(dbConn, jid, STEP_GOLONGAN_DARAH); err != nil {
+				return []string{"Maaf, terjadi kesalahan sistem."}
+			}
+			// 2. Ajukan pertanyaan untuk langkah 22
+			return []string{formatQuestion(steps[STEP_GOLONGAN_DARAH])}
+		
+		} else if text == "cukup" {
+			// 1. Langsung lompat ke konfirmasi (valid/edit)
+			data, err := db.GetFormattedSessionData(dbConn, jid)
+			if err != nil {
+				return []string{"Maaf, terjadi kesalahan sistem."}
+			}
+			// 2. Set langkah ke konfirmasi
+			if err := db.UpdateStepOnly(dbConn, jid, STEP_CONFIRMATION); err != nil {
+				return []string{"Maaf, terjadi kesalahan sistem."}
+			}
+			// 3. Tampilkan ringkasan
+			return []string{"Ketik 'valid' jika sudah benar atau ketik 'edit' untuk mengubah data.\n\n" + data}
+		
+		} else {
+			// Jawaban tidak valid
+			return []string{"Mohon ketik 'lanjut' atau 'cukup'."}
+		}
+	}
 	log.Printf("[DEBUG] Handling data entry for step %d with input: '%s'", session.CurrentStep, text)
 
 	// Handle "fast" command - only work if we're in data entry mode (after selecting menu 1)
@@ -468,6 +500,14 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 
 		switch strings.ToLower(text) {
 		case "valid":
+			fullSession, err := db.GetFullSessionData(dbConn, jid)
+			if err != nil {
+				log.Printf("[ERROR] Gagal mengambil data lengkap untuk dikirim ke Sheet: %v", err)
+				return []string{"Maaf, terjadi kesalahan sistem saat mengambil data."}
+			}
+
+			go sheetsClient.WriteDataPenduduk(*fullSession)
+
 			if err := db.DeleteDataEntrySession(dbConn, jid); err != nil {
 				return []string{"maaf, terjadi kesalahan sistem"}
 			}
@@ -608,6 +648,18 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 				formatQuestionWithOptions(stepInfo.Question, stepInfo.Options))}
 		}
 		return []string{"Maaf, terjadi kesalahan sistem."}
+	}
+
+	if session.CurrentStep == STEP_NAMA_IBU {
+		// 1. Database sekarang ada di langkah 22, kita ganti ke langkah 100
+		if err := db.UpdateStepOnly(dbConn, jid, STEP_CHECKPOINT_NAMA_IBU); err != nil {
+			return []string{"Maaf, terjadi kesalahan sistem."}
+		}
+		
+		// 2. Ajukan pertanyaan konfirmasi
+		return []string{"Data inti (sampai Nama Ibu) sudah tersimpan.\n\n" +
+			"Apakah Anda ingin melanjutkan mengisi data pelengkap (Gol. Darah, Akta, Asuransi, dll)?\n\n" +
+			"Ketik 'lanjut' atau 'cukup'."}
 	}
 
 	// Get next question or show confirmation

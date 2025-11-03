@@ -10,6 +10,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/sinavarasina/SAS-BOT/internal/db"
 	"github.com/sinavarasina/SAS-BOT/internal/whatsapp"
+	"github.com/sinavarasina/SAS-BOT/internal/sheets"
 )
 
 func main() {
@@ -30,7 +31,12 @@ func main() {
 		log.Fatal("Error at db.InitDB(), Message :", err)
 	}
 
-	WaClient, err := whatsapp.InitClient(dsn, appDB, ctx)
+	sheetsClient, err := sheets.InitSheetsClient()
+	if err != nil {
+		log.Fatal("Error at sheets.InitSheetsClient(), Message :", err)
+	}
+
+	WaClient, err := whatsapp.InitClient(dsn, appDB, ctx, sheetsClient)
 	if err != nil {
 		log.Fatal("Error at whatsapp.InitClient(), Message :", err)
 	}
