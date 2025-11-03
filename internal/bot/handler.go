@@ -11,6 +11,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/sinavarasina/SAS-BOT/internal/db"
+	"github.com/sinavarasina/SAS-BOT/internal/sheets"
 )
 
 type GeminiRequest struct {
@@ -56,7 +57,7 @@ var staticResponses = map[string]string{
 	"terimakasih": "Sama-sama! Silakan pilih menu yang tersedia jika butuh bantuan lagi.",
 }
 
-func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string) []string {
+func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string, sheetsClient *sheets.SheetsClient) []string {
 	// Debug raw message content first
 	log.Printf("[DEBUG] Raw message - Text: '%s', Length: %d", text, len(text))
 
@@ -101,7 +102,7 @@ func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string) []
 	// Only process data entry if we're already in a session AND awaiting answer
 	if session.AwaitingAnswer {
 		log.Printf("[DEBUG] Processing answer for existing session")
-		return HandleDataEntry(dbConn, jid, text, session)
+		return HandleDataEntry(dbConn, jid, text, session, sheetsClient)
 	}
 
 	// Handle menu selection "1" to start data entry

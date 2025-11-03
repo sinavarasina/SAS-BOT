@@ -207,6 +207,57 @@ func DeleteDataEntrySession(dbConn *sqlx.DB, jid string) error {
 	return nil
 }
 
+func GetFullSessionData(dbConn *sqlx.DB, jid string) (*DataEntrySession, error) {
+	log.Printf("[DEBUG] Getting full session data for jid: %s", jid)
+	var session DataEntrySession
+	// Query ini sama dengan query di GetFormattedSessionData
+	query := `
+        SELECT s.*, 
+            sex.nama as sex_nama,
+            ag.nama as agama_nama,
+            pk.nama as pendidikan_kk_nama,
+            ps.nama as pendidikan_sedang_nama,
+            p.nama as pekerjaan_nama,
+            sk.nama as status_kawin_nama,
+            kk.nama as kk_level_nama,
+            w.nama as warganegara_nama,
+            gd.nama as golongan_darah_nama,
+            c.nama as cacat_nama,
+            kb.nama as cara_kb_nama,
+            h.nama as hamil_nama,
+            ke.nama as ktp_el_nama,
+            sr.nama as status_rekam_nama,
+            sd.nama as status_dasar_nama,
+            su.nama as suku_nama,
+            a.nama as asuransi_nama
+        FROM data_entry_sessions s
+        LEFT JOIN sex ON s.sex_id = sex.sex_id
+        LEFT JOIN agama ag ON s.agama_id = ag.agama_id
+        LEFT JOIN pendidikan_kk pk ON s.pendidikan_kk_id = pk.pendidikan_kk_id
+        LEFT JOIN pendidikan_sedang ps ON s.pendidikan_sedang_id = ps.pendidikan_sedang_id
+        LEFT JOIN pekerjaan p ON s.pekerjaan_id = p.pekerjaan_id
+        LEFT JOIN status_kawin sk ON s.status_kawin_id = sk.status_kawin_id
+        LEFT JOIN kk_level kk ON s.kk_level_id = kk.kk_level_id
+        LEFT JOIN warganegara w ON s.warganegara_id = w.warganegara_id
+        LEFT JOIN golongan_darah gd ON s.golongan_darah_id = gd.golongan_darah_id
+        LEFT JOIN cacat c ON s.cacat_id = c.cacat_id
+        LEFT JOIN cara_kb kb ON s.cara_kb_id = kb.cara_kb_id
+        LEFT JOIN hamil h ON s.hamil_id = h.hamil_id
+        LEFT JOIN ktp_el ke ON s.ktp_el_id = ke.ktp_el_id
+        LEFT JOIN status_rekam sr ON s.status_rekam_id = sr.status_rekam_id
+        LEFT JOIN status_dasar sd ON s.status_dasar_id = sd.status_dasar_id
+        LEFT JOIN suku su ON s.suku_id = su.suku_id
+        LEFT JOIN id_asuransi a ON s.id_asuransi_id = a.id_asuransi_id
+        WHERE s.jid = $1`
+
+	err := dbConn.Get(&session, query, jid)
+	if err != nil {
+		log.Printf("[ERROR] Failed to get full session data: %v", err)
+		return nil, err
+	}
+	return &session, nil
+}
+
 func GetFormattedSessionData(dbConn *sqlx.DB, jid string) (string, error) {
 	log.Printf("[DEBUG] Getting formatted data for jid: %s", jid)
 
@@ -306,7 +357,7 @@ func GetFormattedSessionData(dbConn *sqlx.DB, jid string) (string, error) {
 		} else if str, ok := value.(sql.NullString); ok && str.Valid {
 			fmt.Fprintf(&result, "%d. %s: %s\n", num, label, str.String)
 		} else if str, ok := value.(sql.NullTime); ok && str.Valid {
-			fmt.Fprintf(&result, "%d. %s: %s\n", num, label, formatDate(str))
+			fmt.Fprintf(&result, "%d. %s: %s\n", num, label, FormatDate(str))
 		} else {
 			fmt.Fprintf(&result, "%d. %s: -\n", num, label)
 		}
@@ -358,7 +409,7 @@ func GetFormattedSessionData(dbConn *sqlx.DB, jid string) (string, error) {
 	return strings.TrimSpace(result.String()), nil
 }
 
-func formatDate(t sql.NullTime) string {
+func FormatDate(t sql.NullTime) string {
 	if !t.Valid {
 		return ""
 	}
