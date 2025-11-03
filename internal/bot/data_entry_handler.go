@@ -666,26 +666,44 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 		return []string{err.Error()}
 	}
 
+
 	if session.CurrentStep == STEP_NIK {
 		// Kita tahu 'value' adalah string NIK yang valid
-		nikValue := value.(string) 
-		
-		isDuplicate, err := db.CheckNIKExists(dbConn, nikValue, jid)
+		nikValue := value.(string)
+
+		// 1. Cek ke Google Sheet (Database permanen)
+		// Pengecekan ini mungkin memakan waktu beberapa detik
+		isDuplicateSheet, err := sheetsClient.CheckNIKExistsInSheet(nikValue)
 		if err != nil {
-			log.Printf("[ERROR] Gagal mengecek NIK: %v", err)
-			return []string{"Maaf, terjadi kesalahan sistem saat validasi NIK."}
+			log.Printf("[ERROR] Gagal mengecek NIK di Sheet: %v", err)
+			return []string{"Maaf, terjadi kesalahan sistem saat validasi NIK (Sheet)."}
 		}
 
-		if isDuplicate {
-			// NIK DITEMUKAN! Pindahkan ke state duplikat
+		if isDuplicateSheet {
+			// NIK DITEMUKAN DI SHEET! Pindahkan ke state duplikat.
 			if err := db.UpdateStepOnly(dbConn, jid, STEP_NIK_DUPLICATE); err != nil {
 				return []string{"Maaf, terjadi kesalahan sistem."}
 			}
 			// Kirim pesan peringatan ke user
-			return []string{"⚠️ NIK ini sudah terdaftar di sesi lain.\n\nKetik 'edit nik' untuk memasukkan NIK baru, atau 'stop' untuk membatalkan pendaftaran."}
+			return []string{"⚠️ NIK ini sudah terdaftar di data penduduk desa.\n\nKetik 'edit nik' untuk memasukkan NIK baru, atau 'stop' untuk membatalkan pendaftaran."}
+		}
+
+		// 2. Cek ke Sesi lain (Database sementara)
+		isDuplicateDB, err := db.CheckNIKExists(dbConn, nikValue, jid)
+		if err != nil {
+			log.Printf("[ERROR] Gagal mengecek NIK di DB: %v", err)
+			return []string{"Maaf, terjadi kesalahan sistem saat validasi NIK (DB)."}
+		}
+
+		if isDuplicateDB {
+			// NIK DITEMUKAN DI SESI LAIN! Pindahkan ke state duplikat.
+			if err := db.UpdateStepOnly(dbConn, jid, STEP_NIK_DUPLICATE); err != nil {
+				return []string{"Maaf, terjadi kesalahan sistem."}
+			}
+			// Kirim pesan peringatan ke user
+			return []string{"⚠️ NIK ini sedang didaftarkan oleh pengguna lain saat ini.\n\nKetik 'edit nik' untuk memasukkan NIK baru, atau 'stop' untuk membatalkan pendaftaran."}
 		}
 	}
-
 	// Update session with valid input
 	if err := db.UpdateDataEntrySession(dbConn, jid, stepInfo.Field, value); err != nil {
 		log.Printf("[ERROR] Failed to update session: %v", err)
@@ -695,6 +713,7 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 		}
 		return []string{"Maaf, terjadi kesalahan sistem."}
 	}
+
 
 	if session.CurrentStep == STEP_NAMA_IBU {
 		// 1. Database sekarang ada di langkah 22, kita ganti ke langkah 100

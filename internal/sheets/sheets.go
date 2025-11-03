@@ -3,9 +3,9 @@ package sheets
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
-	"time"
 
 	"github.com/sinavarasina/SAS-BOT/internal/db"
 	"google.golang.org/api/option"
@@ -53,6 +53,9 @@ func (c *SheetsClient) WriteDataPenduduk(s db.DataEntrySession) {
 	// Siapkan 1 baris data (42 kolom)
 	// Kita gunakan field Nama (misal SexNama) agar mudah dibaca di sheet, bukan ID-nya
 	rowData := []interface{}{
+		s.Alamat.String,
+		s.Dusun.String,
+		s.RW.String,
 		s.RT.String,
 		s.Nama.String,
 		s.NoKK.String,
@@ -101,4 +104,33 @@ func (c *SheetsClient) WriteDataPenduduk(s db.DataEntrySession) {
 	} else {
 		log.Println("Berhasil menulis Data Penduduk ke Google Sheet.")
 	}
+}
+
+func (c *SheetsClient) CheckNIKExistsInSheet(nik string) (bool, error) {
+	// Membaca "Sheet1!G:G" -> Sheet1, Kolom G, semua baris.
+	readRange := "Data_penduduk!G:G"
+
+	resp, err := c.Service.Spreadsheets.Values.Get(c.SpreadsheetID, readRange).Do()
+	if err != nil {
+		log.Printf("Gagal membaca Google Sheet: %v", err)
+		return false, fmt.Errorf("gagal memverifikasi NIK di Sheet: %w", err)
+	}
+
+	if len(resp.Values) == 0 {
+		log.Println("Kolom NIK (G) di Sheet kosong, tidak ada duplikat.")
+		return false, nil // Tidak ada data, berarti tidak duplikat
+	}
+
+	// Loop setiap baris di kolom G
+	for _, row := range resp.Values {
+		if len(row) > 0 {
+			// Cek apakah nilai sel di kolom G == NIK yang dicari
+			if cellValue, ok := row[0].(string); ok && cellValue == nik {
+				log.Printf("NIK duplikat ditemukan di Google Sheet: %s", nik)
+				return true, nil // Ditemukan
+			}
+		}
+	}
+
+	return false, nil // Tidak ditemukan
 }
