@@ -230,11 +230,13 @@ var (
 
 const (
 	STEP_START        = 1
+	STEP_NIK          = 7
 	STEP_NAMA_IBU     = 21
 	STEP_GOLONGAN_DARAH = 22
 	STEP_CONFIRMATION = 42
 	STEP_EDIT         = 43
 	STEP_CHECKPOINT_NAMA_IBU = 100
+	STEP_NIK_DUPLICATE = 101
 )
 
 func loadJSONOptions() (map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string) {
@@ -432,6 +434,30 @@ func loadJSONOptions() (map[int]string, map[int]string, map[int]string, map[int]
 }
 
 func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySession, sheetsClient *sheets.SheetsClient) []string {
+	if session.CurrentStep == STEP_NIK_DUPLICATE {
+		text = strings.ToLower(text)
+		if text == "edit nik" {
+			// 1. Kembalikan user ke langkah 7 (Input NIK)
+			if err := db.UpdateStepOnly(dbConn, jid, STEP_NIK); err != nil {
+				return []string{"Maaf, terjadi kesalahan sistem."}
+			}
+			// 2. Ajukan pertanyaan NIK lagi
+			return []string{formatQuestion(steps[STEP_NIK])}
+			
+		} else if text == "stop" {
+			// 1. Hapus sesi
+			if err := db.DeleteDataEntrySession(dbConn, jid); err != nil {
+				return []string{"Maaf, terjadi kesalahan sistem."}
+			}
+			// 2. Kembalikan ke menu utama
+			return []string{"Pendaftaran dibatalkan.\n\n" + getMainMenu()}
+		
+		} else {
+			// Jawaban tidak valid
+			return []string{"⚠️ Pilihan tidak valid.\n\nKetik 'edit nik' untuk memasukkan NIK baru, atau 'stop' untuk membatalkan pendaftaran."}
+		}
+	}
+
 	if session.CurrentStep == STEP_CHECKPOINT_NAMA_IBU {
 		text = strings.ToLower(text)
 		if text == "lanjut" {
@@ -638,6 +664,26 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 		log.Printf("[DEBUG] Input validation failed: %v", err)
 		// Return the error message directly
 		return []string{err.Error()}
+	}
+
+	if session.CurrentStep == STEP_NIK {
+		// Kita tahu 'value' adalah string NIK yang valid
+		nikValue := value.(string) 
+		
+		isDuplicate, err := db.CheckNIKExists(dbConn, nikValue, jid)
+		if err != nil {
+			log.Printf("[ERROR] Gagal mengecek NIK: %v", err)
+			return []string{"Maaf, terjadi kesalahan sistem saat validasi NIK."}
+		}
+
+		if isDuplicate {
+			// NIK DITEMUKAN! Pindahkan ke state duplikat
+			if err := db.UpdateStepOnly(dbConn, jid, STEP_NIK_DUPLICATE); err != nil {
+				return []string{"Maaf, terjadi kesalahan sistem."}
+			}
+			// Kirim pesan peringatan ke user
+			return []string{"⚠️ NIK ini sudah terdaftar di sesi lain.\n\nKetik 'edit nik' untuk memasukkan NIK baru, atau 'stop' untuk membatalkan pendaftaran."}
+		}
 	}
 
 	// Update session with valid input

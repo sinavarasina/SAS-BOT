@@ -484,3 +484,14 @@ func GetFieldValue(dbConn *sqlx.DB, jid string, field string) (string, error) {
 	}
 	return value, err
 }
+
+func CheckNIKExists(dbConn *sqlx.DB, nik string, jid string) (bool, error) {
+	var exists bool
+	// Query ini mencari NIK di semua sesi, KECUALI sesi milik user saat ini
+	query := "SELECT EXISTS(SELECT 1 FROM data_entry_sessions WHERE nik = $1 AND jid != $2)"
+	err := dbConn.Get(&exists, query, nik, jid)
+	if err != nil && err != sql.ErrNoRows {
+		return false, err
+	}
+	return exists, nil
+}
