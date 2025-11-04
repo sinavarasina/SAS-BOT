@@ -1,0 +1,102 @@
+{
+  "nama_desa": "Sindang Anom",
+  "kecamatan": "Sekampung Udik",
+  "kabupaten": "Lampung Timur",
+  "kode_pos": "34183",
+  "kontak": {
+    "telepon": "81368774938",
+    "email": "desaindang.anom@gmail.com"
+  },
+  "jam_operasional": "Senin - Sabtu, 08:00 - 15:00 WIB",
+  "perangkat_desa": [
+    {
+      "jabatan": "Kepala Desa",
+      "nama": "Aminudin"
+    },
+    {
+      "jabatan": "Sekretaris Desa (Sekdes)",
+      "nama": "Nama Sekdes [Placeholder]"
+    },
+    {
+      "jabatan": "Kaur Keuangan",
+      "nama": "Nama Kaur Keuangan [Placeholder]"
+    }
+  ],
+  "profil_desa": {
+    "luas_wilayah": "1.343 Ha",
+    "jumlah_penduduk": {
+      "total": "± 5.000 jiwa",
+      "laki_laki": "± 2.550 jiwa",
+      "perempuan": "± 2.450 jiwa"
+    },
+    "potensi_utama": "Pertanian (Padi, Jagung) dan Perkebunan (Karet, Sawit)"
+  },
+  "chatbot_data": {
+    "chatbot_name": "SINDANG ANOM SERVICE - BOT",
+    "welcome_message": "Selamat datang di layanan pencatatan dan informasi penduduk Desa Sindang Anom.",
+    "info_desa_quick": {
+      "title": "ℹ️ Sekilas Info Desa",
+      "data": [
+        "Kepala Desa: Aminudin",
+        "Kecamatan: Sekampung Udik",
+        "Kabupaten: Lampung Timur",
+        "Luas Wilayah: ± 1.343 Ha",
+        "Potensi Utama: Pertanian (Padi, Jagung) dan Perkebunan"
+      ]
+    },
+    "home_menu": {
+      "title": "Menu Utama",
+      "prompt": "Silakan pilih menu dengan mengetik nomor yang sesuai:",
+      "options": [
+        {
+          "id": "1",
+          "label": "Data Diri (Input/Edit)",
+          "description": "Untuk memulai proses pencatatan atau perubahan data pribadi penduduk."
+        },
+        {
+          "id": "2",
+          "label": "Pengajuan Surat",
+          "description": "Untuk melihat persyaratan dan panduan pengajuan surat-surat desa."
+        },
+        {
+          "id": "3",
+          "label": "Pengaduan",
+          "description": "Untuk menyampaikan keluhan, masukan, atau aspirasi masyarakat."
+        }
+      ],
+      "footer": "Ketik nomor menu yang Anda pilih."
+    },
+    "menu_response": {
+      "1": {
+        "title": "Menu: Data Diri",
+        "content": "Anda memilih menu **Data Diri**. \n\nApakah Anda ingin **A. Input Data Baru** atau **B. Edit Data yang Sudah Ada**? (Ketik A atau B)",
+        "next_step": "A. Input Data Baru \nB. Edit Data yang Sudah Ada"
+      },
+      "2": {
+        "title": "Menu: Pengajuan Surat",
+        "content": "Anda memilih menu **Pengajuan Surat**. \n\nLayanan surat yang tersedia saat ini: \n\n1. Surat Pengantar KTP/KK \n2. Surat Keterangan Usaha (SKU) \n3. Surat Keterangan Tidak Mampu (SKTM) \n\nKetik nomor surat yang ingin Anda ajukan untuk melihat persyaratannya."
+      },
+      "3": {
+        "title": "Menu: Pengaduan",
+        "content": "Anda memilih menu **Pengaduan**. \n\nSilakan ketikkan detail pengaduan Anda (maksimal 500 karakter). Anda dapat memilih untuk mengirimkannya secara **Anonim** atau **Tercatat** (dengan data diri). \n\nUntuk mengirimkan secara tercatat, masukkan NIK Anda terlebih dahulu."
+      },
+      "layanan_surat_menyurat": [
+        {
+          "jenis": "Surat Pengantar KTP/KK",
+          "syarat": ["Fotocopy KK", "Fotocopy KTP (jika ada)"],
+          "proses": "Datang ke kantor desa pada jam operasional"
+        },
+        {
+          "jenis": "Surat Keterangan Usaha (SKU)",
+          "syarat": ["Fotocopy KK", "Fotocopy KTP", "Surat Pengantar RT/RW"],
+          "proses": "Ajukan permohonan ke Sekdes"
+        },
+        {
+          "jenis": "Surat Keterangan Tidak Mampu (SKTM)",
+          "syarat": ["Fotocopy KK", "Fotocopy KTP", "Surat Pengantar RT/RW", "Kartu KIP/PKH (jika ada)"],
+          "proses": "Verifikasi data oleh petugas desa"
+        }
+      ]
+    }
+  }
+}
