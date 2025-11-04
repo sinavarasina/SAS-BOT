@@ -241,7 +241,7 @@ const (
 	STEP_NIK_DUPLICATE       = 101
 	STEP_MENU_DATA_DIRI      = 200 // Sesi menunggu pilihan (Input, Edit, Hapus)
 	STEP_EDIT_CARI_NIK       = 201 // Sesi menunggu NIK untuk di-edit
-	STEP_PENGADUAN_WAITING   = 200
+	STEP_PENGADUAN_WAITING   = 202
 )
 
 func loadJSONOptions() (map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string) {
