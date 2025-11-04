@@ -438,7 +438,7 @@ func loadJSONOptions() (map[int]string, map[int]string, map[int]string, map[int]
 }
 
 
-func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySession, sheetsClient *sheets.SheetsClient) []string {
+func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySession, sheetsClient *sheets.Data_SheetsClient) []string {
 	log.Printf("[DEBUG] Handling data entry for step %d with input: '%s'", session.CurrentStep, text)
 
 	// Handle "fast" command first
