@@ -88,11 +88,17 @@ Menu ini digunakan untuk mengelola data kependudukan Anda.
 Silakan pilih nomor atau ketik 'reset' untuk kembali ke menu utama.`
 		return []string{subMenu}
 	case "3":
-		if err := db.UpdateStepOnly(dbConn, jid, STEP_PENGADUAN_WAITING); err != nil {
-			log.Printf("[ERROR] Failed to set step to STEP_PENGADUAN_WAITING: %v", err)
+		if err := db.UpdateStepOnly(dbConn, jid, STEP_PENGADUAN_MENU); err != nil {
+			log.Printf("[ERROR] Failed to set step to STEP_PENGADUAN_MENU: %v", err)
 			return []string{"Maaf, terjadi kesalahan sistem."}
 		}
-		return []string{"Anda memilih *Pengaduan*.\n\nSilakan kirimkan *satu foto* pengaduan Anda, dan *tulis deskripsi* di bagian caption/keterangan gambar tersebut."}
+		subMenu := `*Menu Pengaduan*
+		Menu ini berfungsi untuk mengelola data pengaduan masyarakat.
+		1. Ajukan pengaduan
+		2. Cek progres pengaduan
+
+		Silakan pilih nomor atau ketik 'reset' untuk kembali ke menu utama.`
+			return []string{subMenu}
 	}
 
 	if resp, ok := staticResponses[strings.ToLower(text)]; ok {

@@ -241,7 +241,10 @@ const (
 	STEP_NIK_DUPLICATE       = 101
 	STEP_MENU_DATA_DIRI      = 200 // Sesi menunggu pilihan (Input, Edit, Hapus)
 	STEP_EDIT_CARI_NIK       = 201 // Sesi menunggu NIK untuk di-edit
-	STEP_PENGADUAN_WAITING   = 202
+	STEP_PENGADUAN_WAITING   = 301
+	STEP_PENGADUAN_MENU      = 300
+	STEP_PENGADUAN_CARI_ID   = 302
+	STEP_PENGADUAN_VALIDASI_NIK = 303
 )
 
 func loadJSONOptions() (map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string) {
@@ -495,6 +498,69 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 		dataStr, _ := db.GetFormattedSessionData(dbConn, jid)
 		return []string{"Data ditemukan. Silakan periksa:\n\n" + dataStr, "\n\nKetik 'valid' untuk menyimpan atau 'edit' untuk mengubah data."}
 
+	case STEP_PENGADUAN_MENU:
+		switch text {
+		case "1": // 1. Ajukan Pengaduan
+			if err := db.UpdateStepOnly(dbConn, jid, STEP_PENGADUAN_VALIDASI_NIK); err != nil {
+				return []string{"Maaf, terjadi kesalahan sistem."}
+			}
+			return []string{"Untuk mengajukan pengaduan, silakan masukkan **NIK 16 digit** Anda untuk verifikasi:"}
+		case "2": // 2. Cek Status Pengaduan
+			if err := db.UpdateStepOnly(dbConn, jid, STEP_PENGADUAN_CARI_ID); err != nil {
+				return []string{"Maaf, terjadi kesalahan sistem."}
+			}
+			return []string{"Silakan masukkan *ID Pengaduan* Anda (contoh: P-101):"}
+		default:
+			return []string{"Pilihan tidak valid. Silakan pilih 1 atau 2."}
+		}
+	
+	case STEP_PENGADUAN_VALIDASI_NIK:
+		// 1. Validasi format NIK (opsional tapi disarankan)
+		if len(text) != 16 {
+			return []string{"Format NIK salah. Harap masukkan 16 digit NIK Anda:"}
+		}
+
+		// 2. Cek NIK ke database permanen
+		isRegistered, err := db.CheckNIKExistsInPenduduk(dbConn, text)
+		if err != nil {
+			log.Printf("[ERROR] Gagal mengecek NIK di DB permanen: %v", err)
+			return []string{"Maaf, terjadi kesalahan sistem saat validasi NIK."}
+		}
+
+		if isRegistered {
+			// 3. JIKA BERHASIL: Lanjutkan ke langkah kirim foto
+			if err := db.UpdateStepOnly(dbConn, jid, STEP_PENGADUAN_WAITING); err != nil {
+				return []string{"Maaf, terjadi kesalahan sistem."}
+			}
+			return []string{"NIK Anda terverifikasi. Silakan kirimkan *satu foto* pengaduan Anda, dan *tulis deskripsi* di bagian caption/keterangan gambar tersebut."}
+		} else {
+			// 4. JIKA GAGAL: Kembalikan ke menu utama
+			if err := db.DeleteDataEntrySession(dbConn, jid); err != nil { // Hapus sesi
+				log.Printf("[ERROR] Gagal hapus sesi setelah NIK tidak ditemukan: %v", err)
+			}
+			return []string{"NIK Anda tidak terdaftar di sistem kami.\n\nSilakan pilih *Menu 1 (Data Diri)* untuk melakukan input data diri terlebih dahulu sebelum membuat pengaduan.\n\n" + getMainMenu()}
+		}
+
+	case STEP_PENGADUAN_WAITING:
+		// Jika user mengirim teks padahal kita menunggu gambar
+		return []string{"Mohon kirimkan *gambar* pengaduan, bukan teks. Atau ketik 'reset' untuk batal."}
+
+	case STEP_PENGADUAN_CARI_ID:
+		// User mengirimkan ID, kita cari di Sheet
+		publicID := strings.ToUpper(text) // P-101
+		
+		// Panggil fungsi baru (akan kita buat di Fase 3)
+		status, err := sheetsClient.GetPengaduanStatus(publicID)
+		if err != nil {
+			log.Printf("[WARN] Gagal mencari status untuk ID %s: %v", publicID, err)
+			return []string{fmt.Sprintf("ID Pengaduan *%s* tidak ditemukan. Pastikan Anda memasukkan ID dengan benar.", publicID)}
+		}
+		
+		// Sukses! Hapus sesi dan kirim status
+		if err := db.DeleteDataEntrySession(dbConn, jid); err != nil {
+			log.Printf("[ERROR] Gagal hapus sesi setelah cek status: %v", err)
+		}
+		return []string{fmt.Sprintf("Status untuk pengaduan *%s*:\n\n*STATUS: %s*", publicID, status)}
 	// --- 4. ALUR LANGKAH VIRTUAL (dari fitur input) ---
 	case STEP_NIK_DUPLICATE: // (101)
 		text = strings.ToLower(text)

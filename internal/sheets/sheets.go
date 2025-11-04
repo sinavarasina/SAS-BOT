@@ -163,7 +163,7 @@ func (c *SheetsClient) UpdateRowData(rowNum int, s db.DataEntrySession) error {
 // (Ini adalah fungsi dari file sheets.go Anda yang lama, sekarang digabung di sini)
 // Anda mungkin perlu membuat struct db.Pengaduan
 
-func (c *SheetsClient) AppendPengaduan(aduan db.Pengaduan) {
+func (c *SheetsClient) AppendPengaduan(aduan db.Pengaduan, publicID string) {
 	rangeData := "Sheet1!A2" // Ganti nama tab jika perlu
 	gambarFormula := fmt.Sprintf("=IMAGE(\"%s\")", aduan.PictPath)
 	var vr sheets.ValueRange
@@ -174,9 +174,10 @@ func (c *SheetsClient) AppendPengaduan(aduan db.Pengaduan) {
 		aduan.PictPath,
 		gambarFormula,
 		"Belum Diproses",
+		publicID,
 	})
 
-	// Menggunakan c.PengaduanSpreadsheetID
+	// Menggunakan c.PengaduanSpreadsheetID:
 	_, err := c.Service.Spreadsheets.Values.Append(c.PengaduanSpreadsheetID, rangeData, &vr).ValueInputOption("USER_ENTERED").Do()
 	if err != nil {
 		log.Printf("[ERROR] Gagal menulis Pengaduan ke Google Sheet: %v", err)
@@ -201,3 +202,36 @@ func (c *SheetsClient) findSheetIdByName(spreadsheetID, sheetName string) (int64
 	return 0, fmt.Errorf("Sheet dengan nama '%s' tidak ditemukan", sheetName)
 }
 
+func (c *SheetsClient) GetPengaduanStatus(publicID string) (string, error) {
+	// 1. Tentukan rentang kolom yang akan dibaca
+	//    Kita perlu Kolom F (Status) dan Kolom G (PublicID)
+	readRange := "Sheet1!F:G"
+
+	resp, err := c.Service.Spreadsheets.Values.Get(c.PengaduanSpreadsheetID, readRange).Do()
+	if err != nil {
+		return "", fmt.Errorf("gagal membaca Sheet Pengaduan: %w", err)
+	}
+
+	if len(resp.Values) == 0 {
+		return "", fmt.Errorf("Sheet Pengaduan kosong")
+	}
+
+	// 2. Loop melalui setiap baris yang didapat
+	for _, row := range resp.Values {
+		// Pastikan baris memiliki cukup kolom (minimal 2 untuk F dan G)
+		if len(row) >= 2 {
+			// Kolom G (index 1) adalah PublicID
+			idCellValue, idOk := row[1].(string)
+			// Kolom F (index 0) adalah Status
+			statusCellValue, statusOk := row[0].(string)
+
+			if idOk && statusOk && idCellValue == publicID {
+				// Ditemukan!
+				return statusCellValue, nil
+			}
+		}
+	}
+
+	// 3. Jika loop selesai tanpa menemukan ID
+	return "", fmt.Errorf("ID Pengaduan tidak ditemukan")
+}
