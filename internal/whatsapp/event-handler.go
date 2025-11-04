@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 	"strings"
-
+	"time"
 	"github.com/jmoiron/sqlx"
 	"github.com/sinavarasina/SAS-BOT/internal/bot"
 	"github.com/sinavarasina/SAS-BOT/internal/sheets"
@@ -47,9 +47,13 @@ func EventHandler(client *whatsmeow.Client, appDB *sqlx.DB, sheetsClient *sheets
 				// Send multiple messages if there are multiple replies
 				for _, reply := range replies {
 					if reply != "" {
-						_, err := client.SendMessage(context.Background(), v.Info.Chat, &waProto.Message{
-							Conversation: proto.String(reply),
-						})
+						ctxWithTimeout, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+        
+        		_, err := client.SendMessage(ctxWithTimeout, v.Info.Chat, &waProto.Message{
+            	Conversation: proto.String(reply),
+        		})
+        
+        		cancel()
 						if err != nil {
 							log.Printf("Error sending private reply to %s: %v", chatJID, err)
 						}
