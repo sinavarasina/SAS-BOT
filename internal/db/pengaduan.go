@@ -11,10 +11,12 @@ type Pengaduan struct {
 	PictPath string `db:"pict_path"`
 }
 
-func SavePengaduan(dbConn *sqlx.DB, aduan Pengaduan) error {
-	_, err := dbConn.Exec(`
+func SavePengaduan(dbConn *sqlx.DB, aduan Pengaduan) (int, error) {
+	var newID int 
+	err := dbConn.QueryRowx(`
 	INSERT INTO pengaduan (user_jid, deskripsi, pict_path)
-	VALUES ($1, $2, $3)`,
-		aduan.UserJID, aduan.Deskripsi, aduan.PictPath)
-	return err
+	VALUES ($1, $2, $3)
+	RETURNING id`,
+		aduan.UserJID, aduan.Deskripsi, aduan.PictPath).Scan(&newID)
+	return newID, err
 }

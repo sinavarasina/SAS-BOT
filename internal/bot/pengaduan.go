@@ -78,11 +78,14 @@ func HandleImagePengaduan(
 			Deskripsi: imageMsg.GetCaption(),
 			PictPath:  publicURL,
 		}
-		if err := db.SavePengaduan(appDB, aduan); err != nil {
+		newID, err := db.SavePengaduan(appDB, aduan)
+		if err != nil {
 			log.Printf("[ERROR] Failed to save complaint to database: %v", err)
 			sendMessageSafe(client, chatJID, "Terjadi kesalahan saat menyimpan laporan Anda.")
 			return
 		}
+
+		publicID := fmt.Sprintf("P-%d", 100+newID)
 
 		// Write to Google Sheets asynchronously
 		go func() {
@@ -92,12 +95,12 @@ func HandleImagePengaduan(
 				}
 			}()
 			log.Printf("[ASYNC] Writing complaint to Google Sheets for %s", senderJID)
-			sheetsClient.AppendPengaduan(aduan)
+			sheetsClient.AppendPengaduan(aduan, publicID)
 			log.Printf("[DONE] Successfully written complaint to Google Sheets for %s", senderJID)
 		}()
 
 		// Notify user after processing is completed
-		sendMessageSafe(client, chatJID, "Pengaduan Anda telah tersimpan dan akan segera ditindaklanjuti. Terima kasih atas laporannya!")
+		sendMessageSafe(client, chatJID, fmt.Sprintf("Pengaduan Anda telah tersimpan dan akan segera ditindaklanjuti.\n\nNomor ID Pengaduan Anda adalah: %s \n\nGunakan ID ini untuk memeriksa status laporan Anda. Terima kasih atas laporannya!", publicID))
 
 		log.Printf("[DONE] Complaint from %s processed in %v (URL: %s)", senderJID, time.Since(start), publicURL)
 		if err := db.DeleteDataEntrySession(appDB, senderJID); err != nil {
