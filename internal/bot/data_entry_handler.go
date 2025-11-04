@@ -1,3 +1,5 @@
+// Gw pengen ini ntar di pecah jadi module baru di dalam folder bot/
+
 package bot
 
 import (
@@ -436,7 +438,6 @@ func loadJSONOptions() (map[int]string, map[int]string, map[int]string, map[int]
 	return sexOptions, agamaOptions, pendidikanKKOptions, pendidikanSedangOptions, pekerjaanOptions, statusKawinOptions, kkLevelOptions, warganegaraOptions, golonganDarahOptions, cacatOptions, caraKBOptions, hamilOptions, ktpElOptions, statusRekamOptions, statusDasarOptions, sukuOptions, asuransiOptions
 }
 
-
 func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySession, sheetsClient *sheets.SheetsClient) []string {
 	log.Printf("[DEBUG] Handling data entry for step %d with input: '%s'", session.CurrentStep, text)
 
@@ -493,7 +494,6 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 		// Langsung lompat ke langkah konfirmasi (42)
 		dataStr, _ := db.GetFormattedSessionData(dbConn, jid)
 		return []string{"Data ditemukan. Silakan periksa:\n\n" + dataStr, "\n\nKetik 'valid' untuk menyimpan atau 'edit' untuk mengubah data."}
-
 
 	// --- 4. ALUR LANGKAH VIRTUAL (dari fitur input) ---
 	case STEP_NIK_DUPLICATE: // (101)
