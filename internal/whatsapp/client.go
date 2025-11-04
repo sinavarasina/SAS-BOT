@@ -8,13 +8,14 @@ import (
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/mdp/qrterminal"
+
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/store/sqlstore"
 	waLog "go.mau.fi/whatsmeow/util/log"
 	"github.com/sinavarasina/SAS-BOT/internal/sheets"
 )
 
-func InitClient(dsn string, appDB *sqlx.DB, ctx context.Context, sheetsClient *sheets.Data_SheetsClient) (*whatsmeow.Client, error) {
+func InitClient(dsn string, appDB *sqlx.DB, ctx context.Context, sheetsClient *sheets.SheetsClient ) (*whatsmeow.Client, error) {
 	dbLog := waLog.Stdout("Database", "INFO", true)
 
 	container, err := sqlstore.New(ctx, "postgres", dsn, dbLog)

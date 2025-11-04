@@ -33,7 +33,7 @@ type GeminiResponse struct {
 }
 
 const (
-	GEMINI_API_KEY = "AIzaSyCR3Weo_JBPE_PnWNLEfo4T57Uw0bqCQM4" // SEBAIKNYA PINDAHKAN KE .env
+	GEMINI_API_KEY = "AIzaSyCR3Weo_JBPE_PnWNLEfo4T57Uw0bqCQM4"
 	GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 )
 
@@ -57,21 +57,19 @@ var staticResponses = map[string]string{
 	"terimakasih": "Sama-sama! Silakan pilih menu yang tersedia jika butuh bantuan lagi.",
 }
 
-func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string, sheetsClient *sheets.Data_SheetsClient) []string {
+func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string, sheetsClient *sheets.SheetsClient) []string {
 	// Debug raw message content first
 	log.Printf("[DEBUG] Raw message - Text: '%s', Length: %d", text, len(text))
-
 	text = strings.TrimSpace(text)
 	log.Printf("[DEBUG] After trim - Text: '%s', Length: %d, Username: %s, Number: %s",
 		text, len(text), username, number)
 
-	// Handle empty or whitespace-only messages
 	if len(strings.TrimSpace(text)) == 0 {
 		log.Printf("[DEBUG] Message contains only whitespace or is empty")
 		return []string{getMainMenu()}
 	}
 
-	// Save user info
+	// Save user data to database
 	WAUser := db.User{
 		JID:       jid,
 		Number:    number,
@@ -105,10 +103,8 @@ func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string, sh
 		return HandleDataEntry(dbConn, jid, text, session, sheetsClient)
 	}
 
-	// --- PERBAIKAN LOGIKA UTAMA ADA DI SINI ---
-	// Handle menu selection "1" to start data entry
-	if text == "1" {
-		// JANGAN panggil StartNewSession di sini.
+	switch text {
+	case "1":
 		// CUKUP set langkah ke menu data diri (200)
 		if err := db.UpdateStepOnly(dbConn, jid, STEP_MENU_DATA_DIRI); err != nil {
 			log.Printf("[ERROR] Failed to set step to STEP_MENU_DATA_DIRI: %v", err)
@@ -118,15 +114,22 @@ func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string, sh
 		// Tampilkan sub-menu (tanpa "Hapus")
 		subMenu := `*Menu Data Diri*
 
-Menu ini digunakan untuk mengelola data kependudukan Anda.
+	Menu ini digunakan untuk mengelola data kependudukan Anda.
 
-1. Input Data Diri (Baru)
-2. Edit Data Diri (Berdasarkan NIK)
+	1. Input Data Diri (Baru)
+	2. Edit Data Diri (Berdasarkan NIK)
 
-Silakan pilih nomor atau ketik 'reset' untuk kembali ke menu utama.`
+	Silakan pilih nomor atau ketik 'reset' untuk kembali ke menu utama.`
 		return []string{subMenu}
+
+	case "3":
+		// Set sesi ke "menunggu pengaduan" (langkah 300)
+		if err := db.UpdateStepOnly(dbConn, jid, STEP_PENGADUAN_WAITING); err != nil {
+			log.Printf("[ERROR] Failed to set step to STEP_PENGADUAN_WAITING: %v", err)
+			return []string{"Maaf, terjadi kesalahan sistem."}
+		}
+		return []string{"Anda memilih *Pengaduan*.\n\nSilakan kirimkan *satu foto* pengaduan Anda, dan *tulis deskripsi* di bagian caption/keterangan gambar tersebut."}
 	}
-	// --- AKHIR PERBAIKAN ---
 
 	// Check for static responses if not in data entry mode
 	if response, exists := getStaticResponse(text); exists {
@@ -137,7 +140,6 @@ Silakan pilih nomor atau ketik 'reset' untuk kembali ke menu utama.`
 	response := handleGeminiAPI(text)
 	return []string{response + "\n\n" + getMainMenu()}
 }
-
 func getStaticResponse(text string) (string, bool) {
 	text = strings.ToLower(strings.TrimSpace(text))
 	response, exists := staticResponses[text]
@@ -214,6 +216,6 @@ Silakan pilih menu dengan mengetik nomor yang sesuai.`
 }
 
 func HandlerRouteGroup(dbConn *sqlx.DB, jid, text, username, number string) string {
-	// Hapus pesan template, bisa return kosong atau pesan singkat lain jika diinginkan
 	return ""
 }
+

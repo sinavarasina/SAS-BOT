@@ -10,33 +10,42 @@ import (
 )
 
 func InitDB(dsn string) (*sqlx.DB, error) {
-	// Use PostgreSQL driver
+	// Gunakan PostgreSQL driver
 	db, err := sqlx.Connect("postgres", dsn)
 	if err != nil {
 		return nil, err
 	}
 
-	// Test connection
-	err = db.Ping()
-	if err != nil {
+	// Tes koneksi
+	if err := db.Ping(); err != nil {
 		return nil, err
 	}
 
-	// Set connection pool settings
+	// Atur connection pool
 	db.SetMaxOpenConns(25)
 	db.SetMaxIdleConns(5)
 
+	// --- SCHEMA CREATION ---
 	schema := `
-	-- Drop triggers first to avoid conflicts
+	-- Drop triggers dulu agar tidak konflik
 	DROP TRIGGER IF EXISTS update_timestamp ON data_entry_sessions;
 	DROP FUNCTION IF EXISTS update_timestamp CASCADE;
 
-	-- Create tables if they don't exist
+	-- Tabel users
 	CREATE TABLE IF NOT EXISTS users (
 		jid TEXT PRIMARY KEY,
 		number TEXT,
 		username TEXT,
 		previlege TEXT
+	);
+
+	-- Tabel pengaduan
+	CREATE TABLE IF NOT EXISTS pengaduan (
+		id SERIAL PRIMARY KEY,
+		user_jid TEXT REFERENCES users(jid),
+		deskripsi TEXT,
+		pict_path TEXT,
+		sent_time TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 	);
 
 	-- Lookup Tables
@@ -58,7 +67,7 @@ func InitDB(dsn string) (*sqlx.DB, error) {
 	CREATE TABLE IF NOT EXISTS suku (suku_id INTEGER PRIMARY KEY, nama TEXT);
 	CREATE TABLE IF NOT EXISTS id_asuransi (id_asuransi_id INTEGER PRIMARY KEY, nama TEXT);
 
-	-- Main data entry table
+	-- Tabel data utama untuk pendataan
 	CREATE TABLE IF NOT EXISTS data_entry_sessions (
 		jid TEXT PRIMARY KEY,
 		current_step INTEGER DEFAULT 1,
@@ -157,6 +166,7 @@ func InitDB(dsn string) (*sqlx.DB, error) {
 	);
 
 	-- Create update timestamp function
+	-- Fungsi trigger update timestamp
 	CREATE OR REPLACE FUNCTION update_timestamp()
 	RETURNS TRIGGER AS $$
 	BEGIN
@@ -165,140 +175,101 @@ func InitDB(dsn string) (*sqlx.DB, error) {
 	END;
 	$$ LANGUAGE plpgsql;
 
-	-- Create trigger
+	-- Trigger untuk auto-update kolom updated_at
 	CREATE TRIGGER update_timestamp
 		BEFORE UPDATE ON data_entry_sessions
 		FOR EACH ROW
-		EXECUTE FUNCTION update_timestamp();`
+		EXECUTE FUNCTION update_timestamp();
+	`
 
 	_, err = db.Exec(schema)
 	if err != nil {
 		return nil, err
 	}
 
-	// After schema creation, populate lookup tables
+	// Populate lookup tables
 	if err := populateLookupTables(db); err != nil {
-		return nil, fmt.Errorf("failed to populate lookup tables: %v", err)
+		return nil, fmt.Errorf("[ERROR] Failed to populate lookup tables: %v", err)
 	}
 
 	return db, err
 }
 
 func populateLookupTables(db *sqlx.DB) error {
-	// Load and insert sex data
 	if err := insertDataFromJSON(db, "json/8_sex.json", "sex", "sex_id"); err != nil {
 		return err
 	}
-
-	// Load and insert agama data
 	if err := insertDataFromJSON(db, "json/11_agama.json", "agama", "agama_id"); err != nil {
 		return err
 	}
-
-	// Load and insert pendidikan_kk data
 	if err := insertDataFromJSON(db, "json/12_pendidikan_kk.json", "pendidikan_kk", "pendidikan_kk_id"); err != nil {
 		return err
 	}
-
-	// Load and insert pendidikan_sedang data
 	if err := insertDataFromJSON(db, "json/13_pendidikan_sedang.json", "pendidikan_sedang", "pendidikan_sedang_id"); err != nil {
 		return err
 	}
-
-	// Load and insert pekerjaan data
 	if err := insertDataFromJSON(db, "json/14_pekerjaan.json", "pekerjaan", "pekerjaan_id"); err != nil {
 		return err
 	}
-
-	// Load and insert status_kawin data
 	if err := insertDataFromJSON(db, "json/15_status_kawin.json", "status_kawin", "status_kawin_id"); err != nil {
 		return err
 	}
-
-	// Load and insert kk_level data
 	if err := insertDataFromJSON(db, "json/16_kk_level.json", "kk_level", "kk_level_id"); err != nil {
 		return err
 	}
-
-	// Load and insert warganegara data
 	if err := insertDataFromJSON(db, "json/17_warganegara.json", "warganegara", "warganegara_id"); err != nil {
 		return err
 	}
-
-	// Load and insert golongan_darah data
 	if err := insertDataFromJSON(db, "json/22_golongan_darah.json", "golongan_darah", "golongan_darah_id"); err != nil {
 		return err
 	}
-
-	// Load and insert cacat data
 	if err := insertDataFromJSON(db, "json/31_cacat.json", "cacat", "cacat_id"); err != nil {
 		return err
 	}
-
-	// Load and insert cara_kb data
 	if err := insertDataFromJSON(db, "json/32_cara_kb.json", "cara_kb", "cara_kb_id"); err != nil {
 		return err
 	}
-
-	// Load and insert hamil data
 	if err := insertDataFromJSON(db, "json/33_hamil.json", "hamil", "hamil_id"); err != nil {
 		return err
 	}
-
-	// Load and insert ktp_el data
 	if err := insertDataFromJSON(db, "json/34_ktp_el.json", "ktp_el", "ktp_el_id"); err != nil {
 		return err
 	}
-
-	// Load and insert status_rekam data
 	if err := insertDataFromJSON(db, "json/35_status_rekam.json", "status_rekam", "status_rekam_id"); err != nil {
 		return err
 	}
-
-	// Load and insert status_dasar data
 	if err := insertDataFromJSON(db, "json/37_status_dasar.json", "status_dasar", "status_dasar_id"); err != nil {
 		return err
 	}
-
-	// Load and insert suku data
 	if err := insertDataFromJSON(db, "json/38_suku.json", "suku", "suku_id"); err != nil {
 		return err
 	}
-
-	// Load and insert id_asuransi data
 	if err := insertDataFromJSON(db, "json/40_asuransi.json", "id_asuransi", "id_asuransi_id"); err != nil {
 		return err
 	}
-
 	return nil
 }
 
 func insertDataFromJSON(db *sqlx.DB, filePath, tableName, idColumn string) error {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
-		return fmt.Errorf("failed to read %s: %v", filePath, err)
+		return fmt.Errorf("[ERROR] Failed to read %s: %v", filePath, err)
 	}
 
 	var jsonData map[string][]map[string]interface{}
 	if err := json.Unmarshal(data, &jsonData); err != nil {
-		return fmt.Errorf("failed to parse %s: %v", filePath, err)
+		return fmt.Errorf("[ERROR] Failed to parse %s: %v", filePath, err)
 	}
 
-	// DO NOT clear existing data to avoid FK constraint errors
-	// if _, err := db.Exec(fmt.Sprintf("DELETE FROM %s", tableName)); err != nil {
-	// 	return fmt.Errorf("failed to clear %s: %v", tableName, err)
-	// }
-
-	// Get the key from the JSON (usually matches the table name)
 	var records []map[string]interface{}
 	for _, v := range jsonData {
 		records = v
 		break
 	}
 
-	// Insert or update data
 	for _, record := range records {
-		query := fmt.Sprintf("INSERT INTO %s (%s, nama) VALUES ($1, $2) ON CONFLICT (%s) DO UPDATE SET nama = EXCLUDED.nama",
+		query := fmt.Sprintf(
+			"INSERT INTO %s (%s, nama) VALUES ($1, $2) ON CONFLICT (%s) DO UPDATE SET nama = EXCLUDED.nama",
 			tableName, idColumn, idColumn)
 		if _, err := db.Exec(query, record["id"], record["nama"]); err != nil {
 			return fmt.Errorf("failed to insert into %s: %v", tableName, err)
