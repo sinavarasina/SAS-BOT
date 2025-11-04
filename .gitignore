@@ -38,3 +38,6 @@ sas-sindang-anom-58dc655332ab.json
 
 # ignore photos
 uploads/
+
+# macos specifik 
+.DS_Store
