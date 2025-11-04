@@ -12,7 +12,7 @@ import (
 	"github.com/sinavarasina/SAS-BOT/internal/sheets"
 	"github.com/sinavarasina/SAS-BOT/internal/uploader"
 	"go.mau.fi/whatsmeow"
-	waProto "go.mau.fi/whatsmeow/binary/proto"
+	waProto "go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/types"
 	"google.golang.org/protobuf/proto"
 )
