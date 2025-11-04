@@ -33,7 +33,7 @@ type GeminiResponse struct {
 }
 
 const (
-	GEMINI_API_KEY = "AIzaSyCR3Weo_JBPE_PnWNLEfo4T57Uw0bqCQM4"
+	GEMINI_API_KEY = "AIzaSyCR3Weo_JBPE_PnWNLEfo4T57Uw0bqCQM4" // SEBAIKNYA PINDAHKAN KE .env
 	GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 )
 
@@ -105,15 +105,28 @@ func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string, sh
 		return HandleDataEntry(dbConn, jid, text, session, sheetsClient)
 	}
 
+	// --- PERBAIKAN LOGIKA UTAMA ADA DI SINI ---
 	// Handle menu selection "1" to start data entry
 	if text == "1" {
-		if err := db.StartNewSession(dbConn, jid); err != nil {
-			log.Printf("[ERROR] Failed to start new session: %v", err)
+		// JANGAN panggil StartNewSession di sini.
+		// CUKUP set langkah ke menu data diri (200)
+		if err := db.UpdateStepOnly(dbConn, jid, STEP_MENU_DATA_DIRI); err != nil {
+			log.Printf("[ERROR] Failed to set step to STEP_MENU_DATA_DIRI: %v", err)
 			return []string{"Maaf, terjadi kesalahan sistem."}
 		}
-		log.Printf("[DEBUG] Started new data entry session")
-		return []string{steps[STEP_START].Question}
+
+		// Tampilkan sub-menu (tanpa "Hapus")
+		subMenu := `*Menu Data Diri*
+
+Menu ini digunakan untuk mengelola data kependudukan Anda.
+
+1. Input Data Diri (Baru)
+2. Edit Data Diri (Berdasarkan NIK)
+
+Silakan pilih nomor atau ketik 'reset' untuk kembali ke menu utama.`
+		return []string{subMenu}
 	}
+	// --- AKHIR PERBAIKAN ---
 
 	// Check for static responses if not in data entry mode
 	if response, exists := getStaticResponse(text); exists {
@@ -192,7 +205,9 @@ func getMainMenu() string {
 
 Menu yang tersedia:
 
-1. Pencatatan Data Penduduk
+1. Data Diri
+2. Pengajuan Surat 
+3. Pengaduan 
 
 Silakan pilih menu dengan mengetik nomor yang sesuai.`
 	return menu
