@@ -229,14 +229,18 @@ var (
 )
 
 const (
-	STEP_START        = 1
-	STEP_NIK          = 7
-	STEP_NAMA_IBU     = 21
-	STEP_GOLONGAN_DARAH = 22
-	STEP_CONFIRMATION = 42
-	STEP_EDIT         = 43
+	STEP_START               = 1
+	STEP_NIK                 = 7
+	STEP_NAMA_IBU            = 21
+	STEP_GOLONGAN_DARAH      = 22
+	STEP_CONFIRMATION        = 42
+	STEP_EDIT                = 43
 	STEP_CHECKPOINT_NAMA_IBU = 100
-	STEP_NIK_DUPLICATE = 101
+	STEP_NIK_DUPLICATE       = 101
+	STEP_MENU_DATA_DIRI      = 200 // Sesi menunggu pilihan (Input, Edit, Hapus)
+	STEP_EDIT_CARI_NIK       = 201 // Sesi menunggu NIK untuk di-edit
+	// STEP_HAPUS_CARI_NIK (Dihapus)
+	// STEP_HAPUS_KONFIRMASI (Dihapus)
 )
 
 func loadJSONOptions() (map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string) {
@@ -433,89 +437,114 @@ func loadJSONOptions() (map[int]string, map[int]string, map[int]string, map[int]
 	return sexOptions, agamaOptions, pendidikanKKOptions, pendidikanSedangOptions, pekerjaanOptions, statusKawinOptions, kkLevelOptions, warganegaraOptions, golonganDarahOptions, cacatOptions, caraKBOptions, hamilOptions, ktpElOptions, statusRekamOptions, statusDasarOptions, sukuOptions, asuransiOptions
 }
 
-func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySession, sheetsClient *sheets.SheetsClient) []string {
-	if session.CurrentStep == STEP_NIK_DUPLICATE {
-		text = strings.ToLower(text)
-		if text == "edit nik" {
-			// 1. Kembalikan user ke langkah 7 (Input NIK)
-			if err := db.UpdateStepOnly(dbConn, jid, STEP_NIK); err != nil {
-				return []string{"Maaf, terjadi kesalahan sistem."}
-			}
-			// 2. Ajukan pertanyaan NIK lagi
-			return []string{formatQuestion(steps[STEP_NIK])}
-			
-		} else if text == "stop" {
-			// 1. Hapus sesi
-			if err := db.DeleteDataEntrySession(dbConn, jid); err != nil {
-				return []string{"Maaf, terjadi kesalahan sistem."}
-			}
-			// 2. Kembalikan ke menu utama
-			return []string{"Pendaftaran dibatalkan.\n\n" + getMainMenu()}
-		
-		} else {
-			// Jawaban tidak valid
-			return []string{"⚠️ Pilihan tidak valid.\n\nKetik 'edit nik' untuk memasukkan NIK baru, atau 'stop' untuk membatalkan pendaftaran."}
-		}
-	}
 
-	if session.CurrentStep == STEP_CHECKPOINT_NAMA_IBU {
-		text = strings.ToLower(text)
-		if text == "lanjut" {
-			// 1. Lanjutkan ke langkah 22 (Gol. Darah)
-			if err := db.UpdateStepOnly(dbConn, jid, STEP_GOLONGAN_DARAH); err != nil {
-				return []string{"Maaf, terjadi kesalahan sistem."}
-			}
-			// 2. Ajukan pertanyaan untuk langkah 22
-			return []string{formatQuestion(steps[STEP_GOLONGAN_DARAH])}
-		
-		} else if text == "cukup" {
-			// 1. Langsung lompat ke konfirmasi (valid/edit)
-			data, err := db.GetFormattedSessionData(dbConn, jid)
-			if err != nil {
-				return []string{"Maaf, terjadi kesalahan sistem."}
-			}
-			// 2. Set langkah ke konfirmasi
-			if err := db.UpdateStepOnly(dbConn, jid, STEP_CONFIRMATION); err != nil {
-				return []string{"Maaf, terjadi kesalahan sistem."}
-			}
-			// 3. Tampilkan ringkasan
-			return []string{"Ketik 'valid' jika sudah benar atau ketik 'edit' untuk mengubah data.\n\n" + data}
-		
-		} else {
-			// Jawaban tidak valid
-			return []string{"Mohon ketik 'lanjut' atau 'cukup'."}
-		}
-	}
+func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySession, sheetsClient *sheets.SheetsClient) []string {
 	log.Printf("[DEBUG] Handling data entry for step %d with input: '%s'", session.CurrentStep, text)
 
-	// Handle "fast" command - only work if we're in data entry mode (after selecting menu 1)
+	// Handle "fast" command first
 	if text == "fast" {
 		if !session.AwaitingAnswer || session.CurrentStep < STEP_START {
 			return []string{"Silakan pilih menu. Kirim '1' untuk memulai pendataan."}
 		}
-
+		// ... (Logika "fast" Anda) ...
 		if err := FastTrackDataEntry(dbConn, jid); err != nil {
 			log.Printf("[ERROR] Fast track failed: %v", err)
 			return []string{"Maaf, terjadi kesalahan sistem."}
 		}
-		// Get formatted data to show confirmation
 		data, err := db.GetFormattedSessionData(dbConn, jid)
 		if err != nil {
 			return []string{"Maaf, terjadi kesalahan sistem."}
 		}
-		// Update step to confirmation and show data
 		if err := db.UpdateStepOnly(dbConn, jid, STEP_CONFIRMATION); err != nil {
 			return []string{"Maaf, terjadi kesalahan sistem."}
 		}
 		return []string{"Ketik 'valid' jika sudah benar atau ketik 'edit' untuk mengubah data.\n\n" + data}
 	}
 
-	if session.CurrentStep == STEP_CONFIRMATION || session.CurrentStep == STEP_EDIT {
+	// --- PERBAIKAN: SEMUA LOGIKA SEKARANG ADA DI DALAM 1 SWITCH BESAR ---
+	switch session.CurrentStep {
+
+	// --- 1. ALUR MENU UTAMA & SUB-MENU ---
+	case STEP_MENU_DATA_DIRI: // User ada di sub-menu (200)
+		switch text {
+		case "1": // 1. Input Data Diri
+			// --- PERBAIKAN: Panggil StartNewSession DI SINI ---
+			if err := db.StartNewSession(dbConn, jid); err != nil {
+				return []string{"Maaf, terjadi kesalahan sistem."}
+			}
+			return []string{steps[STEP_START].Question}
+		case "2": // 2. Edit Data Diri
+			if err := db.UpdateStepOnly(dbConn, jid, STEP_EDIT_CARI_NIK); err != nil {
+				return []string{"Maaf, terjadi kesalahan sistem."}
+			}
+			return []string{"Silakan masukkan **NIK 16 digit** yang datanya ingin Anda edit:"}
+		// --- PERBAIKAN: Case "3" (Hapus) dihapus ---
+		default:
+			return []string{"Pilihan tidak valid. Silakan pilih 1 atau 2, atau ketik 'reset'."}
+		}
+
+	// --- 2. ALUR FITUR EDIT ---
+	case STEP_EDIT_CARI_NIK: // Menunggu NIK untuk di-edit (201)
+		data, err := db.GetDataPendudukByNIK(dbConn, text)
+		if err != nil {
+			log.Printf("[DEBUG] NIK %s tidak ditemukan di DB: %v", text, err)
+			return []string{"NIK tidak ditemukan di database. Silakan coba lagi atau ketik 'reset'."}
+		}
+		// Temukan! Salin data permanen ke sesi sementara
+		if err := db.LoadSessionFromPenduduk(dbConn, jid, *data); err != nil {
+			log.Printf("[ERROR] Gagal LoadSessionFromPenduduk: %v", err)
+			return []string{"NIK ditemukan, tapi gagal memuat data ke sesi. Hubungi admin."}
+		}
+		// Langsung lompat ke langkah konfirmasi (42)
+		dataStr, _ := db.GetFormattedSessionData(dbConn, jid)
+		return []string{"Data ditemukan. Silakan periksa:\n\n" + dataStr, "\n\nKetik 'valid' untuk menyimpan atau 'edit' untuk mengubah data."}
+
+	// --- 3. ALUR FITUR HAPUS (DIHAPUS) ---
+	// case STEP_HAPUS_CARI_NIK: ...
+	// case STEP_HAPUS_KONFIRMASI: ...
+
+	// --- 4. ALUR LANGKAH VIRTUAL (dari fitur input) ---
+	case STEP_NIK_DUPLICATE: // (101)
+		text = strings.ToLower(text)
+		if text == "edit nik" {
+			if err := db.UpdateStepOnly(dbConn, jid, STEP_NIK); err != nil {
+				return []string{"Maaf, terjadi kesalahan sistem."}
+			}
+			return []string{formatQuestion(steps[STEP_NIK])}
+		} else if text == "stop" {
+			if err := db.DeleteDataEntrySession(dbConn, jid); err != nil {
+				return []string{"Maaf, terjadi kesalahan sistem."}
+			}
+			return []string{"Pendaftaran dibatalkan.\n\n" + getMainMenu()}
+		} else {
+			return []string{"⚠️ Pilihan tidak valid.\n\nKetik 'edit nik' untuk memasukkan NIK baru, atau 'stop' untuk membatalkan pendaftaran."}
+		}
+
+	case STEP_CHECKPOINT_NAMA_IBU: // (100)
+		text = strings.ToLower(text)
+		if text == "lanjut" {
+			if err := db.UpdateStepOnly(dbConn, jid, STEP_GOLONGAN_DARAH); err != nil {
+				return []string{"Maaf, terjadi kesalahan sistem."}
+			}
+			return []string{formatQuestion(steps[STEP_GOLONGAN_DARAH])}
+		} else if text == "cukup" {
+			data, err := db.GetFormattedSessionData(dbConn, jid)
+			if err != nil {
+				return []string{"Maaf, terjadi kesalahan sistem."}
+			}
+			if err := db.UpdateStepOnly(dbConn, jid, STEP_CONFIRMATION); err != nil {
+				return []string{"Maaf, terjadi kesalahan sistem."}
+			}
+			return []string{"Ketik 'valid' jika sudah benar atau ketik 'edit' untuk mengubah data.\n\n" + data}
+		} else {
+			return []string{"Mohon ketik 'lanjut' atau 'cukup'."}
+		}
+
+	// --- 5. ALUR KONFIRMASI & EDIT (dari fitur input & edit) ---
+	case STEP_CONFIRMATION, STEP_EDIT: // (42, 43)
 		if session.CurrentStep == STEP_CONFIRMATION {
-			// Only accept "valid" or "edit" at confirmation stage
 			text = strings.ToLower(text)
 			if text != "valid" && text != "edit" {
-				// Get current data to show again
 				data, err := db.GetFormattedSessionData(dbConn, jid)
 				if err != nil {
 					return []string{"Maaf, terjadi kesalahan sistem."}
@@ -528,38 +557,53 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 		case "valid":
 			fullSession, err := db.GetFullSessionData(dbConn, jid)
 			if err != nil {
-				log.Printf("[ERROR] Gagal mengambil data lengkap untuk dikirim ke Sheet: %v", err)
+				log.Printf("[ERROR] Gagal mengambil data lengkap: %v", err)
 				return []string{"Maaf, terjadi kesalahan sistem saat mengambil data."}
 			}
 
-			go sheetsClient.WriteDataPenduduk(*fullSession)
+			// 1. Simpan ke Database (PostgreSQL) - Ini akan INSERT atau UPDATE
+			if err := db.SaveDataPenduduk(dbConn, *fullSession); err != nil {
+				return []string{"Maaf, terjadi kesalahan besar saat menyimpan ke database."}
+			}
 
+			// 2. Simpan ke Google Sheet (di background)
+			go func() {
+				nik := fullSession.NIK.String
+				rowNum, err := sheetsClient.FindRowByNIK(nik)
+				if err != nil {
+					// NIK tidak ditemukan, berarti INPUT BARU
+					log.Printf("Menambah NIK %s baru ke Sheet.", nik)
+					sheetsClient.AppendDataPenduduk(*fullSession)
+				} else {
+					// NIK ditemukan, berarti EDIT
+					log.Printf("Mengupdate NIK %s di baris %d Sheet.", nik, rowNum)
+					sheetsClient.UpdateRowData(rowNum, *fullSession)
+				}
+			}()
+
+			// 3. Hapus sesi sementara
 			if err := db.DeleteDataEntrySession(dbConn, jid); err != nil {
 				return []string{"maaf, terjadi kesalahan sistem"}
 			}
-			return []string{"✅ terima kasih! semua data telah berhasil dimasukkan"}
+			return []string{"✅ terima kasih! Data Anda telah berhasil disimpan di Database dan sedang disinkronkan ke Spreadsheet."}
+
 		case "edit":
-			log.Printf("[DEBUG] Starting edit mode")
 			data, err := db.GetFormattedSessionData(dbConn, jid)
 			if err != nil {
 				log.Printf("[ERROR] Failed to get formatted data: %v", err)
 				return []string{"maaf, terjadi kesalahan sistem"}
 			}
-
 			if err := db.SetEditField(dbConn, jid, ""); err != nil {
 				log.Printf("[ERROR] Failed to clear edit field: %v", err)
 				return []string{"maaf, terjadi kesalahan sistem"}
 			}
-
 			if err := db.UpdateStepOnly(dbConn, jid, STEP_EDIT); err != nil {
 				log.Printf("[ERROR] Failed to update step: %v", err)
 				return []string{"maaf, terjadi kesalahan sistem"}
 			}
-
-			log.Printf("[DEBUG] Successfully entered edit mode")
 			return []string{"Ketik nomor yang ingin anda edit (1-41)\n\n" + data}
 
-		default:
+		default: // Ini adalah logika saat user mengedit field
 			editField, err := db.GetEditField(dbConn, jid)
 			if err != nil {
 				log.Printf("[ERROR] Failed to get edit field: %v", err)
@@ -568,6 +612,24 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 
 			if session.CurrentStep == STEP_EDIT && editField == "" {
 				if text == "valid" {
+					// ... (Logika 'valid' duplikat)
+					fullSession, err := db.GetFullSessionData(dbConn, jid)
+					if err != nil {
+						log.Printf("[ERROR] Gagal mengambil data lengkap: %v", err)
+						return []string{"Maaf, terjadi kesalahan sistem saat mengambil data."}
+					}
+					if err := db.SaveDataPenduduk(dbConn, *fullSession); err != nil {
+						return []string{"Maaf, terjadi kesalahan besar saat menyimpan ke database."}
+					}
+					go func() {
+						nik := fullSession.NIK.String
+						rowNum, err := sheetsClient.FindRowByNIK(nik)
+						if err != nil {
+							sheetsClient.AppendDataPenduduk(*fullSession)
+						} else {
+							sheetsClient.UpdateRowData(rowNum, *fullSession)
+						}
+					}()
 					if err := db.DeleteDataEntrySession(dbConn, jid); err != nil {
 						return []string{"maaf, terjadi kesalahan sistem"}
 					}
@@ -583,14 +645,11 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 					return []string{fmt.Sprintf("⚠️ nomor tidak valid\n\nsilakan ketik:\n- nomor 1-41 untuk mengedit data\n- 'valid' untuk menyimpan\n\n%s", data)}
 				}
 
-				log.Printf("[DEBUG] Selected field to edit: %d", num)
 				step := steps[num]
-
 				if err := db.SetEditField(dbConn, jid, step.Field); err != nil {
 					log.Printf("[ERROR] Failed to set edit field: %v", err)
 					return []string{"maaf, terjadi kesalahan sistem"}
 				}
-
 				if step.Options != nil {
 					return []string{fmt.Sprintf("📝 edit data nomor %d:\n\n%s", num, formatQuestionWithOptions(step.Question, step.Options))}
 				}
@@ -605,40 +664,112 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 						break
 					}
 				}
-
 				value, err := validateInput(text, currentStep)
 				if err != nil {
 					return []string{fmt.Sprintf("📝 mode edit aktif\n\n%s", err.Error())}
 				}
-
 				if err := db.UpdateDataEntrySession(dbConn, jid, editField, value); err != nil {
 					return []string{"maaf, terjadi kesalahan sistem"}
 				}
-
 				if err := db.SetEditField(dbConn, jid, ""); err != nil {
 					return []string{"maaf, terjadi kesalahan sistem"}
 				}
-
 				data, err := db.GetFormattedSessionData(dbConn, jid)
 				if err != nil {
 					return []string{"maaf, terjadi kesalahan sistem"}
 				}
-
 				if err := db.UpdateStepOnly(dbConn, jid, STEP_EDIT); err != nil {
 					return []string{"maaf, terjadi kesalahan sistem"}
 				}
-
 				return []string{
 					"✅ data berhasil diupdate\n\nketik:\n- nomor 1-41 untuk mengedit data lain\n- 'valid' jika sudah selesai\n\n" + data,
 				}
 			}
 		}
-	}
 
-	// After fast track, continue with current step
-	// Handle regular steps
-	stepInfo, ok := steps[session.CurrentStep]
-	if !ok {
+	// --- 6. ALUR NORMAL INPUT DATA (LANGKAH 1-41) ---
+	default:
+		stepInfo, ok := steps[session.CurrentStep]
+		if !ok { // Seharusnya ini adalah langkah setelah 41
+			data, err := db.GetFormattedSessionData(dbConn, jid)
+			if err != nil {
+				return []string{"Maaf, terjadi kesalahan sistem."}
+			}
+			if err := db.UpdateStepOnly(dbConn, jid, STEP_CONFIRMATION); err != nil {
+				return []string{"Maaf, terjadi kesalahan sistem."}
+			}
+			return []string{"Ketik 'valid' jika sudah benar atau ketik 'edit' untuk mengubah data.\n\n" + data}
+		}
+
+		// (Khusus untuk langkah 1)
+		if session.CurrentStep == STEP_START && text == "1" {
+			return []string{steps[STEP_START].Question}
+		}
+
+		// Validasi input
+		value, err := validateInput(text, stepInfo)
+		if err != nil {
+			log.Printf("[DEBUG] Input validation failed: %v", err)
+			return []string{err.Error()}
+		}
+
+		// --- VALIDASI NIK (saat input baru) ---
+		if session.CurrentStep == STEP_NIK {
+			nikValue := value.(string)
+			// 1. Cek ke DB permanen (Cepat)
+			isDuplicate, err := db.CheckNIKExistsInPenduduk(dbConn, nikValue)
+			if err != nil {
+				log.Printf("[ERROR] Gagal mengecek NIK di DB permanen: %v", err)
+				return []string{"Maaf, terjadi kesalahan sistem saat validasi NIK (DB)."}
+			}
+			if isDuplicate {
+				if err := db.UpdateStepOnly(dbConn, jid, STEP_NIK_DUPLICATE); err != nil {
+					return []string{"Maaf, terjadi kesalahan sistem."}
+				}
+				return []string{"⚠️ NIK ini sudah terdaftar di data penduduk desa.\n\nKetik 'edit nik' untuk memasukkan NIK baru, atau 'stop' untuk membatalkan pendaftaran."}
+			}
+			// 2. Cek ke Sesi lain (Sementara)
+			isDuplicate, err = db.CheckNIKExists(dbConn, nikValue, jid)
+			if err != nil {
+				log.Printf("[ERROR] Gagal mengecek NIK di DB sesi: %v", err)
+				return []string{"Maaf, terjadi kesalahan sistem saat validasi NIK (Sesi)."}
+			}
+			if isDuplicate {
+				if err := db.UpdateStepOnly(dbConn, jid, STEP_NIK_DUPLICATE); err != nil {
+					return []string{"Maaf, terjadi kesalahan sistem."}
+				}
+				return []string{"⚠️ NIK ini sedang didaftarkan oleh pengguna lain saat ini.\n\nKetik 'edit nik' untuk memasukkan NIK baru, atau 'stop' untuk membatalkan pendaftaran."}
+			}
+		}
+		// --- AKHIR VALIDASI NIK ---
+
+		// Simpan data ke sesi sementara
+		if err := db.UpdateDataEntrySession(dbConn, jid, stepInfo.Field, value); err != nil {
+			log.Printf("[ERROR] Failed to update session: %v", err)
+			if strings.Contains(err.Error(), "violates foreign key constraint") {
+				return []string{fmt.Sprintf("⚠️ pilihan tidak valid\n\n%s",
+					formatQuestionWithOptions(stepInfo.Question, stepInfo.Options))}
+			}
+			return []string{"Maaf, terjadi kesalahan sistem."}
+		}
+
+		// Cek checkpoint NAMA IBU
+		if session.CurrentStep == STEP_NAMA_IBU {
+			if err := db.UpdateStepOnly(dbConn, jid, STEP_CHECKPOINT_NAMA_IBU); err != nil {
+				return []string{"Maaf, terjadi kesalahan sistem."}
+			}
+			return []string{"Data inti (sampai Nama Ibu) sudah tersimpan.\n\n" +
+				"Apakah Anda ingin melanjutkan mengisi data pelengkap (Gol. Darah, Akta, Asuransi, dll)?\n\n" +
+				"Ketik 'lanjut' atau 'cukup'."}
+		}
+
+		// Lanjut ke pertanyaan berikutnya
+		nextStep := session.CurrentStep + 1
+		if stepInfo, ok := steps[nextStep]; ok {
+			return []string{formatQuestion(stepInfo)}
+		}
+
+		// Jika sudah 41 langkah, tampilkan konfirmasi
 		data, err := db.GetFormattedSessionData(dbConn, jid)
 		if err != nil {
 			return []string{"Maaf, terjadi kesalahan sistem."}
@@ -646,102 +777,11 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 		if err := db.UpdateStepOnly(dbConn, jid, STEP_CONFIRMATION); err != nil {
 			return []string{"Maaf, terjadi kesalahan sistem."}
 		}
-		return []string{
-			"Berikut data yang telah diinput:\n\n" + data,
-			"\n\nSilakan ketik 'valid' untuk menyimpan atau 'edit' untuk mengubah data.",
-		}
+		return []string{"Ketik 'valid' jika sudah benar atau ketik 'edit' untuk mengubah data.\n\n" + data}
 	}
 
-	// Special handling for first question (STEP_START)
-	if session.CurrentStep == STEP_START && text == "1" {
-		// When user sends "1" as first answer, skip it and directly ask for alamat
-		return []string{steps[STEP_START].Question}
-	}
-
-	// Validate input
-	value, err := validateInput(text, stepInfo)
-	if err != nil {
-		log.Printf("[DEBUG] Input validation failed: %v", err)
-		// Return the error message directly
-		return []string{err.Error()}
-	}
-
-
-	if session.CurrentStep == STEP_NIK {
-		// Kita tahu 'value' adalah string NIK yang valid
-		nikValue := value.(string)
-
-		// 1. Cek ke Google Sheet (Database permanen)
-		// Pengecekan ini mungkin memakan waktu beberapa detik
-		isDuplicateSheet, err := sheetsClient.CheckNIKExistsInSheet(nikValue)
-		if err != nil {
-			log.Printf("[ERROR] Gagal mengecek NIK di Sheet: %v", err)
-			return []string{"Maaf, terjadi kesalahan sistem saat validasi NIK (Sheet)."}
-		}
-
-		if isDuplicateSheet {
-			// NIK DITEMUKAN DI SHEET! Pindahkan ke state duplikat.
-			if err := db.UpdateStepOnly(dbConn, jid, STEP_NIK_DUPLICATE); err != nil {
-				return []string{"Maaf, terjadi kesalahan sistem."}
-			}
-			// Kirim pesan peringatan ke user
-			return []string{"⚠️ NIK ini sudah terdaftar di data penduduk desa.\n\nKetik 'edit nik' untuk memasukkan NIK baru, atau 'stop' untuk membatalkan pendaftaran."}
-		}
-
-		// 2. Cek ke Sesi lain (Database sementara)
-		isDuplicateDB, err := db.CheckNIKExists(dbConn, nikValue, jid)
-		if err != nil {
-			log.Printf("[ERROR] Gagal mengecek NIK di DB: %v", err)
-			return []string{"Maaf, terjadi kesalahan sistem saat validasi NIK (DB)."}
-		}
-
-		if isDuplicateDB {
-			// NIK DITEMUKAN DI SESI LAIN! Pindahkan ke state duplikat.
-			if err := db.UpdateStepOnly(dbConn, jid, STEP_NIK_DUPLICATE); err != nil {
-				return []string{"Maaf, terjadi kesalahan sistem."}
-			}
-			// Kirim pesan peringatan ke user
-			return []string{"⚠️ NIK ini sedang didaftarkan oleh pengguna lain saat ini.\n\nKetik 'edit nik' untuk memasukkan NIK baru, atau 'stop' untuk membatalkan pendaftaran."}
-		}
-	}
-	// Update session with valid input
-	if err := db.UpdateDataEntrySession(dbConn, jid, stepInfo.Field, value); err != nil {
-		log.Printf("[ERROR] Failed to update session: %v", err)
-		if strings.Contains(err.Error(), "violates foreign key constraint") {
-			return []string{fmt.Sprintf("⚠️ pilihan tidak valid\n\n%s",
-				formatQuestionWithOptions(stepInfo.Question, stepInfo.Options))}
-		}
-		return []string{"Maaf, terjadi kesalahan sistem."}
-	}
-
-
-	if session.CurrentStep == STEP_NAMA_IBU {
-		// 1. Database sekarang ada di langkah 22, kita ganti ke langkah 100
-		if err := db.UpdateStepOnly(dbConn, jid, STEP_CHECKPOINT_NAMA_IBU); err != nil {
-			return []string{"Maaf, terjadi kesalahan sistem."}
-		}
-		
-		// 2. Ajukan pertanyaan konfirmasi
-		return []string{"Data inti (sampai Nama Ibu) sudah tersimpan.\n\n" +
-			"Apakah Anda ingin melanjutkan mengisi data pelengkap (Gol. Darah, Akta, Asuransi, dll)?\n\n" +
-			"Ketik 'lanjut' atau 'cukup'."}
-	}
-
-	// Get next question or show confirmation
-	nextStep := session.CurrentStep + 1
-	if stepInfo, ok := steps[nextStep]; ok {
-		return []string{formatQuestion(stepInfo)}
-	}
-
-	// Show confirmation for last step
-	data, err := db.GetFormattedSessionData(dbConn, jid)
-	if err != nil {
-		return []string{"Maaf, terjadi kesalahan sistem."}
-	}
-	if err := db.UpdateStepOnly(dbConn, jid, STEP_CONFIRMATION); err != nil {
-		return []string{"Maaf, terjadi kesalahan sistem."}
-	}
-	return []string{"Ketik 'valid' jika sudah benar atau ketik 'edit' untuk mengubah data.\n\n" + data}
+	// Default catch-all (seharusnya tidak pernah tercapai)
+	return []string{"Terjadi error pada alur. Sesi direset.\n\n" + getMainMenu()}
 }
 
 func FastTrackDataEntry(dbConn *sqlx.DB, jid string) error {

@@ -13,6 +13,7 @@ import (
 type DataEntrySession struct {
 	JID                  string         `db:"jid"`
 	CurrentStep          int            `db:"current_step"`
+	SheetRowNum          sql.NullInt64  `db:"sheet_row_num"`
 	Alamat               sql.NullString `db:"alamat"`
 	Dusun                sql.NullString `db:"dusun"`
 	RW                   sql.NullString `db:"rw"`
@@ -84,6 +85,10 @@ func GetOrCreateDataEntrySession(dbConn *sqlx.DB, jid string) (*DataEntrySession
 	// Ensure edit_field column exists
 	if err := EnsureEditFieldColumn(dbConn); err != nil {
 		log.Printf("[ERROR] Failed to ensure edit_field column: %v", err)
+		return nil, err
+	}
+	if err := EnsureSheetRowNumColumn(dbConn); err != nil { // Panggil fungsi baru
+		log.Printf("[ERROR] Failed to ensure sheet_row_num column: %v", err)
 		return nil, err
 	}
 
@@ -439,6 +444,35 @@ func GetEditField(dbConn *sqlx.DB, jid string) (string, error) {
 	var field string
 	err := dbConn.Get(&field, `SELECT edit_field FROM data_entry_sessions WHERE jid = $1`, jid)
 	return field, err
+}
+
+func EnsureSheetRowNumColumn(dbConn *sqlx.DB) error {
+	var exists bool
+	err := dbConn.QueryRow(`
+        SELECT EXISTS (
+            SELECT 1 
+            FROM information_schema.columns 
+            WHERE table_schema = 'public'
+            AND table_name = 'data_entry_sessions' 
+            AND column_name = 'sheet_row_num'
+        );
+    `).Scan(&exists)
+
+	if err != nil {
+		return fmt.Errorf("failed to check sheet_row_num column: %v", err)
+	}
+
+	if !exists {
+		_, err = dbConn.Exec(`
+            ALTER TABLE data_entry_sessions 
+            ADD COLUMN sheet_row_num INTEGER;
+        `)
+		if err != nil {
+			return fmt.Errorf("failed to add sheet_row_num column: %v", err)
+		}
+		log.Printf("[DEBUG] Added sheet_row_num column to data_entry_sessions table")
+	}
+	return nil
 }
 
 // Add new function to handle edit_field column
