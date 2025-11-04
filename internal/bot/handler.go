@@ -48,11 +48,7 @@ func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string, sh
 		return []string{getMainMenu()}
 	}
 
-	user := db.User{
-		JID:      jid,
-		Username: username,
-		Number:   number,
-	}
+	user := db.User{JID: jid, Username: username, Number: number}
 	if err := db.SaveUser(dbConn, user); err != nil {
 		log.Printf("[ERROR] Failed to save user: %v", err)
 	}
@@ -103,8 +99,13 @@ Silakan pilih nomor atau ketik 'reset' untuk kembali ke menu utama.`
 		return []string{resp + "\n\n" + getMainMenu()}
 	}
 
-	resp := HandleGeminiPrompt(text)
-	return []string{resp + "\n\n" + getMainMenu()}
+	if !session.AwaitingAnswer && session.CurrentStep < STEP_MENU_DATA_DIRI {
+		log.Printf("[LOG] Calling Gemini for step=%d, text=%q", session.CurrentStep, text)
+		resp := HandleGeminiPrompt(text)
+		return []string{resp + "\n\n" + getMainMenu()}
+	}
+
+	return []string{getMainMenu()}
 }
 
 func HandlerRouteGroup(dbConn *sqlx.DB, jid, text, username, number string) string {
@@ -113,3 +114,4 @@ func HandlerRouteGroup(dbConn *sqlx.DB, jid, text, username, number string) stri
 	}
 	return ""
 }
+
