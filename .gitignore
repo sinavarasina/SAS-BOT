@@ -33,3 +33,8 @@ go.work.sum
 
 # exclude database
 *.db
+#credential Google Console
+sas-sindang-anom-58dc655332ab.json
+
+# ignore photos
+uploads/

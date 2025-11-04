@@ -239,8 +239,7 @@ const (
 	STEP_NIK_DUPLICATE       = 101
 	STEP_MENU_DATA_DIRI      = 200 // Sesi menunggu pilihan (Input, Edit, Hapus)
 	STEP_EDIT_CARI_NIK       = 201 // Sesi menunggu NIK untuk di-edit
-	// STEP_HAPUS_CARI_NIK (Dihapus)
-	// STEP_HAPUS_KONFIRMASI (Dihapus)
+	STEP_PENGADUAN_WAITING   = 200
 )
 
 func loadJSONOptions() (map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string) {
@@ -438,7 +437,7 @@ func loadJSONOptions() (map[int]string, map[int]string, map[int]string, map[int]
 }
 
 
-func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySession, sheetsClient *sheets.Data_SheetsClient) []string {
+func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySession, sheetsClient *sheets.SheetsClient) []string {
 	log.Printf("[DEBUG] Handling data entry for step %d with input: '%s'", session.CurrentStep, text)
 
 	// Handle "fast" command first
@@ -446,7 +445,6 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 		if !session.AwaitingAnswer || session.CurrentStep < STEP_START {
 			return []string{"Silakan pilih menu. Kirim '1' untuk memulai pendataan."}
 		}
-		// ... (Logika "fast" Anda) ...
 		if err := FastTrackDataEntry(dbConn, jid); err != nil {
 			log.Printf("[ERROR] Fast track failed: %v", err)
 			return []string{"Maaf, terjadi kesalahan sistem."}
@@ -461,14 +459,12 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 		return []string{"Ketik 'valid' jika sudah benar atau ketik 'edit' untuk mengubah data.\n\n" + data}
 	}
 
-	// --- PERBAIKAN: SEMUA LOGIKA SEKARANG ADA DI DALAM 1 SWITCH BESAR ---
 	switch session.CurrentStep {
 
 	// --- 1. ALUR MENU UTAMA & SUB-MENU ---
 	case STEP_MENU_DATA_DIRI: // User ada di sub-menu (200)
 		switch text {
 		case "1": // 1. Input Data Diri
-			// --- PERBAIKAN: Panggil StartNewSession DI SINI ---
 			if err := db.StartNewSession(dbConn, jid); err != nil {
 				return []string{"Maaf, terjadi kesalahan sistem."}
 			}
@@ -478,7 +474,6 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 				return []string{"Maaf, terjadi kesalahan sistem."}
 			}
 			return []string{"Silakan masukkan **NIK 16 digit** yang datanya ingin Anda edit:"}
-		// --- PERBAIKAN: Case "3" (Hapus) dihapus ---
 		default:
 			return []string{"Pilihan tidak valid. Silakan pilih 1 atau 2, atau ketik 'reset'."}
 		}
@@ -499,9 +494,6 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 		dataStr, _ := db.GetFormattedSessionData(dbConn, jid)
 		return []string{"Data ditemukan. Silakan periksa:\n\n" + dataStr, "\n\nKetik 'valid' untuk menyimpan atau 'edit' untuk mengubah data."}
 
-	// --- 3. ALUR FITUR HAPUS (DIHAPUS) ---
-	// case STEP_HAPUS_CARI_NIK: ...
-	// case STEP_HAPUS_KONFIRMASI: ...
 
 	// --- 4. ALUR LANGKAH VIRTUAL (dari fitur input) ---
 	case STEP_NIK_DUPLICATE: // (101)

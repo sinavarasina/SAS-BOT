@@ -9,8 +9,8 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/sinavarasina/SAS-BOT/internal/db"
-	"github.com/sinavarasina/SAS-BOT/internal/whatsapp"
 	"github.com/sinavarasina/SAS-BOT/internal/sheets"
+	"github.com/sinavarasina/SAS-BOT/internal/whatsapp"
 )
 
 func main() {
@@ -19,21 +19,21 @@ func main() {
 
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error at loading .env file")
+		log.Fatal("[ERROR] Error at loading .env file")
 	}
 	dsn := os.Getenv("POSTGRES_DSN")
 	if dsn == "" {
-		log.Printf("Error at os.Getenv('POSTGRES_DSN')")
+		log.Printf("[ERROR] Error at os.Getenv('POSTGRES_DSN')")
 	}
 
 	appDB, err := db.InitDB(dsn)
 	if err != nil {
-		log.Fatal("Error at db.InitDB(), Message :", err)
+		log.Fatal("[ERROR] Error at db.InitDB(), Message :", err)
 	}
 
 	sheetsClient, err := sheets.InitSheetsClient()
 	if err != nil {
-		log.Fatal("Error at sheets.InitSheetsClient(), Message :", err)
+		log.Fatal("[ERROR] Error at sheets.InitSheetsClient(), Message :", err)
 	}
 
 	WaClient, err := whatsapp.InitClient(dsn, appDB, ctx, sheetsClient)
