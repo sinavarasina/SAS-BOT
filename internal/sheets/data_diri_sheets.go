@@ -14,13 +14,13 @@ import (
 )
 
 // SheetsClient adalah struct untuk menyimpan service Google Sheets.
-type SheetsClient struct {
+type Data_SheetsClient struct {
 	Service       *sheets.Service
 	SpreadsheetID string
 }
 
 // InitSheetsClient membuat koneksi ke Google Sheets API.
-func InitSheetsClient() (*SheetsClient, error) {
+func InitSheetsClient() (*Data_SheetsClient, error) {
 	ctx := context.Background()
 	
 	credentialFile := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
@@ -38,13 +38,13 @@ func InitSheetsClient() (*SheetsClient, error) {
 		log.Fatal("Environment variable SPREADSHEET_ID tidak di-set")
 	}
 
-	return &SheetsClient{
+	return &Data_SheetsClient{
 		Service:       srv,
 		SpreadsheetID: spreadsheetID,
 	}, nil
 }
 
-func (c *SheetsClient) buildRowData(s db.DataEntrySession) []interface{} {
+func (c *Data_SheetsClient) buildRowData(s db.DataEntrySession) []interface{} {
 	return []interface{}{
 		time.Now().Format("2006-01-02 15:04:05"), // A
 		s.Alamat.String,                 // B 
@@ -91,7 +91,7 @@ func (c *SheetsClient) buildRowData(s db.DataEntrySession) []interface{} {
 	}
 }
 
-func (c *SheetsClient) AppendDataPenduduk(s db.DataEntrySession) {
+func (c *Data_SheetsClient) AppendDataPenduduk(s db.DataEntrySession) {
 	rangeData := "Data_penduduk!A2"
 	var vr sheets.ValueRange
 	vr.Values = append(vr.Values, c.buildRowData(s))
@@ -105,7 +105,7 @@ func (c *SheetsClient) AppendDataPenduduk(s db.DataEntrySession) {
 }
 
 
-func (c *SheetsClient) FindRowByNIK(nik string) (int, error) {
+func (c *Data_SheetsClient) FindRowByNIK(nik string) (int, error) {
 	readRange := "Data_penduduk!H:H" // NIK di Kolom H 
 
 	resp, err := c.Service.Spreadsheets.Values.Get(c.SpreadsheetID, readRange).Do()
@@ -126,7 +126,7 @@ func (c *SheetsClient) FindRowByNIK(nik string) (int, error) {
 	return 0, fmt.Errorf("NIK tidak ditemukan")
 }
 
-func (c *SheetsClient) UpdateRowData(rowNum int, s db.DataEntrySession) error {
+func (c *Data_SheetsClient) UpdateRowData(rowNum int, s db.DataEntrySession) error {
 	rangeData := fmt.Sprintf("Data_penduduk!A%d:AQ%d", rowNum, rowNum) // 43 Kolom
 	
 	var vr sheets.ValueRange
@@ -141,7 +141,7 @@ func (c *SheetsClient) UpdateRowData(rowNum int, s db.DataEntrySession) error {
 	return nil
 }
 
-func (c *SheetsClient) findSheetIdByName(sheetName string) (int64, error) {
+func (c *Data_SheetsClient) findSheetIdByName(sheetName string) (int64, error) {
 	resp, err := c.Service.Spreadsheets.Get(c.SpreadsheetID).Do()
 	if err != nil {
 		return 0, err

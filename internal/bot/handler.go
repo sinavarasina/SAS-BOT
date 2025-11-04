@@ -57,7 +57,7 @@ var staticResponses = map[string]string{
 	"terimakasih": "Sama-sama! Silakan pilih menu yang tersedia jika butuh bantuan lagi.",
 }
 
-func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string, sheetsClient *sheets.SheetsClient) []string {
+func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string, sheetsClient *sheets.Data_SheetsClient) []string {
 	// Debug raw message content first
 	log.Printf("[DEBUG] Raw message - Text: '%s', Length: %d", text, len(text))
 
