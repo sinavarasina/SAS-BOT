@@ -7,6 +7,8 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/sinavarasina/SAS-BOT/internal/db"
 	"github.com/sinavarasina/SAS-BOT/internal/sheets"
+	// "github.com/sinavarasina/SAS-BOT/internal/surat"
+	"go.mau.fi/whatsmeow"
 )
 
 var staticResponses = map[string]string{
@@ -40,7 +42,7 @@ Menu yang tersedia:
 Silakan pilih menu dengan mengetik nomor yang sesuai.`
 }
 
-func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string, sheetsClient *sheets.SheetsClient) []string {
+func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string, sheetsClient *sheets.SheetsClient, waClient *whatsmeow.Client) []string {
 	text = strings.TrimSpace(text)
 	log.Printf("[DEBUG] After trim - Text: '%s', Length: %d, Username: %s, Number: %s", text, len(text), username, number)
 
@@ -68,9 +70,19 @@ func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string, sh
 		return []string{"Maaf, terjadi kesalahan sistem."}
 	}
 
+	// im kinda frustate, so i choose this stupid nuclear way.
+	// if session.CurrentStep >= surat.STEP_SURAT_MENU {
+	// 	session.AwaitingAnswer = false
+	// }
+
 	if session.AwaitingAnswer {
 		return HandleDataEntryCompat(dbConn, jid, text, session, sheetsClient)
 	}
+
+	// to start the Surat Menu
+	// if session.CurrentStep >= surat.STEP_SURAT_MENU {
+	// 	return surat.Handle(dbConn, jid, text, session, waClient)
+	// }
 
 	switch text {
 	case "1":
@@ -87,6 +99,16 @@ Menu ini digunakan untuk mengelola data kependudukan Anda.
 
 Silakan pilih nomor atau ketik 'reset' untuk kembali ke menu utama.`
 		return []string{subMenu}
+
+	// case "2":
+	// 	log.Printf("[SURAT] Masuk ke mode pengajuan surat untuk %s", jid)
+	// 	if err := db.UpdateStepOnly(dbConn, jid, 0); err != nil {
+	// 		log.Printf("[SURAT-DB] Gagal reset step surat: %v", err)
+	// 		return []string{"Terjadi kesalahan membuka menu surat."}
+	// 	}
+	// 	session.CurrentStep = 0
+	// 	return surat.Handle(dbConn, jid, "init", session, waClient)
+
 	case "3":
 		if err := db.UpdateStepOnly(dbConn, jid, STEP_PENGADUAN_WAITING); err != nil {
 			log.Printf("[ERROR] Failed to set step to STEP_PENGADUAN_WAITING: %v", err)
@@ -114,4 +136,3 @@ func HandlerRouteGroup(dbConn *sqlx.DB, jid, text, username, number string) stri
 	}
 	return ""
 }
-
