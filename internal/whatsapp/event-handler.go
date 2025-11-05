@@ -62,8 +62,8 @@ func EventHandler(client *whatsmeow.Client, appDB *sqlx.DB, sheetsClient *sheets
 				}
 				return
 			}
+			replies := bot.HandlerRoutePrivate(appDB, chatJID, text, username, number, sheetsClient, client)
 
-			replies := bot.HandlerRoutePrivate(appDB, chatJID, text, username, number, sheetsClient)
 			for _, reply := range replies {
 				if reply == "" {
 					continue
