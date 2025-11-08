@@ -9,18 +9,24 @@ import (
 	"time"
 
 	"go.mau.fi/whatsmeow"
-	"go.mau.fi/whatsmeow/proto/waE2E"
+
+	waProto "go.mau.fi/whatsmeow/binary/proto"
 	"go.mau.fi/whatsmeow/types"
 	"google.golang.org/protobuf/proto"
 )
 
 func SendMessage(client *whatsmeow.Client, jid string, msg string) error {
-	recipient := types.NewJID(jid, "s.whatsapp.net")
+	recipient, err := types.ParseJID(jid)
+
+	if err!=nil {
+		log.Printf("[Surat-Send] JID tidak valid: %s", jid)
+		return err
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 360*time.Second)
 	defer cancel()
 
-	_, err := client.SendMessage(ctx, recipient, &waE2E.Message{
+	_, err = client.SendMessage(ctx, recipient, &waProto.Message{
 		Conversation: proto.String(msg),
 	})
 	if err != nil {
@@ -33,7 +39,13 @@ func SendMessage(client *whatsmeow.Client, jid string, msg string) error {
 }
 
 func SendFile(client *whatsmeow.Client, jid string, path string, caption string) error {
-	recipient := types.NewJID(jid, "s.whatsapp.net")
+	recipient, err := types.ParseJID(jid)
+
+	if err!=nil {
+		log.Printf("[Surat-Send] JID tidak valid: %s", jid)
+		return err
+	}
+
 
 	file, err := os.Open(path)
 	if err != nil {
@@ -55,8 +67,8 @@ func SendFile(client *whatsmeow.Client, jid string, path string, caption string)
 		return err
 	}
 
-	msg := &waE2E.Message{
-		DocumentMessage: &waE2E.DocumentMessage{
+	msg := &waProto.Message{
+		DocumentMessage: &waProto.DocumentMessage{
 			URL:        proto.String(uploaded.URL),
 			Mimetype:   proto.String("application/pdf"),
 			Title:      proto.String(filepath.Base(path)),
@@ -65,6 +77,8 @@ func SendFile(client *whatsmeow.Client, jid string, path string, caption string)
 			MediaKey:   uploaded.MediaKey,
 			DirectPath: proto.String(uploaded.DirectPath),
 			Caption:    proto.String(caption),
+			FileSHA256: uploaded.FileSHA256,
+			FileEncSHA256: uploaded.FileEncSHA256,
 		},
 	}
 

@@ -47,11 +47,16 @@ func GenerateAsync(template JenisSurat, data map[string]string, tempDir string, 
 		cmd.Dir = absTemp
 
 		output, err := cmd.CombinedOutput()
-		if err != nil {
-			log.Printf("[SURAT-ERROR] pdflatex gagal: %v\n%s", err, output)
-			_ = SendMessage(client, jid,
-				fmt.Sprintf("Surat *%s* gagal dikompilasi.", template))
+
+		if _, statErr := os.Stat(pdfPath); os.IsNotExist(statErr) {
+			log.Printf("[Surat-Error] pdflatex gagal compile: %v\n%s", err, output)
+			_ = SendMessage(client,jid, fmt.Sprintf("Surat *%s* gagal comple. File tidak dapat dibuat", template))
+
 			return
+		}
+
+		if err != nil {
+			log.Printf("[SURAT-WARN] pdflatex selesai dengan peringatan: %v\n%s", err, output)
 		}
 
 		log.Printf("[SURAT] PDF selesai dibuat: %s", pdfPath)
