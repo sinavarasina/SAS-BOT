@@ -76,7 +76,8 @@ func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string, sh
 	// }
 
 	if session.AwaitingAnswer {
-		return HandleDataEntryCompat(dbConn, jid, text, session, sheetsClient)
+		log.Printf("[DEBUG] Processing answer for existing session")
+		return HandleDataEntryCompat(dbConn, jid, text, session, sheetsClient, waClient)
 	}
 
 	// to start the Surat Menu
@@ -100,14 +101,22 @@ Menu ini digunakan untuk mengelola data kependudukan Anda.
 Silakan pilih nomor atau ketik 'reset' untuk kembali ke menu utama.`
 		return []string{subMenu}
 
-	// case "2":
-	// 	log.Printf("[SURAT] Masuk ke mode pengajuan surat untuk %s", jid)
-	// 	if err := db.UpdateStepOnly(dbConn, jid, 0); err != nil {
-	// 		log.Printf("[SURAT-DB] Gagal reset step surat: %v", err)
-	// 		return []string{"Terjadi kesalahan membuka menu surat."}
-	// 	}
-	// 	session.CurrentStep = 0
-	// 	return surat.Handle(dbConn, jid, "init", session, waClient)
+	case "2":
+		if err := db.UpdateStepOnly(dbConn, jid, STEP_SURAT_MENU_UTAMA); err != nil {
+			log.Printf("[ERROR] Failed to set step to STEP_SURAT_MENU_UTAMA: %v", err)
+			return []string{"Maaf, terjadi kesalahan sistem."}
+		}
+
+		return []string{
+			"*Menu Pengajuan Surat*\n\n"+
+			"Silakan pilih jenis surat apa yang ingin anda ajukan: \n"+
+			"1. Surat Domisili\n"+
+			"2. Surat Usaha\n"+
+			"3. Surat Umum\n"+
+			"4. Surat Tanggungan\n"+
+			"5. Surat Kematian\n"+
+			"Ketik nomor surat (1-5) atau 'reset' untuk batal.",
+		}
 
 	case "3":
 		if err := db.UpdateStepOnly(dbConn, jid, STEP_PENGADUAN_WAITING); err != nil {
