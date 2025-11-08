@@ -8,7 +8,6 @@ import (
 	"github.com/sinavarasina/SAS-BOT/internal/db"
 )
 
-// JenisSuratMap memetakan input teks (pilihan user) ke tipe surat
 var JenisSuratMap = map[string]JenisSurat{
 	"1": DOMISILI,
 	"2": USAHA,
@@ -17,7 +16,6 @@ var JenisSuratMap = map[string]JenisSurat{
 	"5": KEMATIAN,
 }
 
-// NamaSuratmap memetakan tipe surat ke nama yang ramah
 var NamaSuratmap = map[JenisSurat]string{
 	DOMISILI:        "Surat Keterangan Domisili",
 	USAHA:           "Surat Keterangan Usaha",
@@ -26,7 +24,6 @@ var NamaSuratmap = map[JenisSurat]string{
 	KEMATIAN:        "Surat Keterangan Kematian",
 }
 
-// FieldPrompts berisi daftar pertanyaan untuk setiap field
 var FieldPrompts = map[string]string{
 	"NAMA":      "Tuliskan nama lengkap Anda:",
 	"TTL":       "Tuliskan tempat dan tanggal lahir Anda (misal: Bandung, 1 Januari 1990):",
@@ -106,4 +103,3 @@ func GetPrompt(field string) string {
 	}
 	return fmt.Sprintf("Masukkan data untuk *%s*:", field)
 }
-
