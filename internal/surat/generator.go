@@ -25,6 +25,9 @@ func GenerateAsync(template JenisSurat, data map[string]string, tempDir string, 
 		return "", fmt.Errorf("gagal membaca template: %w", err)
 	}
 
+	absLogo, _ := filepath.Abs(filepath.Join("templates", "logo", "logo.jpg"))
+	data["LOGOPATH"] = filepath.ToSlash(absLogo)
+
 	filled := fillTemplate(string(texBytes), data)
 	fileName := fmt.Sprintf("%s_%d.tex", strings.TrimSuffix(string(template), ".tex"), time.Now().Unix())
 	texPath := filepath.Join(tempDir, fileName)
@@ -50,7 +53,7 @@ func GenerateAsync(template JenisSurat, data map[string]string, tempDir string, 
 
 		if _, statErr := os.Stat(pdfPath); os.IsNotExist(statErr) {
 			log.Printf("[Surat-Error] pdflatex gagal compile: %v\n%s", err, output)
-			_ = SendMessage(client,jid, fmt.Sprintf("Surat *%s* gagal comple. File tidak dapat dibuat", template))
+			_ = SendMessage(client, jid, fmt.Sprintf("Surat *%s* gagal comple. File tidak dapat dibuat", template))
 
 			return
 		}
