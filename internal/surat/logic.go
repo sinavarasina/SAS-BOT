@@ -27,8 +27,8 @@ var NamaSuratmap = map[JenisSurat]string{
 var FieldPrompts = map[string]string{
 	"NAMA":      "Tuliskan nama lengkap Anda:",
 	"TTL":       "Tuliskan tempat dan tanggal lahir Anda (misal: Bandung, 1 Januari 1990):",
-	"TTLnU":     "Tuliskan tempat & tanggal lahir atau umur (misal: Bandar Lampung, 10 Juni 1975 / 49 tahun):",
-	"JK":        "Apa jenis kelamin Anda? (L/P):",
+	"TTLnU":     "Tuliskan tempat & tanggal lahir atau umur (misal: Bandar Lampung, 19 Juni 1975 / 49 tahun):",
+	"JK":        "Apa jenis kelamin Anda?:",
 	"AGAMA":     "Apa agama Anda?",
 	"NIK":       "Tuliskan NIK Anda:",
 	"PEKERJAAN": "Apa pekerjaan Anda?",
@@ -48,7 +48,7 @@ var FieldPrompts = map[string]string{
 	"ALASANMENINGGAL": "Tuliskan penyebab meninggalnya:",
 
 	"NAMA.P":      "Nama orang tua atau penanggung:",
-	"JK.P":        "Jenis kelamin orang tua/penanggung (L/P):",
+	"JK.P":        "Jenis kelamin orang tua/penanggung:",
 	"TTL.P":       "Tempat & tanggal lahir orang tua/penanggung:",
 	"NIK.P":       "NIK orang tua/penanggung:",
 	"PEKERJAAN.P": "Pekerjaan orang tua/penanggung:",
@@ -56,7 +56,7 @@ var FieldPrompts = map[string]string{
 	"STATUS.P":    "Status hubungan dengan anak (misal: Ayah/Ibu):",
 	"ALAMAT.P":    "Alamat orang tua/penanggung:",
 	"NAMA.C":      "Nama anak:",
-	"JK.C":        "Jenis kelamin anak (L/P):",
+	"JK.C":        "Jenis kelamin anak:",
 	"TTL.C":       "Tempat & tanggal lahir anak:",
 	"NIK.C":       "NIK anak:",
 	"PEKERJAAN.C": "Pekerjaan anak:",
