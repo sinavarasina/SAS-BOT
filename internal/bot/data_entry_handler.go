@@ -5,6 +5,7 @@ package bot
 import (
 	"encoding/json"
 	"fmt"
+	"go.mau.fi/whatsmeow"
 	"log"
 	"os"
 	"path/filepath"
@@ -12,14 +13,12 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"go.mau.fi/whatsmeow"
 	"time"
-	
+
 	"github.com/jmoiron/sqlx"
 	"github.com/sinavarasina/SAS-BOT/internal/db"
 	"github.com/sinavarasina/SAS-BOT/internal/sheets"
 	"github.com/sinavarasina/SAS-BOT/internal/surat"
-
 )
 
 // Type definitions
@@ -235,21 +234,23 @@ var (
 )
 
 const (
-	STEP_START               = 1
-	STEP_NIK                 = 7
-	STEP_NAMA_IBU            = 21
-	STEP_GOLONGAN_DARAH      = 22
-	STEP_CONFIRMATION        = 42
-	STEP_EDIT                = 43
-	STEP_CHECKPOINT_NAMA_IBU = 100
-	STEP_NIK_DUPLICATE       = 101
-	STEP_MENU_DATA_DIRI      = 200 // Sesi menunggu pilihan (Input, Edit, Hapus)
-	STEP_EDIT_CARI_NIK       = 201 // Sesi menunggu NIK untuk di-edit
-	STEP_PENGADUAN_WAITING   = 202
-
-	STEP_SURAT_MENU_UTAMA    = 500
-	STEP_SURAT_VALIDASI_NIK  = 501
-	STEP_SURAT_INPUT_DATA    = 502
+	STEP_START                  = 1
+	STEP_NIK                    = 7
+	STEP_NAMA_IBU               = 21
+	STEP_GOLONGAN_DARAH         = 22
+	STEP_CONFIRMATION           = 42
+	STEP_EDIT                   = 43
+	STEP_CHECKPOINT_NAMA_IBU    = 100
+	STEP_NIK_DUPLICATE          = 101
+	STEP_MENU_DATA_DIRI         = 200 // Sesi menunggu pilihan (Input, Edit, Hapus)
+	STEP_EDIT_CARI_NIK          = 201 // Sesi menunggu NIK untuk di-edit
+	STEP_PENGADUAN_WAITING      = 301
+	STEP_PENGADUAN_MENU         = 300
+	STEP_PENGADUAN_CARI_ID      = 302
+	STEP_PENGADUAN_VALIDASI_NIK = 303
+	STEP_SURAT_MENU_UTAMA       = 500
+	STEP_SURAT_VALIDASI_NIK     = 501
+	STEP_SURAT_INPUT_DATA       = 502
 )
 
 func loadJSONOptions() (map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string) {
@@ -503,76 +504,70 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 		dataStr, _ := db.GetFormattedSessionData(dbConn, jid)
 		return []string{"Data ditemukan. Silakan periksa:\n\n" + dataStr, "\n\nKetik 'valid' untuk menyimpan atau 'edit' untuk mengubah data."}
 
-	//3. Menu Surat
-	case STEP_SURAT_MENU_UTAMA:
-		jenisSurat, ok := surat.JenisSuratMap[text]
-		if !ok{
-			return []string{"Pilihan tidak valid. Masukkan angka 1-5 sesuai jenis surat."}
-		}
-
-		if err := db.SetEditField(dbConn,jid, string(jenisSurat)); err != nil {
-			log.Printf("[SURAT_DB] Gagal menyimpan jenis surat: %v", err)
-			return []string{"Maaf,terjadi kesalahan sistem."}
-		}
-
-		if err := db.UpdateStepOnly(dbConn, jid, STEP_SURAT_VALIDASI_NIK); err != nil {
-			return []string{"Maaf, terjadi kesalahan sistem."}
-		}
-		return []string{"Baik, Anda memilih " + surat.NamaSuratmap[jenisSurat] + ".\n\n" + "Untuk melanjutkan, masukkan **NIK 16 Digit** anda untuk validasi data:"}
-
-	case STEP_SURAT_VALIDASI_NIK:
-		dataPenduduk, err := db.GetDataPendudukByNIK(dbConn, text)
-		if err != nil {
-			// NIK tidak ditemukan di DB permanen
-			if err := db.DeleteDataEntrySession(dbConn, jid); err != nil { // Reset sesi
-				log.Printf("[ERROR] Gagal hapus sesi setelah NIK surat tidak ditemukan: %v", err)
+	case STEP_PENGADUAN_MENU:
+		switch text {
+		case "1": // 1. Ajukan Pengaduan
+			if err := db.UpdateStepOnly(dbConn, jid, STEP_PENGADUAN_VALIDASI_NIK); err != nil {
+				return []string{"Maaf, terjadi kesalahan sistem."}
 			}
-			return []string{"NIK Anda tidak terdaftar di sistem kami.\n\n" +
-				"Silakan pilih *Menu 1 (Data Diri)* untuk melakukan input data diri terlebih dahulu sebelum membuat surat.\n\n" +
-				getMainMenu()}
-		}
-		
-		// 2. Simpan NIK yang valid untuk sementara
-		_ = db.SaveTemporary(fmt.Sprintf("surat_valid_nik_%s", jid), text)
-
-		// 3. NIK Ditemukan! Siapkan alur input data surat
-		jenisSuratStr, _ := db.GetEditField(dbConn, jid) // Ambil jenis surat yg disimpan
-		fieldList := surat.GetFieldList(db.DataPenduduk(*dataPenduduk), surat.JenisSurat(jenisSuratStr))
-		
-		if len(fieldList) == 0 {
-			// Jika surat tidak butuh input tambahan (langsung buat)
-			return handleSuratGeneration(dbConn, jid, session, sheetsClient, waClient)
+			return []string{"Untuk mengajukan pengaduan, silakan masukkan **NIK 16 digit** Anda untuk verifikasi:"}
+		case "2": // 2. Cek Status Pengaduan
+			if err := db.UpdateStepOnly(dbConn, jid, STEP_PENGADUAN_CARI_ID); err != nil {
+				return []string{"Maaf, terjadi kesalahan sistem."}
+			}
+			return []string{"Silakan masukkan *ID Pengaduan* Anda (contoh: P-101):"}
+		default:
+			return []string{"Pilihan tidak valid. Silakan pilih 1 atau 2."}
 		}
 
-		// 4. Simpan daftar field yang harus diisi
-		fieldStr := strings.Join(fieldList, ",")
-		_ = db.SaveTemporary(fmt.Sprintf("surat_fields_%s", jid), fieldStr)
-		_ = db.SaveTemporary(fmt.Sprintf("surat_field_now_%s", jid), fieldList[0])
-		
-		if err := db.UpdateStepOnly(dbConn, jid, STEP_SURAT_INPUT_DATA); err != nil {
-			return []string{"Maaf, terjadi kesalahan sistem."}
-		}
-		
-		// 5. Ajukan pertanyaan pertama
-		return []string{surat.GetPrompt(fieldList[0])}
-	
-	case STEP_SURAT_INPUT_DATA:
-		currentField, _ := db.LoadTemporary("surat_field_now_" + jid)
-		fieldListStr, _ := db.LoadTemporary("surat_fields_" + jid)
-		fieldList := strings.Split(fieldListStr, ",")
-
-		_ = db.SaveTemporary(jid+"_field_"+currentField, text)
-
-		next := surat.NextField(fieldList, currentField)
-		if next != "" {
-			// Masih ada pertanyaan
-			_ = db.SaveTemporary("surat_field_now_"+jid, next)
-			return []string{surat.GetPrompt(next)}
+	case STEP_PENGADUAN_VALIDASI_NIK:
+		// 1. Validasi format NIK (opsional tapi disarankan)
+		if len(text) != 16 {
+			return []string{"Format NIK salah. Harap masukkan 16 digit NIK Anda:"}
 		}
 
-		return handleSuratGeneration(dbConn, jid, session, sheetsClient, waClient)
+		// 2. Cek NIK ke database permanen
+		isRegistered, err := db.CheckNIKExistsInPenduduk(dbConn, text)
+		if err != nil {
+			log.Printf("[ERROR] Gagal mengecek NIK di DB permanen: %v", err)
+			return []string{"Maaf, terjadi kesalahan sistem saat validasi NIK."}
+		}
 
-	//ALUR LANGKAH VIRTUAL (dari fitur input
+		if isRegistered {
+			// 3. JIKA BERHASIL: Lanjutkan ke langkah kirim foto
+			if err := db.UpdateStepOnly(dbConn, jid, STEP_PENGADUAN_WAITING); err != nil {
+				return []string{"Maaf, terjadi kesalahan sistem."}
+			}
+			return []string{"NIK Anda terverifikasi. Silakan kirimkan *satu foto* pengaduan Anda, dan *tulis deskripsi* di bagian caption/keterangan gambar tersebut."}
+		} else {
+			// 4. JIKA GAGAL: Kembalikan ke menu utama
+			if err := db.DeleteDataEntrySession(dbConn, jid); err != nil { // Hapus sesi
+				log.Printf("[ERROR] Gagal hapus sesi setelah NIK tidak ditemukan: %v", err)
+			}
+			return []string{"NIK Anda tidak terdaftar di sistem kami.\n\nSilakan pilih *Menu 1 (Data Diri)* untuk melakukan input data diri terlebih dahulu sebelum membuat pengaduan.\n\n" + getMainMenu()}
+		}
+
+	case STEP_PENGADUAN_WAITING:
+		// Jika user mengirim teks padahal kita menunggu gambar
+		return []string{"Mohon kirimkan *gambar* pengaduan, bukan teks. Atau ketik 'reset' untuk batal."}
+
+	case STEP_PENGADUAN_CARI_ID:
+		// User mengirimkan ID, kita cari di Sheet
+		publicID := strings.ToUpper(text) // P-101
+
+		// Panggil fungsi baru (akan kita buat di Fase 3)
+		status, err := sheetsClient.GetPengaduanStatus(publicID)
+		if err != nil {
+			log.Printf("[WARN] Gagal mencari status untuk ID %s: %v", publicID, err)
+			return []string{fmt.Sprintf("ID Pengaduan *%s* tidak ditemukan. Pastikan Anda memasukkan ID dengan benar.", publicID)}
+		}
+
+		// Sukses! Hapus sesi dan kirim status
+		if err := db.DeleteDataEntrySession(dbConn, jid); err != nil {
+			log.Printf("[ERROR] Gagal hapus sesi setelah cek status: %v", err)
+		}
+		return []string{fmt.Sprintf("Status untuk pengaduan *%s*:\n\n*STATUS: %s*", publicID, status)}
+	// --- 4. ALUR LANGKAH VIRTUAL (dari fitur input) ---
 	case STEP_NIK_DUPLICATE: // (101)
 		text = strings.ToLower(text)
 		if text == "edit nik" {
@@ -854,7 +849,7 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 }
 
 func handleSuratGeneration(dbConn *sqlx.DB, jid string, session *db.DataEntrySession, sheetsClient *sheets.SheetsClient, waClient *whatsmeow.Client) []string {
-    	
+
 	// 1. Ambil NIK yang sudah divalidasi
 	nik, ok := db.LoadTemporary(fmt.Sprintf("surat_valid_nik_%s", jid))
 	if !ok {
@@ -868,7 +863,7 @@ func handleSuratGeneration(dbConn *sqlx.DB, jid string, session *db.DataEntrySes
 		log.Printf("[SURAT-ERROR] Gagal mengambil data penduduk (NIK: %s): %v", nik, err)
 		return []string{"Terjadi kesalahan saat mengambil data penduduk Anda."}
 	}
-	
+
 	// 3. Bangun data dasar (Nama, NIK, Alamat, dll)
 	data := surat.BuildDataMap(db.DataPenduduk(*dataPenduduk))
 
