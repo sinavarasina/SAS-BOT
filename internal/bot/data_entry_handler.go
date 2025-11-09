@@ -507,11 +507,11 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 	// Menu 2
 	case STEP_SURAT_MENU_UTAMA:
 		jenisSurat, ok := surat.JenisSuratMap[text]
-		if !ok{
+		if !ok {
 			return []string{"Pilihan tidak valid. Masukkan angka 1-5 sesuai jenis surat."}
 		}
 
-		if err := db.SetEditField(dbConn,jid, string(jenisSurat)); err != nil {
+		if err := db.SetEditField(dbConn, jid, string(jenisSurat)); err != nil {
 			log.Printf("[SURAT_DB] Gagal menyimpan jenis surat: %v", err)
 			return []string{"Maaf,terjadi kesalahan sistem."}
 		}
@@ -532,14 +532,14 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 				"Silakan pilih *Menu 1 (Data Diri)* untuk melakukan input data diri terlebih dahulu sebelum membuat surat.\n\n" +
 				getMainMenu()}
 		}
-		
+
 		// 2. Simpan NIK yang valid untuk sementara
 		_ = db.SaveTemporary(fmt.Sprintf("surat_valid_nik_%s", jid), text)
 
 		// 3. NIK Ditemukan! Siapkan alur input data surat
 		jenisSuratStr, _ := db.GetEditField(dbConn, jid) // Ambil jenis surat yg disimpan
 		fieldList := surat.GetFieldList(db.DataPenduduk(*dataPenduduk), surat.JenisSurat(jenisSuratStr))
-		
+
 		if len(fieldList) == 0 {
 			// Jika surat tidak butuh input tambahan (langsung buat)
 			return handleSuratGeneration(dbConn, jid, session, sheetsClient, waClient)
@@ -549,14 +549,14 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 		fieldStr := strings.Join(fieldList, ",")
 		_ = db.SaveTemporary(fmt.Sprintf("surat_fields_%s", jid), fieldStr)
 		_ = db.SaveTemporary(fmt.Sprintf("surat_field_now_%s", jid), fieldList[0])
-		
+
 		if err := db.UpdateStepOnly(dbConn, jid, STEP_SURAT_INPUT_DATA); err != nil {
 			return []string{"Maaf, terjadi kesalahan sistem."}
 		}
-		
+
 		// 5. Ajukan pertanyaan pertama
 		return []string{surat.GetPrompt(fieldList[0])}
-	
+
 	case STEP_SURAT_INPUT_DATA:
 		currentField, _ := db.LoadTemporary("surat_field_now_" + jid)
 		fieldListStr, _ := db.LoadTemporary("surat_fields_" + jid)
@@ -572,7 +572,6 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 		}
 
 		return handleSuratGeneration(dbConn, jid, session, sheetsClient, waClient)
-
 
 	// 3. alur fitur pengaduan
 	case STEP_PENGADUAN_MENU:
@@ -940,10 +939,10 @@ func handleSuratGeneration(dbConn *sqlx.DB, jid string, session *db.DataEntrySes
 
 	// 4. Ambil data tambahan yang baru diinput (misal: ALASANPERLU)
 	fieldListStr, _ := db.LoadTemporary("surat_fields_" + jid)
-	fieldList := strings.Split(fieldListStr, ",")
-	for _, f := range fieldList {
-		val, _ := db.LoadTemporary(jid + "_field_" + strings.TrimSpace(f))
-		data[strings.TrimSpace(f)] = val
+	for f := range strings.SplitSeq(fieldListStr, ",") {
+		f = strings.TrimSpace(f)
+		val, _ := db.LoadTemporary(jid + "_field_" + f)
+		data[f] = val
 	}
 	data["TANGGAL"] = time.Now().Format("02 January 2006")
 
@@ -952,12 +951,11 @@ func handleSuratGeneration(dbConn *sqlx.DB, jid string, session *db.DataEntrySes
 	jenis := surat.JenisSurat(jenisStr)
 
 	// 6. Buat PDF (secara asinkron)
-	path, err := surat.GenerateAsync(jenis, data, "temp", jid, waClient)
+	_, err = surat.GenerateAsync(jenis, data, "temp", jid, waClient)
 	if err != nil {
 		log.Printf("[SURAT-ERROR] %v", err)
 		return []string{"Terjadi kesalahan saat memproses surat."}
 	}
-
 	// 7. Bersihkan sesi
 	db.DeleteDataEntrySession(dbConn, jid)
 	db.ClearTemporaryByPrefix(jid + "_")
@@ -967,7 +965,7 @@ func handleSuratGeneration(dbConn *sqlx.DB, jid string, session *db.DataEntrySes
 
 	return []string{
 		fmt.Sprintf("Surat *%s* Anda sedang diproses dan akan segera dikirimkan. Harap tunggu...", surat.NamaSuratmap[jenis]),
-		fmt.Sprintf("(Debug: File LaTeX dibuat di %s)", path), // Anda bisa hapus ini
+		// fmt.Sprintf("(Debug: File LaTeX dibuat di %s)", path),
 	}
 }
 
