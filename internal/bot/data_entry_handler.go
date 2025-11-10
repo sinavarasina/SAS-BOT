@@ -483,7 +483,7 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 			if err := db.UpdateStepOnly(dbConn, jid, STEP_EDIT_CARI_NIK); err != nil {
 				return []string{"Maaf, terjadi kesalahan sistem."}
 			}
-			return []string{"Silakan masukkan **NIK 16 digit** yang datanya ingin Anda edit:"}
+			return []string{"Silakan masukkan *NIK 16 digit* yang datanya ingin Anda edit:"}
 		default:
 			return []string{"Pilihan tidak valid. Silakan pilih 1 atau 2, atau ketik 'reset'."}
 		}
@@ -519,7 +519,7 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 		if err := db.UpdateStepOnly(dbConn, jid, STEP_SURAT_VALIDASI_NIK); err != nil {
 			return []string{"Maaf, terjadi kesalahan sistem."}
 		}
-		return []string{"Baik, Anda memilih " + surat.NamaSuratmap[jenisSurat] + ".\n\n" + "Untuk melanjutkan, masukkan **NIK 16 Digit** anda untuk validasi data:"}
+		return []string{"Baik, Anda memilih " + surat.NamaSuratmap[jenisSurat] + ".\n\n" + "Untuk melanjutkan, masukkan *NIK 16 Digit* anda untuk validasi data:"}
 
 	case STEP_SURAT_VALIDASI_NIK:
 		dataPenduduk, err := db.GetDataPendudukByNIK(dbConn, text)
@@ -580,7 +580,7 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 			if err := db.UpdateStepOnly(dbConn, jid, STEP_PENGADUAN_VALIDASI_NIK); err != nil {
 				return []string{"Maaf, terjadi kesalahan sistem."}
 			}
-			return []string{"Untuk mengajukan pengaduan, silakan masukkan **NIK 16 digit** Anda untuk verifikasi:"}
+			return []string{"Untuk mengajukan pengaduan, silakan masukkan *NIK 16 digit* Anda untuk verifikasi:"}
 		case "2": // 2. Cek Status Pengaduan
 			if err := db.UpdateStepOnly(dbConn, jid, STEP_PENGADUAN_CARI_ID); err != nil {
 				return []string{"Maaf, terjadi kesalahan sistem."}
