@@ -1,3 +1,4 @@
+
 package surat
 
 import (
@@ -25,8 +26,12 @@ func GenerateAsync(template JenisSurat, data map[string]string, tempDir string, 
 		return "", fmt.Errorf("gagal membaca template: %w", err)
 	}
 
-	absLogo, _ := filepath.Abs(filepath.Join("templates", "logo", "logo.jpg"))
-	data["LOGOPATH"] = filepath.ToSlash(absLogo)
+	// --- PERBAIKAN DI SINI ---
+	// Gunakan path RELATIF dari folder 'temp' ke folder 'templates'.
+	// Kita gunakan filepath.Join agar aman di semua OS, lalu ToSlash agar LaTeX (/) senang.
+	relLogoPath := filepath.Join("..", "templates", "logo", "logo.jpg")
+	data["LOGOPATH"] = filepath.ToSlash(relLogoPath)
+	// --- AKHIR PERBAIKAN ---
 
 	filled := fillTemplate(string(texBytes), data)
 	fileName := fmt.Sprintf("%s_%d.tex", strings.TrimSuffix(string(template), ".tex"), time.Now().Unix())
@@ -42,35 +47,45 @@ func GenerateAsync(template JenisSurat, data map[string]string, tempDir string, 
 	go func() {
 		absTemp, _ := filepath.Abs(tempDir)
 		pdfPath := strings.Replace(texPath, ".tex", ".pdf", 1)
+		
 		cmd := exec.Command("pdflatex",
 			"-interaction=nonstopmode",
 			"-output-directory", absTemp,
 			filepath.Base(texPath),
 		)
-		cmd.Dir = absTemp
+		cmd.Dir = absTemp // Direktori kerja adalah 'temp/'
 
 		output, err := cmd.CombinedOutput()
 
+		// Cek apakah file PDF benar-benar TIDAK ada
 		if _, statErr := os.Stat(pdfPath); os.IsNotExist(statErr) {
+			// Jika file PDF TIDAK ADA, ini adalah kegagalan total.
 			log.Printf("[Surat-Error] pdflatex gagal compile: %v\n%s", err, output)
-			_ = SendMessage(client, jid, fmt.Sprintf("Surat *%s* gagal comple. File tidak dapat dibuat", template))
-
+			_ = SendMessage(client, jid, fmt.Sprintf("Surat %s gagal dikompilasi. File PDF tidak dapat dibuat.", template))
 			return
 		}
-
+		
 		if err != nil {
-			log.Printf("[SURAT-WARN] pdflatex selesai dengan peringatan: %v\n%s", err, output)
+			// Log error-nya sebagai peringatan, tapi jangan hentikan proses
+			log.Printf("[SURAT-WARN] pdflatex selesai dengan peringatan (error): %v\n%s", err, output)
 		}
 
 		log.Printf("[SURAT] PDF selesai dibuat: %s", pdfPath)
 
 		err = SendFile(client, jid, pdfPath,
-			fmt.Sprintf("Surat *%s* telah selesai dibuat dan siap dicetak.", template))
+			fmt.Sprintf("Surat %s telah selesai dibuat dan siap dicetak.", template))
 		if err != nil {
 			log.Printf("[SURAT-ERROR] Gagal mengirim file PDF: %v", err)
 			_ = SendMessage(client, jid,
 				"File berhasil dibuat tapi gagal dikirim. Silakan hubungi admin.")
 		}
+		
+		// (Opsional tapi disarankan) Hapus file sementara setelah dikirim
+		// os.Remove(texPath)
+		// os.Remove(pdfPath)
+		// os.Remove(strings.Replace(texPath, ".tex", ".log", 1))
+		// os.Remove(strings.Replace(texPath, ".tex", ".aux", 1))
+
 	}()
 
 	return texPath, nil
