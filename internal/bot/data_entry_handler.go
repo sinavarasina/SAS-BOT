@@ -5,7 +5,6 @@ package bot
 import (
 	"encoding/json"
 	"fmt"
-	"go.mau.fi/whatsmeow"
 	"log"
 	"os"
 	"path/filepath"
@@ -14,6 +13,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"go.mau.fi/whatsmeow"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/sinavarasina/SAS-BOT/internal/db"
@@ -198,7 +199,7 @@ var (
 		7:  {"Masukkan NIK:", "nik", false, false, nil},
 		8:  {"Pilih Jenis Kelamin:", "sex_id", true, false, sexOptions},
 		9:  {"Masukkan Tempat Lahir:", "tempat_lahir", false, false, nil},
-		10: {"Masukkan Tanggal Lahir (DD-MM-YYYY):", "tanggal_lahir", false, true, nil},
+		10: {"Masukkan Tanggal Lahir (YYYY-MM-DD):", "tanggal_lahir", false, true, nil},
 		11: {"Pilih Agama:", "agama_id", true, false, agamaOptions},
 		12: {"Pilih Pendidikan KK:", "pendidikan_kk_id", true, false, pendidikanKKOptions},
 		13: {"Pilih Pendidikan Sedang:", "pendidikan_sedang_id", true, false, pendidikanSedangOptions},
@@ -1028,7 +1029,17 @@ func validateInput(text string, step Step) (interface{}, error) {
 	if text == "" {
 		return nil, fmt.Errorf("input tidak boleh kosong\n\n%s", step.Question)
 	}
-
+	if step.IsDate {
+		// 1. Coba parse string "DD-MM-YYYY" menjadi objek Waktu
+		//    Kita gunakan "02-01-2006" sebagai layout referensi Go
+		t, err := time.Parse("02-01-2006", text)
+		if err != nil {
+			// 2. Jika gagal, kirim error
+			return nil, fmt.Errorf("⚠ Format tanggal salah. Harap masukkan dengan format DD-MM-YYYY (contoh: 25-12-2024)\n\n%s", step.Question)
+		}
+		// 3. Jika berhasil, kembalikan objek Waktu (bukan string)
+		return t, nil
+	}
 	// Handle options validation first
 	if step.Options != nil {
 		choice, err := strconv.Atoi(text)
@@ -1122,7 +1133,7 @@ func formatQuestion(step Step) string {
 	case "rt", "rw":
 		return fmt.Sprintf("%s\n(Masukkan 3 digit angka, contoh: 001)", step.Question)
 	case "tanggal_lahir", "tanggal_akhir_passport", "tanggal_perkawinan", "tanggal_perceraian":
-		return fmt.Sprintf("%s\n(Format: DD-MM-YYYY, contoh: 01-12-2024)", step.Question)
+		return fmt.Sprintf("%s\n(contoh: 01-12-2005)", step.Question)
 	}
 
 	return step.Question
