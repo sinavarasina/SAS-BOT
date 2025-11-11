@@ -20,7 +20,6 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/sinavarasina/SAS-BOT/internal/db"
 	"github.com/sinavarasina/SAS-BOT/internal/sheets"
-	"github.com/sinavarasina/SAS-BOT/internal/uploader"
 	"github.com/sinavarasina/SAS-BOT/internal/surat"
 )
 
@@ -453,7 +452,7 @@ func loadJSONOptions() (map[int]string, map[int]string, map[int]string, map[int]
 	return sexOptions, agamaOptions, pendidikanKKOptions, pendidikanSedangOptions, pekerjaanOptions, statusKawinOptions, kkLevelOptions, warganegaraOptions, golonganDarahOptions, cacatOptions, caraKBOptions, hamilOptions, ktpElOptions, statusRekamOptions, statusDasarOptions, sukuOptions, asuransiOptions
 }
 
-func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySession, sheetsClient *sheets.SheetsClient, waClient *whatsmeow.Client, driveClient *uploader.DriveClient) []string {
+func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySession, sheetsClient *sheets.SheetsClient, waClient *whatsmeow.Client) []string {
 	log.Printf("[DEBUG] Handling data entry for step %d with input: '%s'", session.CurrentStep, text)
 
 	// Handle "fast" command first
@@ -620,7 +619,7 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 			// Selesai, buat surat
 			dataMapBytes, _ := json.Marshal(dataMap)
 			if err := db.UpdateSessionField(dbConn, jid, "surat_data_map", string(dataMapBytes)); err != nil { /*...*/ }
-			return handleSuratGeneration(dbConn, jid, session, sheetsClient, waClient, driveClient)
+			return handleSuratGeneration(dbConn, jid, session, sheetsClient, waClient)
 		}
 		
 		return []string{"Pilihan tidak valid. Ketik 'ya' atau 'edit'."}
@@ -979,7 +978,7 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 	return []string{"Terjadi error pada alur. Sesi direset.\n\n" + getMainMenu()}
 }
 
-func handleSuratGeneration(dbConn *sqlx.DB, jid string, session *db.DataEntrySession, sheetsClient *sheets.SheetsClient, waClient *whatsmeow.Client, driveClient *uploader.DriveClient) []string {
+func handleSuratGeneration(dbConn *sqlx.DB, jid string, session *db.DataEntrySession, sheetsClient *sheets.SheetsClient, waClient *whatsmeow.Client) []string {
 	// Ambil sesi terbaru (termasuk data map yang baru diupdate)
 	fullSession, err := db.GetFullSessionData(dbConn, jid)
 	if err != nil {
@@ -1005,10 +1004,9 @@ func handleSuratGeneration(dbConn *sqlx.DB, jid string, session *db.DataEntrySes
 	// 2. Upload PDF ke Cloud (ImgBB)
 	// (Kita lakukan ini DULU agar bisa kirim link ke Kades jika PDF gagal dikirim)
 	// (Implementasi: Anda perlu menjalankan Generate, LALU baca file PDF, LALU upload)
-	fileURL := "Belum diimplementasikan" 
 
 	// 3. Panggil generator (akan mengirim ke user + kades)
-	_, err = surat.GenerateAsync(jenis, dataMap, "temp", jid, waClient, pdfName, unikID, sheetsClient, driveClient)
+	_, err = surat.GenerateAsync(jenis, dataMap, "temp", jid, waClient, pdfName, unikID, sheetsClient)
 	if err != nil {
 		log.Printf("[SURAT-ERROR] %v", err)
 		return []string{"Terjadi kesalahan saat memproses surat."}
