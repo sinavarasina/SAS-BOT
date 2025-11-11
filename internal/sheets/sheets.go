@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
-	"github.com/sinavarasina/SAS-BOT/internal/db" // Pastikan db.Pengaduan ada jika Anda menggabungkan
+	"github.com/sinavarasina/SAS-BOT/internal/db"
+	"github.com/sinavarasina/SAS-BOT/internal/surat"
 	"google.golang.org/api/option"
 	"google.golang.org/api/sheets/v4"
 )
@@ -18,6 +20,7 @@ type SheetsClient struct {
 	Service               *sheets.Service
 	DataSpreadsheetID     string // Untuk Data Diri
 	PengaduanSpreadsheetID string // Untuk Pengaduan
+	SuratSpreadsheetID     string
 }
 
 // InitSheetsClient sekarang membaca KEDUA ID dari .env
@@ -46,11 +49,18 @@ func InitSheetsClient() (*SheetsClient, error) {
 		log.Println("Peringatan: PENGADUAN_SPREADSHEET_ID tidak di-set. Fitur pengaduan tidak akan bekerja.")
 		// Jangan Fatal, agar bot tetap jalan
 	}
+	
+	// baca id surat
+	suratSpreadsheetID := os.Getenv("SURAT_SPREADSHEET_ID")
+	if suratSpreadsheetID == "" {
+		log.Println("Environment variable SURAT_SPREADSHEET_ID tidak di-set")
+	}
 
 	return &SheetsClient{
 		Service:               srv,
 		DataSpreadsheetID:     dataSpreadsheetID,
 		PengaduanSpreadsheetID: pengaduanSpreadsheetID,
+		SuratSpreadsheetID: suratSpreadsheetID,
 	}, nil
 }
 
@@ -234,4 +244,70 @@ func (c *SheetsClient) GetPengaduanStatus(publicID string) (string, error) {
 
 	// 3. Jika loop selesai tanpa menemukan ID
 	return "", fmt.Errorf("ID Pengaduan tidak ditemukan")
+}
+
+// AppendSuratLog mencatat pengajuan surat ke tab yang sesuai
+func (c *SheetsClient) AppendSuratLog(jenis surat.JenisSurat, nama, unikID, tgl, status, fileURL string) {
+	
+	// Tentukan nama Tab (Sheet) berdasarkan jenis surat
+	var sheetName string
+	switch jenis {
+	case surat.DOMISILI:
+		sheetName = "SK_Domisili"
+	case surat.USAHA:
+		sheetName = "SK_Usaha"
+	case surat.SKTM_UMUM:
+		sheetName = "SKTM_Umum"
+	case surat.SKTM_TANGGUNGAN:
+		sheetName = "SKTM_Tanggungan"
+	case surat.KEMATIAN:
+		sheetName = "SK_Kematian"
+	default:
+		log.Printf("[SHEETS-ERROR] Nama sheet tidak diketahui untuk jenis surat: %s", jenis)
+		return
+	}
+	
+	rangeData := fmt.Sprintf("%s!A2", sheetName) // Selalu append
+	var vr sheets.ValueRange
+	vr.Values = append(vr.Values, []interface{}{
+		tgl,       // Tanggal Pengajuan
+		nama,      // Nama Pengaju
+		unikID,    // No Unik Surat
+		status,    // Status
+		fileURL,   // Link ke PDF
+	})
+
+	_, err := c.Service.Spreadsheets.Values.Append(c.SuratSpreadsheetID, rangeData, &vr).ValueInputOption("USER_ENTERED").Do()
+	if err != nil {
+		log.Printf("[SHEETS-ERROR] Gagal AppendSuratLog ke %s: %v", sheetName, err)
+	}
+}
+
+// GetSuratStatus mencari ID unik di SEMUA tab surat
+func (c *SheetsClient) GetSuratStatus(unikID string) (string, error) {
+	sheetNames := []string{"SK_Domisili", "SK_Usaha", "SKTM_Umum", "SKTM_Tanggungan", "SK_Kematian"}
+	
+	for _, sheetName := range sheetNames {
+		// Asumsi ID Unik ada di Kolom C dan Status di Kolom D
+		readRange := fmt.Sprintf("%s!C:D", sheetName) 
+		
+		resp, err := c.Service.Spreadsheets.Values.Get(c.SuratSpreadsheetID, readRange).Do()
+		if err != nil {
+			log.Printf("[SHEETS-WARN] Gagal membaca tab %s: %v", sheetName, err)
+			continue // Coba sheet berikutnya
+		}
+
+		for _, row := range resp.Values {
+			if len(row) >= 2 {
+				idCellValue, idOk := row[0].(string)     // Kolom C (index 0)
+				statusCellValue, statusOk := row[1].(string) // Kolom D (index 1)
+
+				if idOk && statusOk && strings.EqualFold(idCellValue, unikID) { // Gunakan EqualFold (case-insensitive)
+					return statusCellValue, nil // Ditemukan!
+				}
+			}
+		}
+	}
+	
+	return "", fmt.Errorf("ID Surat tidak ditemukan")
 }

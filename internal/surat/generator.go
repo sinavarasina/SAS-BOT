@@ -9,7 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"time"
+	// "time"
 )
 
 func fillTemplate(content string, data map[string]string) string {
@@ -19,7 +19,7 @@ func fillTemplate(content string, data map[string]string) string {
 	return content
 }
 
-func GenerateAsync(template JenisSurat, data map[string]string, tempDir string, jid string, client *whatsmeow.Client) (string, error) {
+func GenerateAsync(template JenisSurat, data map[string]string, tempDir string, jid string, client *whatsmeow.Client,pdfName string, uniqueID string) (string, error) {
 	src := filepath.Join("templates", string(template))
 	texBytes, err := os.ReadFile(src)
 	if err != nil {
@@ -28,14 +28,13 @@ func GenerateAsync(template JenisSurat, data map[string]string, tempDir string, 
 
 	// --- PERBAIKAN DI SINI ---
 	// Gunakan path RELATIF dari folder 'temp' ke folder 'templates'.
-	// Kita gunakan filepath.Join agar aman di semua OS, lalu ToSlash agar LaTeX (/) senang.
 	relLogoPath := filepath.Join("..", "templates", "logo", "logo.jpg")
 	data["LOGOPATH"] = filepath.ToSlash(relLogoPath)
 	// --- AKHIR PERBAIKAN ---
 
 	filled := fillTemplate(string(texBytes), data)
-	fileName := fmt.Sprintf("%s_%d.tex", strings.TrimSuffix(string(template), ".tex"), time.Now().Unix())
-	texPath := filepath.Join(tempDir, fileName)
+	texPath := filepath.Join(tempDir, strings.Replace(pdfName, ".pdf", ".tex", 1))
+	pdfPath := filepath.Join(tempDir, pdfName)
 
 	if err := os.MkdirAll(tempDir, 0755); err != nil {
 		return "", fmt.Errorf("gagal membuat folder %s: %w", tempDir, err)
@@ -46,7 +45,7 @@ func GenerateAsync(template JenisSurat, data map[string]string, tempDir string, 
 
 	go func() {
 		absTemp, _ := filepath.Abs(tempDir)
-		pdfPath := strings.Replace(texPath, ".tex", ".pdf", 1)
+		// pdfPath := strings.Replace(texPath, ".tex", ".pdf", 1)
 		
 		cmd := exec.Command("pdflatex",
 			"-interaction=nonstopmode",
@@ -72,12 +71,21 @@ func GenerateAsync(template JenisSurat, data map[string]string, tempDir string, 
 
 		log.Printf("[SURAT] PDF selesai dibuat: %s", pdfPath)
 
+		// 1. Kirim ke Pengguna
 		err = SendFile(client, jid, pdfPath,
-			fmt.Sprintf("Surat %s telah selesai dibuat dan siap dicetak.", template))
+			fmt.Sprintf("Surat *%s* Anda telah selesai dibuat.\nNomor Unik Surat: *%s*", NamaSuratmap[template], uniqueID))
 		if err != nil {
-			log.Printf("[SURAT-ERROR] Gagal mengirim file PDF: %v", err)
+			log.Printf("[SURAT-ERROR] Gagal mengirim file PDF ke user: %v", err)
 			_ = SendMessage(client, jid,
 				"File berhasil dibuat tapi gagal dikirim. Silakan hubungi admin.")
+		}
+
+		nomorKades := os.Getenv("NOMOR_PERANGKAT_DESA")
+		if nomorKades != "" {
+			kadesJID := fmt.Sprintf("%s@s.whatsapp.net", nomorKades)
+			log.Printf("[SURAT] Mengirim salinan PDF ke Perangkat Desa (%s)", kadesJID)
+			_ = SendFile(client, kadesJID, pdfPath,
+				fmt.Sprintf("Laporan Surat Baru Dibuat:\nJenis: %s\nID Unik: %s\nAtas Nama: %s", NamaSuratmap[template], uniqueID, data["NAMA"]))
 		}
 		
 		// (Opsional tapi disarankan) Hapus file sementara setelah dikirim

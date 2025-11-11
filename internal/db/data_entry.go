@@ -59,6 +59,10 @@ type DataEntrySession struct {
 	UpdatedAt            time.Time      `db:"updated_at"`
 	AwaitingAnswer       bool           `db:"awaiting_answer"`
 	EditField            sql.NullString `db:"edit_field"`
+	SuratValidNik      sql.NullString `db:"surat_valid_nik"`
+	SuratFieldsPending sql.NullString `db:"surat_fields_pending"`
+	SuratFieldNow      sql.NullString `db:"surat_field_now"`
+	SuratDataMap       sql.NullString `db:"surat_data_map"`
 
 	// Change lookup table name fields to use sql.NullString
 	SexNama              sql.NullString `db:"sex_nama"`
@@ -89,6 +93,11 @@ func GetOrCreateDataEntrySession(dbConn *sqlx.DB, jid string) (*DataEntrySession
 	}
 	if err := EnsureSheetRowNumColumn(dbConn); err != nil { // Panggil fungsi baru
 		log.Printf("[ERROR] Failed to ensure sheet_row_num column: %v", err)
+		return nil, err
+	}
+
+	if err := EnsureSuratSessionColumns(dbConn); err != nil {
+		log.Printf("[ERROR] Failed to ensure surat session columns: %v", err)
 		return nil, err
 	}
 
@@ -170,7 +179,7 @@ func StartNewSession(dbConn *sqlx.DB, jid string) error {
             tag_card = NULL,
             id_asuransi_id = NULL,
             no_asuransi = NULL,
-            edit_field = NULL,
+            edit_field = NULL,sheet_row_num = NULL,surat_valid_nik = NULL, surat_fields_pending = NULL, surat_field_now = NULL, surat_data_map = NULL,
             updated_at = NOW()`, jid)
 
 	if err != nil {
@@ -528,4 +537,62 @@ func CheckNIKExists(dbConn *sqlx.DB, nik string, jid string) (bool, error) {
 		return false, err
 	}
 	return exists, nil
+}
+
+func EnsureSuratSessionColumns(dbConn *sqlx.DB) error {
+	columns := []string{
+		"surat_valid_nik",
+		"surat_fields_pending",
+		"surat_field_now",
+		"surat_data_map",
+	}
+	
+	for _, col := range columns {
+		var exists bool
+		query := fmt.Sprintf(`
+			SELECT EXISTS (
+				SELECT 1 
+				FROM information_schema.columns 
+				WHERE table_schema = 'public'
+				AND table_name = 'data_entry_sessions' 
+				AND column_name = '%s'
+			);
+		`, col)
+		err := dbConn.QueryRow(query).Scan(&exists)
+		if err != nil {
+			return fmt.Errorf("failed to check %s column: %v", col, err)
+		}
+
+		if !exists {
+			log.Printf("[DEBUG] Column '%s' not found, adding it...", col)
+			_, err = dbConn.Exec(fmt.Sprintf(`
+				ALTER TABLE data_entry_sessions 
+				ADD COLUMN %s TEXT;
+			`, col))
+			if err != nil {
+				return fmt.Errorf("failed to add %s column: %v", col, err)
+			}
+			log.Printf("[DEBUG] Added %s column to data_entry_sessions table", col)
+		}
+	}
+	return nil
+}
+
+
+// UpdateSessionField adalah helper untuk update satu kolom sesi
+func UpdateSessionField(dbConn *sqlx.DB, jid string, field string, value interface{}) error {
+	query := fmt.Sprintf("UPDATE data_entry_sessions SET %s = $1, updated_at = NOW() WHERE jid = $2", field)
+	_, err := dbConn.Exec(query, value, jid)
+	if err != nil {
+		log.Printf("[ERROR] Gagal UpdateSessionField (%s): %v", field, err)
+	}
+	return err
+}
+
+// GetSessionField adalah helper untuk mengambil satu kolom sesi
+func GetSessionField(dbConn *sqlx.DB, jid string, field string) (sql.NullString, error) {
+	var result sql.NullString
+	query := fmt.Sprintf("SELECT %s FROM data_entry_sessions WHERE jid = $1", field)
+	err := dbConn.Get(&result, query, jid)
+	return result, err
 }

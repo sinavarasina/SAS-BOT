@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -249,9 +250,12 @@ const (
 	STEP_PENGADUAN_MENU         = 300
 	STEP_PENGADUAN_CARI_ID      = 302
 	STEP_PENGADUAN_VALIDASI_NIK = 303
-	STEP_SURAT_MENU_UTAMA       = 500
-	STEP_SURAT_VALIDASI_NIK     = 501
-	STEP_SURAT_INPUT_DATA       = 502
+	STEP_SURAT_MENU_UTAMA       = 500 // Menunggu (1. Ajukan / 2. Cek)
+	STEP_SURAT_VALIDASI_NIK     = 501 // Menunggu NIK untuk Ajuan
+	STEP_SURAT_PILIH_JENIS      = 502 // Menunggu (1-5)
+	STEP_SURAT_INPUT_DATA       = 503 // Menunggu jawaban field tambahan
+	STEP_SURAT_KONFIRMASI_FIELD = 504 // Menunggu (ya/edit)
+	STEP_SURAT_CEK_PROGRES      = 505 // Menunggu ID Unik untuk Cek
 )
 
 func loadJSONOptions() (map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string) {
@@ -506,73 +510,128 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 		return []string{"Data ditemukan. Silakan periksa:\n\n" + dataStr, "\n\nKetik 'valid' untuk menyimpan atau 'edit' untuk mengubah data."}
 
 	// Menu 2
-	case STEP_SURAT_MENU_UTAMA:
-		jenisSurat, ok := surat.JenisSuratMap[text]
-		if !ok {
-			return []string{"Pilihan tidak valid. Masukkan angka 1-5 sesuai jenis surat."}
+	case STEP_SURAT_MENU_UTAMA: // (Langkah 500)
+		switch text {
+		case "1": // 1. Ajukan Surat
+			if err := db.UpdateStepOnly(dbConn, jid, STEP_SURAT_VALIDASI_NIK); err != nil {
+				return []string{"Maaf, terjadi kesalahan sistem."}
+			}
+			return []string{"Baik, silakan masukkan **NIK 16 digit** Anda untuk validasi data:"}
+		case "2": // 2. Cek Progres Surat
+			if err := db.UpdateStepOnly(dbConn, jid, STEP_SURAT_CEK_PROGRES); err != nil {
+				return []string{"Maaf, terjadi kesalahan sistem."}
+			}
+			return []string{"Silakan masukkan *Nomor Unik Surat* Anda (contoh: 1234):"}
+		default:
+			return []string{"Pilihan tidak valid. Silakan pilih 1 atau 2."}
 		}
 
-		if err := db.SetEditField(dbConn, jid, string(jenisSurat)); err != nil {
-			log.Printf("[SURAT_DB] Gagal menyimpan jenis surat: %v", err)
-			return []string{"Maaf,terjadi kesalahan sistem."}
-		}
-
-		if err := db.UpdateStepOnly(dbConn, jid, STEP_SURAT_VALIDASI_NIK); err != nil {
-			return []string{"Maaf, terjadi kesalahan sistem."}
-		}
-		return []string{"Baik, Anda memilih " + surat.NamaSuratmap[jenisSurat] + ".\n\n" + "Untuk melanjutkan, masukkan *NIK 16 Digit* anda untuk validasi data:"}
-
-	case STEP_SURAT_VALIDASI_NIK:
+	case STEP_SURAT_VALIDASI_NIK: // (Langkah 501)
 		dataPenduduk, err := db.GetDataPendudukByNIK(dbConn, text)
 		if err != nil {
-			// NIK tidak ditemukan di DB permanen
-			if err := db.DeleteDataEntrySession(dbConn, jid); err != nil { // Reset sesi
-				log.Printf("[ERROR] Gagal hapus sesi setelah NIK surat tidak ditemukan: %v", err)
-			}
-			return []string{"NIK Anda tidak terdaftar di sistem kami.\n\n" +
-				"Silakan pilih *Menu 1 (Data Diri)* untuk melakukan input data diri terlebih dahulu sebelum membuat surat.\n\n" +
-				getMainMenu()}
+			if err := db.DeleteDataEntrySession(dbConn, jid); err != nil { /*...*/ }
+			return []string{"NIK Anda tidak terdaftar. Silakan pilih Menu 1 untuk Input Data Diri dahulu.\n\n" + getMainMenu()}
+		}
+		
+		// NIK Ditemukan. Simpan NIK ke kolom sesi DB
+		if err := db.UpdateSessionField(dbConn, jid, "surat_valid_nik", text); err != nil {
+             return []string{"Kesalahan menyimpan NIK. Coba lagi."}
+        }
+		
+		// Auto-fill data dasar
+		dataMap := surat.BuildDataMap(db.DataPenduduk(*dataPenduduk))
+		dataMapBytes, _ := json.Marshal(dataMap)
+		if err := db.UpdateSessionField(dbConn, jid, "surat_data_map", string(dataMapBytes)); err != nil {
+			return []string{"Kesalahan menyimpan data map. Coba lagi."}
 		}
 
-		// 2. Simpan NIK yang valid untuk sementara
-		_ = db.SaveTemporary(fmt.Sprintf("surat_valid_nik_%s", jid), text)
+		if err := db.UpdateStepOnly(dbConn, jid, STEP_SURAT_PILIH_JENIS); err != nil {
+			return []string{"Maaf, terjadi kesalahan sistem."}
+		}
+		return []string{
+			"NIK Tervalidasi. Silakan pilih jenis surat:\n" +
+				"1. Surat Domisili\n2. Surat Usaha\n3. SKTM Umum\n4. SKTM Tanggungan\n5. Surat Kematian",
+		}
 
-		// 3. NIK Ditemukan! Siapkan alur input data surat
-		jenisSuratStr, _ := db.GetEditField(dbConn, jid) // Ambil jenis surat yg disimpan
-		fieldList := surat.GetFieldList(db.DataPenduduk(*dataPenduduk), surat.JenisSurat(jenisSuratStr))
+	case STEP_SURAT_PILIH_JENIS: // (Langkah 502)
+		jenisSurat, ok := surat.JenisSuratMap[text]
+		if !ok {
+			return []string{"Pilihan tidak valid. Masukkan angka 1-5."}
+		}
+		
+		if err := db.SetEditField(dbConn, jid, string(jenisSurat)); err != nil { /*...*/ } // Simpan jenis surat
 
-		if len(fieldList) == 0 {
-			// Jika surat tidak butuh input tambahan (langsung buat)
+		// Ambil NIK yg tersimpan
+		nik, _ := db.GetSessionField(dbConn, jid, "surat_valid_nik")
+		dataPenduduk, _ := db.GetDataPendudukByNIK(dbConn, nik.String)
+		
+		fieldList := surat.GetFieldList(db.DataPenduduk(*dataPenduduk), jenisSurat)
+
+		if len(fieldList) == 0 { // Tidak ada field tambahan
 			return handleSuratGeneration(dbConn, jid, session, sheetsClient, waClient)
 		}
-
-		// 4. Simpan daftar field yang harus diisi
+		
 		fieldStr := strings.Join(fieldList, ",")
-		_ = db.SaveTemporary(fmt.Sprintf("surat_fields_%s", jid), fieldStr)
-		_ = db.SaveTemporary(fmt.Sprintf("surat_field_now_%s", jid), fieldList[0])
-
+		if err := db.UpdateSessionField(dbConn, jid, "surat_fields_pending", fieldStr); err != nil { /*...*/ }
+		if err := db.UpdateSessionField(dbConn, jid, "surat_field_now", fieldList[0]); err != nil { /*...*/ }
+		
 		if err := db.UpdateStepOnly(dbConn, jid, STEP_SURAT_INPUT_DATA); err != nil {
 			return []string{"Maaf, terjadi kesalahan sistem."}
 		}
-
-		// 5. Ajukan pertanyaan pertama
+		
 		return []string{surat.GetPrompt(fieldList[0])}
+	
+	case STEP_SURAT_INPUT_DATA: // (Langkah 503)
+		// Simpan jawaban sementara (kita akan gunakan 'edit_field' sebagai 'temp_answer')
+		if err := db.SetEditField(dbConn, jid, text); err != nil { 
+			return []string{"Kesalahan menyimpan jawaban sementara."}
+		}
+		
+		if err := db.UpdateStepOnly(dbConn, jid, STEP_SURAT_KONFIRMASI_FIELD); err != nil { /*...*/ }
+		return []string{fmt.Sprintf("Anda mengisi: *%s*\n\nKetik 'ya' untuk lanjut, atau 'edit' untuk mengulangi.", text)}
 
-	case STEP_SURAT_INPUT_DATA:
-		currentField, _ := db.LoadTemporary("surat_field_now_" + jid)
-		fieldListStr, _ := db.LoadTemporary("surat_fields_" + jid)
-		fieldList := strings.Split(fieldListStr, ",")
-
-		_ = db.SaveTemporary(jid+"_field_"+currentField, text)
-
-		next := surat.NextField(fieldList, currentField)
-		if next != "" {
-			// Masih ada pertanyaan
-			_ = db.SaveTemporary("surat_field_now_"+jid, next)
-			return []string{surat.GetPrompt(next)}
+	case STEP_SURAT_KONFIRMASI_FIELD: // (Langkah 504)
+		currentField := session.SuratFieldNow.String
+		fieldList := strings.Split(session.SuratFieldsPending.String, ",")
+		
+		if strings.ToLower(text) == "edit" {
+			if err := db.UpdateStepOnly(dbConn, jid, STEP_SURAT_INPUT_DATA); err != nil { /*...*/ }
+			return []string{surat.GetPrompt(currentField)} // Tanyakan lagi
 		}
 
-		return handleSuratGeneration(dbConn, jid, session, sheetsClient, waClient)
+		if strings.ToLower(text) == "ya" {
+			// Jawaban "ya", simpan data
+			tempAnswer, _ := db.GetEditField(dbConn, jid) // Ambil jawaban sementara
+			dataMap := make(map[string]string)
+			_ = json.Unmarshal([]byte(session.SuratDataMap.String), &dataMap)
+			dataMap[currentField] = tempAnswer
+			
+			next := surat.NextField(fieldList, currentField)
+			
+			if next != "" { // Masih ada pertanyaan
+				dataMapBytes, _ := json.Marshal(dataMap)
+				if err := db.UpdateSessionField(dbConn, jid, "surat_data_map", string(dataMapBytes)); err != nil { /*...*/ }
+				if err := db.UpdateSessionField(dbConn, jid, "surat_field_now", next); err != nil { /*...*/ }
+				if err := db.UpdateStepOnly(dbConn, jid, STEP_SURAT_INPUT_DATA); err != nil { /*...*/ }
+				return []string{surat.GetPrompt(next)}
+			}
+			
+			// Selesai, buat surat
+			dataMapBytes, _ := json.Marshal(dataMap)
+			if err := db.UpdateSessionField(dbConn, jid, "surat_data_map", string(dataMapBytes)); err != nil { /*...*/ }
+			return handleSuratGeneration(dbConn, jid, session, sheetsClient, waClient)
+		}
+		
+		return []string{"Pilihan tidak valid. Ketik 'ya' atau 'edit'."}
+
+	case STEP_SURAT_CEK_PROGRES: // (Langkah 505)
+		unikID := strings.ToUpper(text)
+		status, err := sheetsClient.GetSuratStatus(unikID)
+		if err != nil {
+			return []string{fmt.Sprintf("Nomor Unik Surat *%s* tidak ditemukan.", unikID)}
+		}
+		if err := db.DeleteDataEntrySession(dbConn, jid); err != nil { /*...*/ }
+		return []string{fmt.Sprintf("Status untuk surat *%s*:\n\n*STATUS: %s*", unikID, status)}
 
 	// 3. alur fitur pengaduan
 	case STEP_PENGADUAN_MENU:
@@ -920,56 +979,50 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 }
 
 func handleSuratGeneration(dbConn *sqlx.DB, jid string, session *db.DataEntrySession, sheetsClient *sheets.SheetsClient, waClient *whatsmeow.Client) []string {
-
-	// 1. Ambil NIK yang sudah divalidasi
-	nik, ok := db.LoadTemporary(fmt.Sprintf("surat_valid_nik_%s", jid))
-	if !ok {
-		log.Printf("[SURAT-ERROR] Gagal mengambil NIK tervalidasi dari sesi JID %s", jid)
-		return []string{"Terjadi kesalahan sesi (NIK tidak ditemukan). Silakan 'reset' dan coba lagi."}
-	}
-
-	// 2. Ambil data lengkap penduduk dari DB
-	dataPenduduk, err := db.GetDataPendudukByNIK(dbConn, nik)
+	// Ambil sesi terbaru (termasuk data map yang baru diupdate)
+	fullSession, err := db.GetFullSessionData(dbConn, jid)
 	if err != nil {
-		log.Printf("[SURAT-ERROR] Gagal mengambil data penduduk (NIK: %s): %v", nik, err)
-		return []string{"Terjadi kesalahan saat mengambil data penduduk Anda."}
+		log.Printf("[SURAT-ERROR] Gagal mengambil data sesi lengkap: %v", err)
+		return []string{"Terjadi kesalahan saat mengambil data sesi Anda."}
 	}
 
-	// 3. Bangun data dasar (Nama, NIK, Alamat, dll)
-	data := surat.BuildDataMap(db.DataPenduduk(*dataPenduduk))
-
-	// 4. Ambil data tambahan yang baru diinput (misal: ALASANPERLU)
-	fieldListStr, _ := db.LoadTemporary("surat_fields_" + jid)
-	for f := range strings.SplitSeq(fieldListStr, ",") {
-		f = strings.TrimSpace(f)
-		val, _ := db.LoadTemporary(jid + "_field_" + f)
-		data[f] = val
+	dataMap := make(map[string]string)
+	if err := json.Unmarshal([]byte(fullSession.SuratDataMap.String), &dataMap); err != nil {
+		log.Printf("[SURAT-ERROR] Gagal unmarshal data map: %v", err)
+		return []string{"Terjadi kesalahan data map. Silakan 'reset'."}
 	}
-	data["TANGGAL"] = time.Now().Format("02 January 2006")
-
-	// 5. Ambil jenis surat
-	jenisStr, _ := db.GetEditField(dbConn, jid)
+	
+	jenisStr := fullSession.EditField.String
 	jenis := surat.JenisSurat(jenisStr)
+	
+	// 1. Buat ID unik & nama file
+	unikID := fmt.Sprintf("%04d", 1000+rand.Intn(9000)) // 4 digit random
+	tgl := time.Now().Format("02-01-2006")
+	// Format: sk_domisili_1234_02-01-2006.pdf
+	pdfName := fmt.Sprintf("%s_%s_%s.pdf", strings.TrimSuffix(string(jenis), ".tex"), unikID, tgl)
 
-	// 6. Buat PDF (secara asinkron)
-	_, err = surat.GenerateAsync(jenis, data, "temp", jid, waClient)
+	// 2. Upload PDF ke Cloud (ImgBB)
+	// (Kita lakukan ini DULU agar bisa kirim link ke Kades jika PDF gagal dikirim)
+	// (Implementasi: Anda perlu menjalankan Generate, LALU baca file PDF, LALU upload)
+	fileURL := "Belum diimplementasikan" 
+
+	// 3. Panggil generator (akan mengirim ke user + kades)
+	_, err = surat.GenerateAsync(jenis, dataMap, "temp", jid, waClient, pdfName, unikID)
 	if err != nil {
 		log.Printf("[SURAT-ERROR] %v", err)
 		return []string{"Terjadi kesalahan saat memproses surat."}
 	}
-	// 7. Bersihkan sesi
+
+	// 4. Log ke Sheet
+	go sheetsClient.AppendSuratLog(jenis, dataMap["NAMA"], unikID, tgl, "Belum Diproses", fileURL)
+
+	// 5. Hapus sesi
 	db.DeleteDataEntrySession(dbConn, jid)
-	db.ClearTemporaryByPrefix(jid + "_")
-	db.ClearTemporaryByPrefix("surat_fields_" + jid)
-	db.ClearTemporaryByPrefix("surat_field_now_" + jid)
-	db.ClearTemporaryByPrefix("surat_valid_nik_" + jid)
 
 	return []string{
 		fmt.Sprintf("Surat *%s* Anda sedang diproses dan akan segera dikirimkan. Harap tunggu...", surat.NamaSuratmap[jenis]),
-		// fmt.Sprintf("(Debug: File LaTeX dibuat di %s)", path),
 	}
 }
-
 func FastTrackDataEntry(dbConn *sqlx.DB, jid string) error {
 	// Add default IDs for all lookup tables
 	query := `

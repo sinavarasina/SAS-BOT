@@ -102,20 +102,18 @@ Silakan pilih nomor atau ketik 'reset' untuk kembali ke menu utama.`
 		return []string{subMenu}
 
 	case "2":
+		// PERBAIKAN: Set ke Menu Utama Surat (500)
 		if err := db.UpdateStepOnly(dbConn, jid, STEP_SURAT_MENU_UTAMA); err != nil {
 			log.Printf("[ERROR] Failed to set step to STEP_SURAT_MENU_UTAMA: %v", err)
 			return []string{"Maaf, terjadi kesalahan sistem."}
 		}
 
+		// PERBAIKAN: Tampilkan sub-menu "Ajukan" / "Cek"
 		return []string{
-			"*Menu Pengajuan Surat*\n\n"+
-			"Silakan pilih jenis surat apa yang ingin anda ajukan: \n"+
-			"1. Surat Domisili\n"+
-			"2. Surat Usaha\n"+
-			"3. Surat Umum\n"+
-			"4. Surat Tanggungan\n"+
-			"5. Surat Kematian\n"+
-			"Ketik nomor surat (1-5) atau 'reset' untuk batal.",
+			"*Menu Pengajuan Surat*\n\n" +
+				"1. Ajukan Surat Baru\n" +
+				"2. Cek Progres Surat\n\n" +
+				"Ketik nomor (1-2) atau 'reset' untuk batal.",
 		}
 
 	case "3":

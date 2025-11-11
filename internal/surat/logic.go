@@ -64,27 +64,78 @@ var FieldPrompts = map[string]string{
 	"ALAMAT.C":    "Alamat anak:",
 }
 
-func GetFieldList(_ db.DataPenduduk, jenis JenisSurat) []string {
-	if fields, ok := SuratFields[jenis]; ok {
-		return fields
+func GetFieldList(data db.DataPenduduk, jenis JenisSurat) []string {
+	// Surat Kematian dan SKTM Tanggungan tidak pakai data NIK, tanya semua
+	if jenis == KEMATIAN || jenis == SKTM_TANGGUNGAN {
+		return SuratFields[jenis]
 	}
-	return []string{}
+
+	// Untuk surat lain (Domisili, Usaha, SKTM Umum),
+	// HANYA tanya field yang TIDAK ADA di BaseFields (data NIK)
+	neededFields := []string{}
+	allExtraFields := SuratFields[jenis]
+
+	for _, field := range allExtraFields {
+		isBase := false
+		for _, base := range BaseFields {
+			if field == base {
+				isBase = true
+				break
+			}
+		}
+		// Jika field TIDAK DITEMUKAN di BaseFields, maka kita perlu menanyakannya
+		if !isBase {
+			neededFields = append(neededFields, field)
+		}
+	}
+	return neededFields
 }
 
 func BuildDataMap(data db.DataPenduduk) map[string]string {
+	// --- Persiapan Data Dasar ---
+	
+	// 1. Gabungkan Tempat & Tanggal Lahir
 	ttl := fmt.Sprintf("%s, %s", data.TempatLahir.String, db.FormatDate(data.TanggalLahir))
+	
+	// 2. Tentukan Jenis Kelamin
 	jk := "Laki-laki"
 	if data.SexID.Int64 == 2 {
 		jk = "Perempuan"
 	}
+	
+	// 3. Buat Alamat Lengkap
+	alamatLengkap := fmt.Sprintf("%s, Dusun %s, RT/RW %s/%s", data.Alamat.String, data.Dusun.String, data.RT.String, data.RW.String)
 
+	// --- Pemetaan Data ke Placeholder ---
+	// Peta ini akan mengisi semua placeholder yang diketahui dari NIK.
+	// Field yang tidak ada di sini (seperti ALASANPERLU, NAMA.C) 
+	// akan ditanyakan secara manual oleh bot.
 	return map[string]string{
-		"NAMA":    data.Nama.String,
-		"TTL":     ttl,
-		"JK":      jk,
-		"NIK":     data.NIK.String,
-		"ALAMAT":  fmt.Sprintf("%s, Dusun %s, RT/RW %s/%s", data.Alamat.String, data.Dusun.String, data.RT.String, data.RW.String),
-		"TANGGAL": time.Now().Format("02 January 2006"),
+		
+		// --- Data Dasar (Auto-filled dari NIK pengguna) ---
+		"NAMA":      data.Nama.String,
+		"TTL":       ttl,
+		"JK":        jk,
+		"AGAMA":     data.AgamaNama.String, // (Membutuhkan JOIN di GetDataPendudukByNIK)
+		"NIK":       data.NIK.String,
+		"PEKERJAAN": data.PekerjaanNama.String, // (Membutuhkan JOIN di GetDataPendudukByNIK)
+		"ALAMAT":    alamatLengkap,
+		"TANGGAL":   time.Now().Format("02 January 2006"),
+
+
+		// Untuk SK Usaha & SKTM Umum (TTLnU = TTL Pemohon)
+		"TTLnU":     ttl, 
+		
+		// Untuk SKTM Tanggungan (Otomatis mengisi data Orang Tua/Wali)
+		// Kita asumsikan "Orang Tua" adalah Ayah
+		"NAMA.P":      data.NamaAyah.String,
+		"NIK.P":       data.NikAyah.String,
+		"PEKERJAAN.P": "", // Kita tidak tahu pekerjaan Ayah dari data NIK anak
+		"AGAMA.P":     "", // Kita tidak tahu agama Ayah
+		"TTL.P":       "", // Kita tidak tahu TTL Ayah
+		"JK.P":        "Laki-laki", // Asumsi Ayah
+		"STATUS.P":    "Ayah Kandung", // Asumsi
+		"ALAMAT.P":    alamatLengkap, // Asumsi alamat orang tua = alamat anak
 	}
 }
 
