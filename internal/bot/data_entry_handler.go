@@ -583,9 +583,9 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 	
 	case STEP_SURAT_INPUT_DATA: // (Langkah 503)
 		// Simpan jawaban sementara (kita akan gunakan 'edit_field' sebagai 'temp_answer')
-		if err := db.SetEditField(dbConn, jid, text); err != nil { 
-			return []string{"Kesalahan menyimpan jawaban sementara."}
-		}
+	if err := db.UpdateSessionField(dbConn, jid, "surat_temp_answer", text); err != nil {
+    return []string{"Kesalahan menyimpan jawaban sementara."}
+	}
 		
 		if err := db.UpdateStepOnly(dbConn, jid, STEP_SURAT_KONFIRMASI_FIELD); err != nil { /*...*/ }
 		return []string{fmt.Sprintf("Anda mengisi: *%s*\n\nKetik 'ya' untuk lanjut, atau 'edit' untuk mengulangi.", text)}
@@ -601,8 +601,8 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 
 		if strings.ToLower(text) == "ya" {
 			// Jawaban "ya", simpan data
-			tempAnswer, _ := db.GetEditField(dbConn, jid) // Ambil jawaban sementara
-			dataMap := make(map[string]string)
+			tempAnswer := session.SuratTempAnswer.String // (Kita sudah punya 'session' dari parameter)
+    	dataMap := make(map[string]string)
 			_ = json.Unmarshal([]byte(session.SuratDataMap.String), &dataMap)
 			dataMap[currentField] = tempAnswer
 			

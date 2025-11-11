@@ -63,6 +63,7 @@ type DataEntrySession struct {
 	SuratFieldsPending sql.NullString `db:"surat_fields_pending"`
 	SuratFieldNow      sql.NullString `db:"surat_field_now"`
 	SuratDataMap       sql.NullString `db:"surat_data_map"`
+	SuratTempAnswer    sql.NullString `db:"surat_temp_answer"`
 
 	// Change lookup table name fields to use sql.NullString
 	SexNama              sql.NullString `db:"sex_nama"`
@@ -545,6 +546,7 @@ func EnsureSuratSessionColumns(dbConn *sqlx.DB) error {
 		"surat_fields_pending",
 		"surat_field_now",
 		"surat_data_map",
+		"surat_temp_answer",
 	}
 	
 	for _, col := range columns {
