@@ -1,4 +1,3 @@
-
 package sheets
 
 import (
@@ -67,50 +66,52 @@ func InitSheetsClient() (*SheetsClient, error) {
 
 // buildRowDataPenduduk adalah helper untuk data penduduk
 func (c *SheetsClient) buildRowDataPenduduk(s db.DataEntrySession) []interface{} {
-	// (Menggunakan 43 kolom dari file Anda sebelumnya)
+	// 39 kolom (Dusun, RT, Nama, No KK, NIK, Sex, Tempat Lahir, Tanggal Lahir, Agama, Pendidikan KK, 
+	// Pendidikan Sedang, Pekerjaan, Status Kawin, Level KK, Warganegara, Nama Ayah, Nama Ibu,
+	// Status Dasar, Suku, NIK Ayah, NIK Ibu, Golongan Darah, Akta Lahir, Dokumen Passport,
+	// Tanggal Akhir Passport, Dokumen KITAS, Akta Perkawinan, Tanggal Perkawinan, Akta Perceraian,
+	// Tanggal Perceraian, Cacat, Cara KB, Hamil, KTP El, Status Rekam, Alamat Sekarang, Tag Card, Asuransi, No Asuransi)
 	return []interface{}{
-		time.Now().Format("2006-01-02 15:04:05"), // A
-		s.Alamat.String,                 // C
-		s.Dusun.String,                  // D
-		s.RW.String,                     // E
-		s.RT.String,                     // F
-		s.Nama.String,                   // G
-		s.NoKK.String,                   // H
-		s.NIK.String,                    // I
-		s.SexNama.String,                // J
-		s.TempatLahir.String,             // K
-		db.FormatDate(s.TanggalLahir),   // L
-		s.AgamaNama.String,              // M
-		s.PendidikanKKNama.String,       // N
-		s.PendidikanSedangNama.String,   // O
-		s.PekerjaanNama.String,          // P
-		s.StatusKawinNama.String,        // Q
-		s.KKLevelNama.String,            // R
-		s.WarganegaraNama.String,        // S
-		s.NikAyah.String,                // T
-		s.NamaAyah.String,               // U
+		time.Now().Format("2006-01-02 15:04:05"), // A (Timestamp)
+		s.Dusun.String,                  // B
+		s.RT.String,                     // C
+		s.Nama.String,                   // D
+		s.NoKK.String,                   // E
+		s.NIK.String,                    // F
+		s.SexNama.String,                // G
+		s.TempatLahir.String,            // H
+		db.FormatDate(s.TanggalLahir),   // I
+		s.AgamaNama.String,              // J
+		s.PendidikanKKNama.String,       // K
+		s.PendidikanSedangNama.String,   // L
+		s.PekerjaanNama.String,          // M
+		s.StatusKawinNama.String,        // N
+		s.KKLevelNama.String,            // O
+		s.WarganegaraNama.String,        // P
+		s.NamaAyah.String,               // Q
+		s.NamaIbu.String,                // R
+		s.StatusDasarNama.String,        // S
+		s.SukuNama.String,               // T
+		s.NikAyah.String,                // U
 		s.NikIbu.String,                 // V
-		s.NamaIbu.String,                // W
-		s.GolonganDarahNama.String,      // X
-		s.AktaLahir.String,              // Y
-		s.DokumenPassport.String,        // Z
-		db.FormatDate(s.TanggalAkhirPassport), // AA
-		s.DokumenKitas.String,           // AB
-		s.AktaPerkawinan.String,         // AC
-		db.FormatDate(s.TanggalPerkawinan), // AD
-		s.AktaPerceraian.String,         // AE
-		db.FormatDate(s.TanggalPerceraian), // AF
-		s.CacatNama.String,              // AG
-		s.CaraKBNama.String,             // AH
-		s.HamilNama.String,              // AI
-		s.KTPElNama.String,              // AJ
-		s.StatusRekamNama.String,        // AK
-		s.AlamatSekarang.String,         // AL
-		s.StatusDasarNama.String,        // AM
-		s.SukuNama.String,               // AN
-		s.TagCard.String,                // AO
-		s.AsuransiNama.String,           // AP
-		s.NoAsuransi.String,             // AQ
+		s.GolonganDarahNama.String,      // W
+		s.AktaLahir.String,              // X
+		s.DokumenPassport.String,        // Y
+		db.FormatDate(s.TanggalAkhirPassport), // Z
+		s.DokumenKitas.String,           // AA
+		s.AktaPerkawinan.String,         // AB
+		db.FormatDate(s.TanggalPerkawinan), // AC
+		s.AktaPerceraian.String,         // AD
+		db.FormatDate(s.TanggalPerceraian), // AE
+		s.CacatNama.String,              // AF
+		s.CaraKBNama.String,             // AG
+		s.HamilNama.String,              // AH
+		s.KTPElNama.String,              // AI
+		s.StatusRekamNama.String,        // AJ
+		s.AlamatSekarang.String,         // AK
+		s.TagCard.String,                // AL
+		s.AsuransiNama.String,           // AM
+		s.NoAsuransi.String,             // AN
 	}
 }
 
@@ -131,7 +132,7 @@ func (c *SheetsClient) AppendDataPenduduk(s db.DataEntrySession) {
 
 // FindRowByNIK mencari NIK di Sheet Data Diri
 func (c *SheetsClient) FindRowByNIK(nik string) (int, error) {
-	readRange := "Data_penduduk!H:H" // NIK di Kolom H 
+	readRange := "Data_penduduk!F:F" // NIK di Kolom F (berubah dari H)
 
 	// Menggunakan c.DataSpreadsheetID
 	resp, err := c.Service.Spreadsheets.Values.Get(c.DataSpreadsheetID, readRange).Do()
@@ -154,7 +155,7 @@ func (c *SheetsClient) FindRowByNIK(nik string) (int, error) {
 
 // UpdateRowData menimpa data di Sheet Data Diri
 func (c *SheetsClient) UpdateRowData(rowNum int, s db.DataEntrySession) error {
-	rangeData := fmt.Sprintf("Data_penduduk!A%d:AQ%d", rowNum, rowNum)
+	rangeData := fmt.Sprintf("Data_penduduk!A%d:AN%d", rowNum, rowNum) // Update dari AQ ke AN (39 kolom)
 	var vr sheets.ValueRange
 	vr.Values = append(vr.Values, c.buildRowDataPenduduk(s))
 
