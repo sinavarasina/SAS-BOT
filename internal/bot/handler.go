@@ -8,6 +8,7 @@ import (
 	"github.com/sinavarasina/SAS-BOT/internal/db"
 	"github.com/sinavarasina/SAS-BOT/internal/sheets"
 	// "github.com/sinavarasina/SAS-BOT/internal/surat"
+	"github.com/sinavarasina/SAS-BOT/internal/uploader"
 	"go.mau.fi/whatsmeow"
 )
 
@@ -42,7 +43,7 @@ Menu yang tersedia:
 Silakan pilih menu dengan mengetik nomor yang sesuai.`
 }
 
-func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string, sheetsClient *sheets.SheetsClient, waClient *whatsmeow.Client) []string {
+func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string, sheetsClient *sheets.SheetsClient, waClient *whatsmeow.Client, driveClient *uploader.DriveClient) []string {
 	text = strings.TrimSpace(text)
 	log.Printf("[DEBUG] After trim - Text: '%s', Length: %d, Username: %s, Number: %s", text, len(text), username, number)
 
