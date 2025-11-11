@@ -1,5 +1,3 @@
-// file: internal/uploader/googledrive.go
-
 package uploader
 
 import (
@@ -15,34 +13,70 @@ import (
 
 type DriveClient struct {
 	Service  *drive.Service
-	FolderID string
+	ParentID string // Ini adalah ID folder induk "SAS-BOT Arsip"
 }
 
 func InitDriveClient() (*DriveClient, error) {
 	ctx := context.Background()
 	credentialFile := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
 
+	// Pastikan Scope-nya adalah DriveFileScope
 	srv, err := drive.NewService(ctx, option.WithCredentialsFile(credentialFile), option.WithScopes(drive.DriveFileScope))
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Failed to create Drive service: %w", err)
 	}
 
-	folderID := os.Getenv("GOOGLE_DRIVE_FOLDER_ID")
-	if folderID == "" {
-		log.Fatal("[FATAL] Environment variable GOOGLE_DRIVE_FOLDER_ID is not set")
+	// Baca ID Folder Induk dari .env
+	parentID := os.Getenv("GOOGLE_DRIVE_PARENT_ID")
+	if parentID == "" {
+		log.Fatal("[FATAL] Environment variable GOOGLE_DRIVE_PARENT_ID is not set")
 	}
 
 	return &DriveClient{
 		Service:  srv,
-		FolderID: folderID,
+		ParentID: parentID,
 	}, nil
 }
 
-// UploadToDrive mengunggah file ke folder tertentu di Drive dan mengembalikan ID file.
-func (c *DriveClient) UploadToDrive(data []byte, fileName string) (string, error) {
+// GetOrCreateFolder adalah fungsi kunci: mencari folder, jika tidak ada, membuatnya.
+func (c *DriveClient) GetOrCreateFolder(parentID, folderName string) (string, error) {
+	// 1. Buat query untuk mencari folder dengan nama dan parent yang sama
+	query := fmt.Sprintf("name = '%s' and '%s' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false", folderName, parentID)
+	
+	r, err := c.Service.Files.List().Q(query).PageSize(1).Fields("files(id)").Do()
+	if err != nil {
+		return "", fmt.Errorf("gagal mencari folder: %w", err)
+	}
+
+	// 2. Jika ditemukan, kembalikan ID-nya
+	if len(r.Files) > 0 {
+		log.Printf("[DRIVE] Folder '%s' ditemukan, ID: %s", folderName, r.Files[0].Id)
+		return r.Files[0].Id, nil
+	}
+
+	// 3. Jika tidak ditemukan, buat folder baru
+	log.Printf("[DRIVE] Folder '%s' tidak ditemukan, membuat baru...", folderName)
+	folderMetadata := &drive.File{
+		Name:     folderName,
+		MimeType: "application/vnd.google-apps.folder",
+		Parents:  []string{parentID},
+	}
+
+	file, err := c.Service.Files.Create(folderMetadata).Fields("id").Do()
+	if err != nil {
+		return "", fmt.Errorf("gagal membuat folder: %w", err)
+	}
+
+	log.Printf("[DRIVE] Folder baru '%s' dibuat, ID: %s", folderName, file.Id)
+	return file.Id, nil
+}
+
+
+// UploadToDrive sekarang menerima folderID tujuan
+func (c *DriveClient) UploadToDrive(data []byte, fileName string, folderID string) (string, error) {
 	fileMetadata := &drive.File{
 		Name:    fileName,
-		Parents: []string{c.FolderID},
+		Parents: []string{folderID}, // Upload ke folderID spesifik
 	}
 
 	file, err := c.Service.Files.Create(fileMetadata).Media(bytes.NewReader(data)).Do()
@@ -50,7 +84,7 @@ func (c *DriveClient) UploadToDrive(data []byte, fileName string) (string, error
 		return "", fmt.Errorf("[ERROR] Failed to upload file to Google Drive: %v", err)
 	}
 
-	// Setelah upload, buat file menjadi publik (bisa dilihat siapa saja dengan link)
+	// Jadikan file publik (bisa dilihat siapa saja dengan link)
 	_, err = c.Service.Permissions.Create(file.Id, &drive.Permission{
 		Type: "anyone",
 		Role: "reader",

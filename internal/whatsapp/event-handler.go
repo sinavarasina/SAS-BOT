@@ -4,16 +4,21 @@ import (
 	"context"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/sinavarasina/SAS-BOT/internal/bot"
 	"github.com/sinavarasina/SAS-BOT/internal/db"
 	"github.com/sinavarasina/SAS-BOT/internal/sheets"
+	"github.com/sinavarasina/SAS-BOT/internal/uploader"
 	"go.mau.fi/whatsmeow"
+	waProto "go.mau.fi/whatsmeow/binary/proto"
 	"go.mau.fi/whatsmeow/types/events"
+	"google.golang.org/protobuf/proto"
+
 )
 
-func EventHandler(client *whatsmeow.Client, appDB *sqlx.DB, sheetsClient *sheets.SheetsClient, ctx context.Context) func(interface{}) {
+func EventHandler(client *whatsmeow.Client, appDB *sqlx.DB, sheetsClient *sheets.SheetsClient, ctx context.Context, driveClient *uploader.DriveClient) func(interface{}) {
 	return func(evt interface{}) {
 		switch v := evt.(type) {
 		case *events.Message:
@@ -62,7 +67,7 @@ func EventHandler(client *whatsmeow.Client, appDB *sqlx.DB, sheetsClient *sheets
 				}
 				return
 			}
-			replies := bot.HandlerRoutePrivate(appDB, chatJID, text, username, number, sheetsClient, client)
+			replies := bot.HandlerRoutePrivate(appDB, chatJID, text, username, number, sheetsClient, client, driveClient)
 
 			for _, reply := range replies {
 				if reply == "" {

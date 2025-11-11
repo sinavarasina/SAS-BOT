@@ -9,7 +9,12 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	// "time"
+	"time"
+
+	"github.com/sinavarasina/SAS-BOT/internal/db"
+	"github.com/sinavarasina/SAS-BOT/internal/sheets"
+	"github.com/sinavarasina/SAS-BOT/internal/uploader"
+
 )
 
 func fillTemplate(content string, data map[string]string) string {
@@ -19,7 +24,7 @@ func fillTemplate(content string, data map[string]string) string {
 	return content
 }
 
-func GenerateAsync(template JenisSurat, data map[string]string, tempDir string, jid string, client *whatsmeow.Client,pdfName string, uniqueID string) (string, error) {
+func GenerateAsync(template JenisSurat, data map[string]string, tempDir string, jid string, client *whatsmeow.Client,pdfName string, uniqueID string, sheetsClient *sheets.SheetsClient, driveClient *uploader.DriveClient) (string, error) {
 	src := filepath.Join("templates", string(template))
 	texBytes, err := os.ReadFile(src)
 	if err != nil {
@@ -87,7 +92,24 @@ func GenerateAsync(template JenisSurat, data map[string]string, tempDir string, 
 			_ = SendFile(client, kadesJID, pdfPath,
 				fmt.Sprintf("Laporan Surat Baru Dibuat:\nJenis: %s\nID Unik: %s\nAtas Nama: %s", NamaSuratmap[template], uniqueID, data["NAMA"]))
 		}
+
+		log.Printf("[Surat] Mengunggah %s ke Google Drive . . .", pdfName)
+		pdfData, err := os.ReadFile(pdfPath)
+		if err != nil {
+			log.Printf("[SURAT-ERROR] Gagal membaca PDF untuk di-upload: %v", err)
+		}
+
+		fileID, err := driveClient.UploadToDrive(pdfData, pdfName)
+		fileURL := "Gagal Upload"
+		if err != nil {
+			log.Printf("[SURAT-ERROR] Gagal upload file file ke Google Drive : %v", err)
+		}else{
+			fileURL = fmt.Sprintf("https://drive.google.com/uc?id=%s", fileID)
+			log.Printf("[SURAT] Berhasil upload file ke Google Drive: %s", fileURL)
+		}
 		
+		tgl := time.Now().Format("02-01-2006")
+		sheetsClient.AppendSuratLog(template, data["NAMA"], uniqueID, tgl, "Belum Diproses", fileURL)
 		// (Opsional tapi disarankan) Hapus file sementara setelah dikirim
 		// os.Remove(texPath)
 		// os.Remove(pdfPath)
