@@ -119,7 +119,8 @@ func InitDB(dsn string) (*sqlx.DB, error) {
 		surat_valid_nik TEXT,
 		surat_fields_pending TEXT,
 		surat_field_now TEXT,
-		surat_data_map TEXT
+		surat_data_map TEXT,
+		surat_temp_answer TEXT
 	);
 
 	CREATE TABLE IF NOT EXISTS data_penduduk (
