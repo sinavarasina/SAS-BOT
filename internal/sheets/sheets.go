@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/sinavarasina/SAS-BOT/internal/db"
-	"github.com/sinavarasina/SAS-BOT/internal/surat"
+	// "github.com/sinavarasina/SAS-BOT/internal/surat"
 	"google.golang.org/api/option"
 	"google.golang.org/api/sheets/v4"
 )
@@ -247,23 +247,23 @@ func (c *SheetsClient) GetPengaduanStatus(publicID string) (string, error) {
 }
 
 // AppendSuratLog mencatat pengajuan surat ke tab yang sesuai
-func (c *SheetsClient) AppendSuratLog(jenis surat.JenisSurat, nama, unikID, tgl, status, fileURL string) {
+func (c *SheetsClient) AppendSuratLog(jenisSuratStr string, nama, unikID, tgl, status, fileURL string) {
 	
 	// Tentukan nama Tab (Sheet) berdasarkan jenis surat
 	var sheetName string
-	switch jenis {
-	case surat.DOMISILI:
+	switch jenisSuratStr {
+	case "sk_domisili.tex":
 		sheetName = "SK_Domisili"
-	case surat.USAHA:
+	case "sk_usaha.tex":
 		sheetName = "SK_Usaha"
-	case surat.SKTM_UMUM:
+	case "sktm_umum.tex":
 		sheetName = "SKTM_Umum"
-	case surat.SKTM_TANGGUNGAN:
+	case "sktm_tanggungan.tex":
 		sheetName = "SKTM_Tanggungan"
-	case surat.KEMATIAN:
+	case "sk_kematian.tex":
 		sheetName = "SK_Kematian"
 	default:
-		log.Printf("[SHEETS-ERROR] Nama sheet tidak diketahui untuk jenis surat: %s", jenis)
+		log.Printf("[SHEETS-ERROR] Nama sheet tidak diketahui untuk jenis surat: %s", jenisSuratStr)
 		return
 	}
 	
