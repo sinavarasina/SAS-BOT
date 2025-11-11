@@ -35,9 +35,9 @@ func getMainMenu() string {
 
 Menu yang tersedia:
 
-1. Data Diri
-2. Pengajuan Surat 
-3. Pengaduan 
+*1.* Data Diri
+*2.* Pengajuan Surat 
+*3.* Pengaduan 
 
 Silakan pilih menu dengan mengetik nomor yang sesuai.`
 }
@@ -93,12 +93,12 @@ func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string, sh
 		}
 		subMenu := `*Menu Data Diri*
 
-Menu ini digunakan untuk mengelola data kependudukan Anda.
+Gunakan menu ini buat ngatur data kependudukan kamu.
 
-1. Input Data Diri (Baru)
-2. Edit Data Diri (Berdasarkan NIK)
+*1.* Input Data Diri (Baru)
+*2.* Ubah Data Diri (pakai NIK)
 
-Silakan pilih nomor atau ketik 'reset' untuk kembali ke menu utama.`
+Ketik nomor pilihanmu, atau ketik ‘reset’ buat balik ke menu utama.`
 		return []string{subMenu}
 
 	case "2":
