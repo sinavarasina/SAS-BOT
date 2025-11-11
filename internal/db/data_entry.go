@@ -14,9 +14,7 @@ type DataEntrySession struct {
 	JID                  string         `db:"jid"`
 	CurrentStep          int            `db:"current_step"`
 	SheetRowNum          sql.NullInt64  `db:"sheet_row_num"`
-	Alamat               sql.NullString `db:"alamat"`
 	Dusun                sql.NullString `db:"dusun"`
-	RW                   sql.NullString `db:"rw"`
 	RT                   sql.NullString `db:"rt"`
 	Nama                 sql.NullString `db:"nama"`
 	NoKK                 sql.NullString `db:"no_kk"`
@@ -31,10 +29,12 @@ type DataEntrySession struct {
 	StatusKawinID        sql.NullInt64  `db:"status_kawin_id"`
 	KkLevelID            sql.NullInt64  `db:"kk_level_id"`
 	WarganegaraID        sql.NullInt64  `db:"warganegara_id"`
-	NikAyah              sql.NullString `db:"nik_ayah"`
 	NamaAyah             sql.NullString `db:"nama_ayah"`
-	NikIbu               sql.NullString `db:"nik_ibu"`
 	NamaIbu              sql.NullString `db:"nama_ibu"`
+	StatusDasarID        sql.NullInt64  `db:"status_dasar_id"`
+	SukuID               sql.NullInt64  `db:"suku_id"`
+	NikAyah              sql.NullString `db:"nik_ayah"`
+	NikIbu               sql.NullString `db:"nik_ibu"`
 	GolonganDarahID      sql.NullInt64  `db:"golongan_darah_id"`
 	AktaLahir            sql.NullString `db:"akta_lahir"`
 	DokumenPassport      sql.NullString `db:"dokumen_passport"`
@@ -50,8 +50,6 @@ type DataEntrySession struct {
 	KtpElID              sql.NullInt64  `db:"ktp_el_id"`
 	StatusRekamID        sql.NullInt64  `db:"status_rekam_id"`
 	AlamatSekarang       sql.NullString `db:"alamat_sekarang"`
-	StatusDasarID        sql.NullInt64  `db:"status_dasar_id"`
-	SukuID               sql.NullInt64  `db:"suku_id"`
 	TagCard              sql.NullString `db:"tag_card"`
 	IDAsuransiID         sql.NullInt64  `db:"id_asuransi_id"`
 	NoAsuransi           sql.NullString `db:"no_asuransi"`
@@ -66,6 +64,7 @@ type DataEntrySession struct {
 	SuratTempAnswer    sql.NullString `db:"surat_temp_answer"`
 
 	// Change lookup table name fields to use sql.NullString
+	DusunNama            sql.NullString `db:"dusun_nama"`
 	SexNama              sql.NullString `db:"sex_nama"`
 	AgamaNama            sql.NullString `db:"agama_nama"`
 	PendidikanKKNama     sql.NullString `db:"pendidikan_kk_nama"`
@@ -92,7 +91,7 @@ func GetOrCreateDataEntrySession(dbConn *sqlx.DB, jid string) (*DataEntrySession
 		log.Printf("[ERROR] Failed to ensure edit_field column: %v", err)
 		return nil, err
 	}
-	if err := EnsureSheetRowNumColumn(dbConn); err != nil { // Panggil fungsi baru
+	if err := EnsureSheetRowNumColumn(dbConn); err != nil {
 		log.Printf("[ERROR] Failed to ensure sheet_row_num column: %v", err)
 		return nil, err
 	}
@@ -103,7 +102,9 @@ func GetOrCreateDataEntrySession(dbConn *sqlx.DB, jid string) (*DataEntrySession
 	}
 
 	var session DataEntrySession
-	err := dbConn.Get(&session, "SELECT * FROM data_entry_sessions WHERE jid = $1", jid)
+	// Query hanya kolom yang benar-benar ada di database
+	query := `SELECT * FROM data_entry_sessions WHERE jid = $1`
+	err := dbConn.Get(&session, query, jid)
 	if err == sql.ErrNoRows {
 		log.Printf("[DEBUG] Creating new session for jid: %s", jid)
 		newSession := DataEntrySession{
@@ -139,9 +140,7 @@ func StartNewSession(dbConn *sqlx.DB, jid string) error {
         ON CONFLICT (jid) DO UPDATE 
         SET current_step = 1,
             awaiting_answer = true,
-            alamat = NULL,
             dusun = NULL,
-            rw = NULL,
             rt = NULL,
             nama = NULL,
             no_kk = NULL,
@@ -156,10 +155,12 @@ func StartNewSession(dbConn *sqlx.DB, jid string) error {
             status_kawin_id = NULL,
             kk_level_id = NULL,
             warganegara_id = NULL,
-            nik_ayah = NULL,
             nama_ayah = NULL,
-            nik_ibu = NULL,
             nama_ibu = NULL,
+            status_dasar_id = NULL,
+            suku_id = NULL,
+            nik_ayah = NULL,
+            nik_ibu = NULL,
             golongan_darah_id = NULL,
             akta_lahir = NULL,
             dokumen_passport = NULL,
@@ -175,8 +176,6 @@ func StartNewSession(dbConn *sqlx.DB, jid string) error {
             ktp_el_id = NULL,
             status_rekam_id = NULL,
             alamat_sekarang = NULL,
-            status_dasar_id = NULL,
-            suku_id = NULL,
             tag_card = NULL,
             id_asuransi_id = NULL,
             no_asuransi = NULL,
@@ -225,7 +224,7 @@ func DeleteDataEntrySession(dbConn *sqlx.DB, jid string) error {
 func GetFullSessionData(dbConn *sqlx.DB, jid string) (*DataEntrySession, error) {
 	log.Printf("[DEBUG] Getting full session data for jid: %s", jid)
 	var session DataEntrySession
-	// Query ini sama dengan query di GetFormattedSessionData
+	
 	query := `
         SELECT s.*, 
             sex.nama as sex_nama,
@@ -276,51 +275,12 @@ func GetFullSessionData(dbConn *sqlx.DB, jid string) (*DataEntrySession, error) 
 func GetFormattedSessionData(dbConn *sqlx.DB, jid string) (string, error) {
 	log.Printf("[DEBUG] Getting formatted data for jid: %s", jid)
 
-	var session DataEntrySession
-	query := `
-        SELECT s.*, 
-            sex.nama as sex_nama,
-            ag.nama as agama_nama,
-            pk.nama as pendidikan_kk_nama,
-            ps.nama as pendidikan_sedang_nama,
-            p.nama as pekerjaan_nama,
-            sk.nama as status_kawin_nama,
-            kk.nama as kk_level_nama,
-            w.nama as warganegara_nama,
-            gd.nama as golongan_darah_nama,
-            c.nama as cacat_nama,
-            kb.nama as cara_kb_nama,
-            h.nama as hamil_nama,
-            ke.nama as ktp_el_nama,
-            sr.nama as status_rekam_nama,
-            sd.nama as status_dasar_nama,
-            su.nama as suku_nama,
-            a.nama as asuransi_nama
-        FROM data_entry_sessions s
-        LEFT JOIN sex ON s.sex_id = sex.sex_id
-        LEFT JOIN agama ag ON s.agama_id = ag.agama_id
-        LEFT JOIN pendidikan_kk pk ON s.pendidikan_kk_id = pk.pendidikan_kk_id
-        LEFT JOIN pendidikan_sedang ps ON s.pendidikan_sedang_id = ps.pendidikan_sedang_id
-        LEFT JOIN pekerjaan p ON s.pekerjaan_id = p.pekerjaan_id
-        LEFT JOIN status_kawin sk ON s.status_kawin_id = sk.status_kawin_id
-        LEFT JOIN kk_level kk ON s.kk_level_id = kk.kk_level_id
-        LEFT JOIN warganegara w ON s.warganegara_id = w.warganegara_id
-        LEFT JOIN golongan_darah gd ON s.golongan_darah_id = gd.golongan_darah_id
-        LEFT JOIN cacat c ON s.cacat_id = c.cacat_id
-        LEFT JOIN cara_kb kb ON s.cara_kb_id = kb.cara_kb_id
-        LEFT JOIN hamil h ON s.hamil_id = h.hamil_id
-        LEFT JOIN ktp_el ke ON s.ktp_el_id = ke.ktp_el_id
-        LEFT JOIN status_rekam sr ON s.status_rekam_id = sr.status_rekam_id
-        LEFT JOIN status_dasar sd ON s.status_dasar_id = sd.status_dasar_id
-        LEFT JOIN suku su ON s.suku_id = su.suku_id
-        LEFT JOIN id_asuransi a ON s.id_asuransi_id = a.id_asuransi_id
-        WHERE s.jid = $1`
-
-	err := dbConn.Get(&session, query, jid)
+	session, err := GetFullSessionData(dbConn, jid)
 	if err != nil {
 		log.Printf("[ERROR] Failed to get session data: %v", err)
 		return "", err
 	}
+
 
 	// Add debug logging for IDs and names
 	log.Printf("[DEBUG] Session data - sex_id: %v, sex_nama: %v",
@@ -360,46 +320,63 @@ func GetFormattedSessionData(dbConn *sqlx.DB, jid string) (string, error) {
 
 	var result strings.Builder
 
-	// Modified appendNumberedField to show names for lookup fields
+	// Helper function untuk menentukan emoji berdasarkan field type
+	getFieldEmoji := func(num int) string {
+		emojiMap := map[int]string{
+			1: "📍", 2: "🏘️", 3: "👤", 4: "🏠", 5: "🆔",
+			6: "👨", 7: "🗺️", 8: "📅", 9: "⛪", 10: "🎓",
+			11: "📚", 12: "💼", 13: "💍", 14: "👨‍👩‍👧‍👦", 15: "🌍",
+			16: "👨‍🦱", 17: "👩", 18: "❤️", 19: "🎭", 20: "🆔",
+			21: "🆔", 22: "🩸", 23: "📜", 24: "✈️", 25: "📅",
+			26: "📋", 27: "📋", 28: "📅", 29: "📋", 30: "📅",
+			31: "♿", 32: "🏥", 33: "🤰", 34: "🎫", 35: "📝",
+			36: "🏠", 37: "🏷️", 38: "🏥", 39: "💳",
+		}
+		if emoji, ok := emojiMap[num]; ok {
+			return emoji
+		}
+		return "•"
+	}
+
 	appendNumberedField := func(num int, label string, value interface{}, name sql.NullString) {
+		emoji := getFieldEmoji(num)
 		if str, ok := value.(sql.NullInt64); ok && str.Valid {
 			if name.Valid && name.String != "" {
-				// For lookup fields, show the name instead of ID
-				fmt.Fprintf(&result, "%d. %s: %s\n", num, label, name.String)
+				fmt.Fprintf(&result, "%s *%d.* %s: %s\n", emoji, num, label, name.String)
 			} else {
-				fmt.Fprintf(&result, "%d. %s: %d\n", num, label, str.Int64)
+				fmt.Fprintf(&result, "%s *%d.* %s: %d\n", emoji, num, label, str.Int64)
 			}
 		} else if str, ok := value.(sql.NullString); ok && str.Valid {
-			fmt.Fprintf(&result, "%d. %s: %s\n", num, label, str.String)
+			fmt.Fprintf(&result, "%s *%d.* %s: %s\n", emoji, num, label, str.String)
 		} else if str, ok := value.(sql.NullTime); ok && str.Valid {
-			fmt.Fprintf(&result, "%d. %s: %s\n", num, label, FormatDate(str))
+			fmt.Fprintf(&result, "%s *%d.* %s: %s\n", emoji, num, label, FormatDate(str))
 		} else {
-			fmt.Fprintf(&result, "%d. %s: -\n", num, label)
+			fmt.Fprintf(&result, "%s *%d.* %s: -\n", emoji, num, label)
 		}
 	}
 
 	// Always show all fields with their numbers and IDs
-	appendNumberedField(1, "Alamat", session.Alamat, sql.NullString{})
-	appendNumberedField(2, "Dusun", session.Dusun, sql.NullString{})
-	appendNumberedField(3, "RW", session.RW, sql.NullString{})
-	appendNumberedField(4, "RT", session.RT, sql.NullString{})
-	appendNumberedField(5, "Nama", session.Nama, sql.NullString{})
-	appendNumberedField(6, "No KK", session.NoKK, sql.NullString{})
-	appendNumberedField(7, "NIK", session.NIK, sql.NullString{})
-	appendNumberedField(8, "Jenis Kelamin", session.SexID, session.SexNama)
-	appendNumberedField(9, "Tempat Lahir", session.TempatLahir, sql.NullString{})
-	appendNumberedField(10, "Tanggal Lahir", session.TanggalLahir, sql.NullString{})
-	appendNumberedField(11, "Agama", session.AgamaID, session.AgamaNama)
-	appendNumberedField(12, "Pendidikan KK", session.PendidikanKkID, session.PendidikanKKNama)
-	appendNumberedField(13, "Pendidikan Sedang", session.PendidikanSedangID, session.PendidikanSedangNama)
-	appendNumberedField(14, "Pekerjaan", session.PekerjaanID, session.PekerjaanNama)
-	appendNumberedField(15, "Status Kawin", session.StatusKawinID, session.StatusKawinNama)
-	appendNumberedField(16, "Level KK", session.KkLevelID, session.KKLevelNama)
-	appendNumberedField(17, "Warganegara", session.WarganegaraID, session.WarganegaraNama)
-	appendNumberedField(18, "NIK Ayah", session.NikAyah, sql.NullString{})
-	appendNumberedField(19, "Nama Ayah", session.NamaAyah, sql.NullString{})
-	appendNumberedField(20, "NIK Ibu", session.NikIbu, sql.NullString{})
-	appendNumberedField(21, "Nama Ibu", session.NamaIbu, sql.NullString{})
+	appendNumberedField(1, "Dusun", session.Dusun, sql.NullString{})
+	appendNumberedField(2, "RT", session.RT, sql.NullString{})
+	appendNumberedField(3, "Nama", session.Nama, sql.NullString{})
+	appendNumberedField(4, "No. KK", session.NoKK, sql.NullString{})
+	appendNumberedField(5, "NIK", session.NIK, sql.NullString{})
+	appendNumberedField(6, "Jenis Kelamin", session.SexID, session.SexNama)
+	appendNumberedField(7, "Tempat Lahir", session.TempatLahir, sql.NullString{})
+	appendNumberedField(8, "Tanggal Lahir", session.TanggalLahir, sql.NullString{})
+	appendNumberedField(9, "Agama", session.AgamaID, session.AgamaNama)
+	appendNumberedField(10, "Pendidikan KK", session.PendidikanKkID, session.PendidikanKKNama)
+	appendNumberedField(11, "Pendidikan Sedang", session.PendidikanSedangID, session.PendidikanSedangNama)
+	appendNumberedField(12, "Pekerjaan", session.PekerjaanID, session.PekerjaanNama)
+	appendNumberedField(13, "Status Kawin", session.StatusKawinID, session.StatusKawinNama)
+	appendNumberedField(14, "Level KK", session.KkLevelID, session.KKLevelNama)
+	appendNumberedField(15, "Warganegara", session.WarganegaraID, session.WarganegaraNama)
+	appendNumberedField(16, "Nama Ayah", session.NamaAyah, sql.NullString{})
+	appendNumberedField(17, "Nama Ibu", session.NamaIbu, sql.NullString{})
+	appendNumberedField(18, "Status Dasar", session.StatusDasarID, session.StatusDasarNama)
+	appendNumberedField(19, "Suku", session.SukuID, session.SukuNama)
+	appendNumberedField(20, "NIK Ayah", session.NikAyah, sql.NullString{})
+	appendNumberedField(21, "NIK Ibu", session.NikIbu, sql.NullString{})
 	appendNumberedField(22, "Golongan Darah", session.GolonganDarahID, session.GolonganDarahNama)
 	appendNumberedField(23, "No. Akta Lahir", session.AktaLahir, sql.NullString{})
 	appendNumberedField(24, "No. Paspor", session.DokumenPassport, sql.NullString{})
@@ -415,11 +392,9 @@ func GetFormattedSessionData(dbConn *sqlx.DB, jid string) (string, error) {
 	appendNumberedField(34, "KTP Elektronik", session.KtpElID, session.KTPElNama)
 	appendNumberedField(35, "Status Rekam", session.StatusRekamID, session.StatusRekamNama)
 	appendNumberedField(36, "Alamat Sekarang", session.AlamatSekarang, sql.NullString{})
-	appendNumberedField(37, "Status Dasar", session.StatusDasarID, session.StatusDasarNama)
-	appendNumberedField(38, "Suku", session.SukuID, session.SukuNama)
-	appendNumberedField(39, "Tag Card", session.TagCard, sql.NullString{})
-	appendNumberedField(40, "Asuransi", session.IDAsuransiID, session.AsuransiNama)
-	appendNumberedField(41, "No. Asuransi", session.NoAsuransi, sql.NullString{})
+	appendNumberedField(37, "Tag Card", session.TagCard, sql.NullString{})
+	appendNumberedField(38, "Asuransi", session.IDAsuransiID, session.AsuransiNama)
+	appendNumberedField(39, "No. Asuransi", session.NoAsuransi, sql.NullString{})
 
 	return strings.TrimSpace(result.String()), nil
 }
@@ -451,9 +426,9 @@ func SetEditField(dbConn *sqlx.DB, jid string, field string) error {
 }
 
 func GetEditField(dbConn *sqlx.DB, jid string) (string, error) {
-	var field string
+	var field sql.NullString // Diubah ke NullString
 	err := dbConn.Get(&field, `SELECT edit_field FROM data_entry_sessions WHERE jid = $1`, jid)
-	return field, err
+	return field.String, err // Kembalikan string (kosong jika NULL)
 }
 
 func EnsureSheetRowNumColumn(dbConn *sqlx.DB) error {
@@ -580,8 +555,6 @@ func EnsureSuratSessionColumns(dbConn *sqlx.DB) error {
 	return nil
 }
 
-
-// UpdateSessionField adalah helper untuk update satu kolom sesi
 func UpdateSessionField(dbConn *sqlx.DB, jid string, field string, value interface{}) error {
 	query := fmt.Sprintf("UPDATE data_entry_sessions SET %s = $1, updated_at = NOW() WHERE jid = $2", field)
 	_, err := dbConn.Exec(query, value, jid)
@@ -591,7 +564,6 @@ func UpdateSessionField(dbConn *sqlx.DB, jid string, field string, value interfa
 	return err
 }
 
-// GetSessionField adalah helper untuk mengambil satu kolom sesi
 func GetSessionField(dbConn *sqlx.DB, jid string, field string) (sql.NullString, error) {
 	var result sql.NullString
 	query := fmt.Sprintf("SELECT %s FROM data_entry_sessions WHERE jid = $1", field)

@@ -40,14 +40,14 @@ func HandleGeminiPrompt(userText string) string {
 	}
 
 	if apiKey == "" {
-		log.Printf("[AI-WARN] GEMINI_API_KEY is empty; returning fallback text")
-		return "Pesan diterima. Untuk layanan data, ketik 1. Untuk pengaduan, ketik 3."
+		log.Printf("[AI-WARN] GEMINI_API_KEY is empty; returning generic response")
+		return "👋 Halo! Ada yang bisa saya bantu? Silakan pilih menu untuk melanjutkan."
 	}
 
 	prompt := fmt.Sprintf(
 		"Kamu adalah bot asisten untuk pencatatan data penduduk di desa Sindang Anom. "+
 			"Pengguna mengirim: '%s'. "+
-			"Balas dalam 1-2 kalimat yang ramah, dan arahkan agar memilih menu yang sesuai (1 untuk data, 3 untuk pengaduan). "+
+			"Balas dalam 1-2 kalimat yang ramah, dan arahkan agar memilih menu yang sesuai (1 untuk data diri, 2 untuk pengajuan surat, 3 untuk pengaduan). "+
 			"Hindari mengulang teks menu penuh dan jangan gunakan kata 'Tentu'.",
 		userText,
 	)
@@ -69,7 +69,7 @@ func HandleGeminiPrompt(userText string) string {
 	payload, err := json.Marshal(req)
 	if err != nil {
 		log.Printf("[AI-ERROR] marshal request: %v", err)
-		return "Maaf, sistem AI sedang sibuk."
+		return "👋 Maaf, sedang sibuk. Silakan coba lagi."
 	}
 
 	url := fmt.Sprintf("%s?key=%s", apiURL, apiKey)
@@ -77,25 +77,25 @@ func HandleGeminiPrompt(userText string) string {
 	resp, err := httpClient.Post(url, "application/json", bytes.NewBuffer(payload))
 	if err != nil {
 		log.Printf("[AI-ERROR] POST request: %v", err)
-		return "Maaf, sistem AI sedang sibuk."
+		return "👋 Maaf, sedang sibuk. Silakan coba lagi."
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Printf("[AI-ERROR] read body: %v", err)
-		return "Maaf, sistem AI sedang sibuk."
+		return "👋 Maaf, sedang sibuk. Silakan coba lagi."
 	}
 
 	var gr geminiResponse
 	if err := json.Unmarshal(body, &gr); err != nil {
 		log.Printf("[AI-ERROR] unmarshal response: %v", err)
-		return "Maaf, sistem AI sedang sibuk."
+		return "👋 Maaf, sedang sibuk. Silakan coba lagi."
 	}
 
 	if len(gr.Candidates) > 0 && len(gr.Candidates[0].Content.Parts) > 0 {
 		return strings.TrimSpace(gr.Candidates[0].Content.Parts[0].Text)
 	}
-	return "Baik. Gunakan menu untuk melanjutkan."
+	return "👋 Silakan gunakan menu untuk melanjutkan."
 }
 

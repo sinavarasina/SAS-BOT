@@ -73,9 +73,7 @@ func InitDB(dsn string) (*sqlx.DB, error) {
 		current_step INTEGER DEFAULT 1,
 		awaiting_answer BOOLEAN DEFAULT false,
 		sheet_row_num INTEGER,
-		alamat TEXT,
 		dusun TEXT,
-		rw TEXT,
 		rt TEXT,
 		nama TEXT,
 		no_kk TEXT,
@@ -90,10 +88,12 @@ func InitDB(dsn string) (*sqlx.DB, error) {
 		status_kawin_id INTEGER REFERENCES status_kawin(status_kawin_id),
 		kk_level_id INTEGER REFERENCES kk_level(kk_level_id),
 		warganegara_id INTEGER REFERENCES warganegara(warganegara_id),
-		nik_ayah TEXT,
 		nama_ayah TEXT,
-		nik_ibu TEXT,
 		nama_ibu TEXT,
+		status_dasar_id INTEGER REFERENCES status_dasar(status_dasar_id),
+		suku_id INTEGER REFERENCES suku(suku_id),
+		nik_ayah TEXT,
+		nik_ibu TEXT,
 		golongan_darah_id INTEGER REFERENCES golongan_darah(golongan_darah_id),
 		akta_lahir TEXT,
 		dokumen_passport TEXT,
@@ -109,8 +109,6 @@ func InitDB(dsn string) (*sqlx.DB, error) {
 		ktp_el_id INTEGER REFERENCES ktp_el(ktp_el_id),
 		status_rekam_id INTEGER REFERENCES status_rekam(status_rekam_id),
 		alamat_sekarang TEXT,
-		status_dasar_id INTEGER REFERENCES status_dasar(status_dasar_id),
-		suku_id INTEGER REFERENCES suku(suku_id),
 		tag_card TEXT,
 		id_asuransi_id INTEGER REFERENCES id_asuransi(id_asuransi_id),
 		no_asuransi TEXT,
@@ -120,17 +118,16 @@ func InitDB(dsn string) (*sqlx.DB, error) {
 		surat_fields_pending TEXT,
 		surat_field_now TEXT,
 		surat_data_map TEXT,
-		surat_temp_answer TEXT
+		surat_temp_answer TEXT,
+		edit_field TEXT
 	);
 
 	CREATE TABLE IF NOT EXISTS data_penduduk (
-		jid TEXT, -- JID dari user yang terakhir mengedit
-		nik TEXT PRIMARY KEY, -- NIK sebagai ID Unik
+		jid TEXT,
+		nik TEXT PRIMARY KEY,
 		no_kk TEXT,
 		nama TEXT,
-		alamat TEXT,
 		dusun TEXT,
-		rw TEXT,
 		rt TEXT,
 		sex_id INTEGER REFERENCES sex(sex_id),
 		tempat_lahir TEXT,
@@ -142,10 +139,12 @@ func InitDB(dsn string) (*sqlx.DB, error) {
 		status_kawin_id INTEGER REFERENCES status_kawin(status_kawin_id),
 		kk_level_id INTEGER REFERENCES kk_level(kk_level_id),
 		warganegara_id INTEGER REFERENCES warganegara(warganegara_id),
-		nik_ayah TEXT,
 		nama_ayah TEXT,
-		nik_ibu TEXT,
 		nama_ibu TEXT,
+		status_dasar_id INTEGER REFERENCES status_dasar(status_dasar_id),
+		suku_id INTEGER REFERENCES suku(suku_id),
+		nik_ayah TEXT,
+		nik_ibu TEXT,
 		golongan_darah_id INTEGER REFERENCES golongan_darah(golongan_darah_id),
 		akta_lahir TEXT,
 		dokumen_passport TEXT,
@@ -161,8 +160,6 @@ func InitDB(dsn string) (*sqlx.DB, error) {
 		ktp_el_id INTEGER REFERENCES ktp_el(ktp_el_id),
 		status_rekam_id INTEGER REFERENCES status_rekam(status_rekam_id),
 		alamat_sekarang TEXT,
-		status_dasar_id INTEGER REFERENCES status_dasar(status_dasar_id),
-		suku_id INTEGER REFERENCES suku(suku_id),
 		tag_card TEXT,
 		id_asuransi_id INTEGER REFERENCES id_asuransi(id_asuransi_id),
 		no_asuransi TEXT,
@@ -201,28 +198,28 @@ func InitDB(dsn string) (*sqlx.DB, error) {
 }
 
 func populateLookupTables(db *sqlx.DB) error {
-	if err := insertDataFromJSON(db, "json/8_sex.json", "sex", "sex_id"); err != nil {
+	if err := insertDataFromJSON(db, "json/6_sex.json", "sex", "sex_id"); err != nil {
 		return err
 	}
-	if err := insertDataFromJSON(db, "json/11_agama.json", "agama", "agama_id"); err != nil {
+	if err := insertDataFromJSON(db, "json/9_agama.json", "agama", "agama_id"); err != nil {
 		return err
 	}
-	if err := insertDataFromJSON(db, "json/12_pendidikan_kk.json", "pendidikan_kk", "pendidikan_kk_id"); err != nil {
+	if err := insertDataFromJSON(db, "json/10_pendidikan_kk.json", "pendidikan_kk", "pendidikan_kk_id"); err != nil {
 		return err
 	}
-	if err := insertDataFromJSON(db, "json/13_pendidikan_sedang.json", "pendidikan_sedang", "pendidikan_sedang_id"); err != nil {
+	if err := insertDataFromJSON(db, "json/11_pendidikan_sedang.json", "pendidikan_sedang", "pendidikan_sedang_id"); err != nil {
 		return err
 	}
-	if err := insertDataFromJSON(db, "json/14_pekerjaan.json", "pekerjaan", "pekerjaan_id"); err != nil {
+	if err := insertDataFromJSON(db, "json/12_pekerjaan.json", "pekerjaan", "pekerjaan_id"); err != nil {
 		return err
 	}
-	if err := insertDataFromJSON(db, "json/15_status_kawin.json", "status_kawin", "status_kawin_id"); err != nil {
+	if err := insertDataFromJSON(db, "json/13_status_kawin.json", "status_kawin", "status_kawin_id"); err != nil {
 		return err
 	}
-	if err := insertDataFromJSON(db, "json/16_kk_level.json", "kk_level", "kk_level_id"); err != nil {
+	if err := insertDataFromJSON(db, "json/14_kk_level.json", "kk_level", "kk_level_id"); err != nil {
 		return err
 	}
-	if err := insertDataFromJSON(db, "json/17_warganegara.json", "warganegara", "warganegara_id"); err != nil {
+	if err := insertDataFromJSON(db, "json/15_warganegara.json", "warganegara", "warganegara_id"); err != nil {
 		return err
 	}
 	if err := insertDataFromJSON(db, "json/22_golongan_darah.json", "golongan_darah", "golongan_darah_id"); err != nil {
@@ -243,13 +240,13 @@ func populateLookupTables(db *sqlx.DB) error {
 	if err := insertDataFromJSON(db, "json/35_status_rekam.json", "status_rekam", "status_rekam_id"); err != nil {
 		return err
 	}
-	if err := insertDataFromJSON(db, "json/37_status_dasar.json", "status_dasar", "status_dasar_id"); err != nil {
+	if err := insertDataFromJSON(db, "json/18_status_dasar.json", "status_dasar", "status_dasar_id"); err != nil {
 		return err
 	}
-	if err := insertDataFromJSON(db, "json/38_suku.json", "suku", "suku_id"); err != nil {
+	if err := insertDataFromJSON(db, "json/19_suku.json", "suku", "suku_id"); err != nil {
 		return err
 	}
-	if err := insertDataFromJSON(db, "json/40_asuransi.json", "id_asuransi", "id_asuransi_id"); err != nil {
+	if err := insertDataFromJSON(db, "json/38_asuransi.json", "id_asuransi", "id_asuransi_id"); err != nil {
 		return err
 	}
 	return nil

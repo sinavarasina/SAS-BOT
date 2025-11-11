@@ -104,7 +104,7 @@ func BuildDataMap(data db.DataPenduduk) map[string]string {
 	}
 	
 	// 3. Buat Alamat Lengkap
-	alamatLengkap := fmt.Sprintf("%s, Dusun %s, RT/RW %s/%s", data.Alamat.String, data.Dusun.String, data.RT.String, data.RW.String)
+	alamatLengkap := fmt.Sprintf("Dusun %s, RT %s", data.Dusun.String, data.RT.String)
 
 	// --- Pemetaan Data ke Placeholder ---
 	// Peta ini akan mengisi semua placeholder yang diketahui dari NIK.
