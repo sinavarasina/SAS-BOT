@@ -12,9 +12,7 @@ type DataPenduduk struct {
 	NIK                  sql.NullString `db:"nik"`
 	NoKK                 sql.NullString `db:"no_kk"`
 	Nama                 sql.NullString `db:"nama"`
-	Alamat               sql.NullString `db:"alamat"`
 	Dusun                sql.NullString `db:"dusun"`
-	RW                   sql.NullString `db:"rw"`
 	RT                   sql.NullString `db:"rt"`
 	SexID                sql.NullInt64  `db:"sex_id"`
 	TempatLahir          sql.NullString `db:"tempat_lahir"`
@@ -26,10 +24,12 @@ type DataPenduduk struct {
 	StatusKawinID        sql.NullInt64  `db:"status_kawin_id"`
 	KkLevelID            sql.NullInt64  `db:"kk_level_id"`
 	WarganegaraID        sql.NullInt64  `db:"warganegara_id"`
-	NikAyah              sql.NullString `db:"nik_ayah"`
 	NamaAyah             sql.NullString `db:"nama_ayah"`
-	NikIbu               sql.NullString `db:"nik_ibu"`
 	NamaIbu              sql.NullString `db:"nama_ibu"`
+	StatusDasarID        sql.NullInt64  `db:"status_dasar_id"`
+	SukuID               sql.NullInt64  `db:"suku_id"`
+	NikAyah              sql.NullString `db:"nik_ayah"`
+	NikIbu               sql.NullString `db:"nik_ibu"`
 	GolonganDarahID      sql.NullInt64  `db:"golongan_darah_id"`
 	AktaLahir            sql.NullString `db:"akta_lahir"`
 	DokumenPassport      sql.NullString `db:"dokumen_passport"`
@@ -45,13 +45,11 @@ type DataPenduduk struct {
 	KtpElID              sql.NullInt64  `db:"ktp_el_id"`
 	StatusRekamID        sql.NullInt64  `db:"status_rekam_id"`
 	AlamatSekarang       sql.NullString `db:"alamat_sekarang"`
-	StatusDasarID        sql.NullInt64  `db:"status_dasar_id"`
-	SukuID               sql.NullInt64  `db:"suku_id"`
 	TagCard              sql.NullString `db:"tag_card"`
 	IDAsuransiID         sql.NullInt64  `db:"id_asuransi_id"`
 	NoAsuransi           sql.NullString `db:"no_asuransi"`
-	CreatedAt time.Time `db:"created_at"`
-	UpdatedAt time.Time `db:"updated_at"`
+	CreatedAt            time.Time      `db:"created_at"`
+	UpdatedAt            time.Time      `db:"updated_at"`
 }
 
 // CheckNIKExistsInPenduduk adalah pengecekan NIK yang CEPAT.
@@ -87,40 +85,39 @@ func DeleteDataPendudukByNIK(dbConn *sqlx.DB, nik string) error {
 func SaveDataPenduduk(dbConn *sqlx.DB, s DataEntrySession) error {
 	query := `
 	INSERT INTO data_penduduk (
-		jid, nik, no_kk, nama, alamat, dusun, rw, rt, sex_id, tempat_lahir, tanggal_lahir, 
+		jid, nik, no_kk, nama, dusun, rt, sex_id, tempat_lahir, tanggal_lahir, 
 		agama_id, pendidikan_kk_id, pendidikan_sedang_id, pekerjaan_id, status_kawin_id, 
-		kk_level_id, warganegara_id, nik_ayah, nama_ayah, nik_ibu, nama_ibu, 
-		golongan_darah_id, akta_lahir, dokumen_passport, tanggal_akhir_passport, 
+		kk_level_id, warganegara_id, nama_ayah, nama_ibu, status_dasar_id, suku_id,
+		nik_ayah, nik_ibu, golongan_darah_id, akta_lahir, dokumen_passport, tanggal_akhir_passport, 
 		dokumen_kitas, akta_perkawinan, tanggal_perkawinan, akta_perceraian, tanggal_perceraian, 
 		cacat_id, cara_kb_id, hamil_id, ktp_el_id, status_rekam_id, alamat_sekarang, 
-		status_dasar_id, suku_id, tag_card, id_asuransi_id, no_asuransi, updated_at
+		tag_card, id_asuransi_id, no_asuransi, updated_at
 	) VALUES (
-		:jid, :nik, :no_kk, :nama, :alamat, :dusun, :rw, :rt, :sex_id, :tempat_lahir, :tanggal_lahir, 
+		:jid, :nik, :no_kk, :nama, :dusun, :rt, :sex_id, :tempat_lahir, :tanggal_lahir, 
 		:agama_id, :pendidikan_kk_id, :pendidikan_sedang_id, :pekerjaan_id, :status_kawin_id, 
-		:kk_level_id, :warganegara_id, :nik_ayah, :nama_ayah, :nik_ibu, :nama_ibu, 
-		:golongan_darah_id, :akta_lahir, :dokumen_passport, :tanggal_akhir_passport, 
+		:kk_level_id, :warganegara_id, :nama_ayah, :nama_ibu, :status_dasar_id, :suku_id,
+		:nik_ayah, :nik_ibu, :golongan_darah_id, :akta_lahir, :dokumen_passport, :tanggal_akhir_passport, 
 		:dokumen_kitas, :akta_perkawinan, :tanggal_perkawinan, :akta_perceraian, :tanggal_perceraian, 
 		:cacat_id, :cara_kb_id, :hamil_id, :ktp_el_id, :status_rekam_id, :alamat_sekarang, 
-		:status_dasar_id, :suku_id, :tag_card, :id_asuransi_id, :no_asuransi, NOW()
+		:tag_card, :id_asuransi_id, :no_asuransi, NOW()
 	)
 	ON CONFLICT (nik) DO UPDATE SET
-		jid = EXCLUDED.jid, no_kk = EXCLUDED.no_kk, nama = EXCLUDED.nama, alamat = EXCLUDED.alamat, 
-		dusun = EXCLUDED.dusun, rw = EXCLUDED.rw, rt = EXCLUDED.rt, sex_id = EXCLUDED.sex_id, 
-		tempat_lahir = EXCLUDED.tempat_lahir, tanggal_lahir = EXCLUDED.tanggal_lahir, 
-		agama_id = EXCLUDED.agama_id, pendidikan_kk_id = EXCLUDED.pendidikan_kk_id, 
-		pendidikan_sedang_id = EXCLUDED.pendidikan_sedang_id, pekerjaan_id = EXCLUDED.pekerjaan_id, 
-		status_kawin_id = EXCLUDED.status_kawin_id, kk_level_id = EXCLUDED.kk_level_id, 
-		warganegara_id = EXCLUDED.warganegara_id, nik_ayah = EXCLUDED.nik_ayah, 
-		nama_ayah = EXCLUDED.nama_ayah, nik_ibu = EXCLUDED.nik_ibu, nama_ibu = EXCLUDED.nama_ibu, 
+		jid = EXCLUDED.jid, no_kk = EXCLUDED.no_kk, nama = EXCLUDED.nama, dusun = EXCLUDED.dusun, 
+		rt = EXCLUDED.rt, sex_id = EXCLUDED.sex_id, tempat_lahir = EXCLUDED.tempat_lahir, 
+		tanggal_lahir = EXCLUDED.tanggal_lahir, agama_id = EXCLUDED.agama_id, 
+		pendidikan_kk_id = EXCLUDED.pendidikan_kk_id, pendidikan_sedang_id = EXCLUDED.pendidikan_sedang_id, 
+		pekerjaan_id = EXCLUDED.pekerjaan_id, status_kawin_id = EXCLUDED.status_kawin_id, 
+		kk_level_id = EXCLUDED.kk_level_id, warganegara_id = EXCLUDED.warganegara_id, 
+		nama_ayah = EXCLUDED.nama_ayah, nama_ibu = EXCLUDED.nama_ibu, 
+		status_dasar_id = EXCLUDED.status_dasar_id, suku_id = EXCLUDED.suku_id,
+		nik_ayah = EXCLUDED.nik_ayah, nik_ibu = EXCLUDED.nik_ibu, 
 		golongan_darah_id = EXCLUDED.golongan_darah_id, akta_lahir = EXCLUDED.akta_lahir, 
-		dokumen_passport = EXCLUDED.dokumen_passport, 
-		tanggal_akhir_passport = EXCLUDED.tanggal_akhir_passport, 
+		dokumen_passport = EXCLUDED.dokumen_passport, tanggal_akhir_passport = EXCLUDED.tanggal_akhir_passport, 
 		dokumen_kitas = EXCLUDED.dokumen_kitas, akta_perkawinan = EXCLUDED.akta_perkawinan, 
 		tanggal_perkawinan = EXCLUDED.tanggal_perkawinan, akta_perceraian = EXCLUDED.akta_perceraian, 
 		tanggal_perceraian = EXCLUDED.tanggal_perceraian, cacat_id = EXCLUDED.cacat_id, 
 		cara_kb_id = EXCLUDED.cara_kb_id, hamil_id = EXCLUDED.hamil_id, ktp_el_id = EXCLUDED.ktp_el_id, 
 		status_rekam_id = EXCLUDED.status_rekam_id, alamat_sekarang = EXCLUDED.alamat_sekarang, 
-		status_dasar_id = EXCLUDED.status_dasar_id, suku_id = EXCLUDED.suku_id, 
 		tag_card = EXCLUDED.tag_card, id_asuransi_id = EXCLUDED.id_asuransi_id, 
 		no_asuransi = EXCLUDED.no_asuransi, updated_at = NOW()
 	`
@@ -135,60 +132,54 @@ func SaveDataPenduduk(dbConn *sqlx.DB, s DataEntrySession) error {
 func LoadSessionFromPenduduk(dbConn *sqlx.DB, jid string, data DataPenduduk) error {
 	query := `
 	INSERT INTO data_entry_sessions (
-		jid, current_step, awaiting_answer, -- 3 kolom
-		nik, no_kk, nama, alamat, dusun, rw, rt, sex_id, tempat_lahir, tanggal_lahir, 
+		jid, current_step, awaiting_answer,
+		nik, no_kk, nama, dusun, rt, sex_id, tempat_lahir, tanggal_lahir, 
 		agama_id, pendidikan_kk_id, pendidikan_sedang_id, pekerjaan_id, status_kawin_id, 
-		kk_level_id, warganegara_id, nik_ayah, nama_ayah, nik_ibu, nama_ibu, 
-		golongan_darah_id, akta_lahir, dokumen_passport, tanggal_akhir_passport, 
+		kk_level_id, warganegara_id, nama_ayah, nama_ibu, status_dasar_id, suku_id,
+		nik_ayah, nik_ibu, golongan_darah_id, akta_lahir, dokumen_passport, tanggal_akhir_passport, 
 		dokumen_kitas, akta_perkawinan, tanggal_perkawinan, akta_perceraian, tanggal_perceraian, 
 		cacat_id, cara_kb_id, hamil_id, ktp_el_id, status_rekam_id, alamat_sekarang, 
-		status_dasar_id, suku_id, tag_card, id_asuransi_id, no_asuransi, -- 41 kolom
-		created_at, updated_at, sheet_row_num, edit_field -- 4 kolom
+		tag_card, id_asuransi_id, no_asuransi,
+		created_at, updated_at, sheet_row_num, edit_field
 	) VALUES (
-		$1, $2, $3, -- 3 nilai
-		$4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, 
-		$21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, 
-		$37, $38, $39, $40, $41, $42, $43, $44, -- 41 nilai ($4 s/d $44)
-		NOW(), NOW(), NULL, NULL -- 4 nilai
+		$1, $2, $3,
+		$4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22,
+		$23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42,
+		NOW(), NOW(), NULL, NULL
 	)
 	ON CONFLICT (jid) DO UPDATE SET
 		current_step = EXCLUDED.current_step, awaiting_answer = EXCLUDED.awaiting_answer,
-		nik = EXCLUDED.nik, no_kk = EXCLUDED.no_kk, nama = EXCLUDED.nama, alamat = EXCLUDED.alamat, 
-		dusun = EXCLUDED.dusun, rw = EXCLUDED.rw, rt = EXCLUDED.rt, sex_id = EXCLUDED.sex_id, 
-		tempat_lahir = EXCLUDED.tempat_lahir, tanggal_lahir = EXCLUDED.tanggal_lahir, 
-		agama_id = EXCLUDED.agama_id, pendidikan_kk_id = EXCLUDED.pendidikan_kk_id, 
-		pendidikan_sedang_id = EXCLUDED.pendidikan_sedang_id, pekerjaan_id = EXCLUDED.pekerjaan_id, 
-		status_kawin_id = EXCLUDED.status_kawin_id, kk_level_id = EXCLUDED.kk_level_id, 
-		warganegara_id = EXCLUDED.warganegara_id, nik_ayah = EXCLUDED.nik_ayah, 
-		nama_ayah = EXCLUDED.nama_ayah, nik_ibu = EXCLUDED.nik_ibu, nama_ibu = EXCLUDED.nama_ibu, 
+		nik = EXCLUDED.nik, no_kk = EXCLUDED.no_kk, nama = EXCLUDED.nama, dusun = EXCLUDED.dusun, 
+		rt = EXCLUDED.rt, sex_id = EXCLUDED.sex_id, tempat_lahir = EXCLUDED.tempat_lahir, 
+		tanggal_lahir = EXCLUDED.tanggal_lahir, agama_id = EXCLUDED.agama_id, 
+		pendidikan_kk_id = EXCLUDED.pendidikan_kk_id, pendidikan_sedang_id = EXCLUDED.pendidikan_sedang_id, 
+		pekerjaan_id = EXCLUDED.pekerjaan_id, status_kawin_id = EXCLUDED.status_kawin_id, 
+		kk_level_id = EXCLUDED.kk_level_id, warganegara_id = EXCLUDED.warganegara_id, 
+		nama_ayah = EXCLUDED.nama_ayah, nama_ibu = EXCLUDED.nama_ibu, 
+		status_dasar_id = EXCLUDED.status_dasar_id, suku_id = EXCLUDED.suku_id,
+		nik_ayah = EXCLUDED.nik_ayah, nik_ibu = EXCLUDED.nik_ibu, 
 		golongan_darah_id = EXCLUDED.golongan_darah_id, akta_lahir = EXCLUDED.akta_lahir, 
-		dokumen_passport = EXCLUDED.dokumen_passport, 
-		tanggal_akhir_passport = EXCLUDED.tanggal_akhir_passport, 
+		dokumen_passport = EXCLUDED.dokumen_passport, tanggal_akhir_passport = EXCLUDED.tanggal_akhir_passport, 
 		dokumen_kitas = EXCLUDED.dokumen_kitas, akta_perkawinan = EXCLUDED.akta_perkawinan, 
 		tanggal_perkawinan = EXCLUDED.tanggal_perkawinan, akta_perceraian = EXCLUDED.akta_perceraian, 
 		tanggal_perceraian = EXCLUDED.tanggal_perceraian, cacat_id = EXCLUDED.cacat_id, 
 		cara_kb_id = EXCLUDED.cara_kb_id, hamil_id = EXCLUDED.hamil_id, ktp_el_id = EXCLUDED.ktp_el_id, 
 		status_rekam_id = EXCLUDED.status_rekam_id, alamat_sekarang = EXCLUDED.alamat_sekarang, 
-		status_dasar_id = EXCLUDED.status_dasar_id, suku_id = EXCLUDED.suku_id, 
 		tag_card = EXCLUDED.tag_card, id_asuransi_id = EXCLUDED.id_asuransi_id, 
-		no_asuransi = EXCLUDED.no_asuransi, 
-		updated_at = NOW(),
-		created_at = EXCLUDED.created_at,
-		sheet_row_num = NULL,
-		edit_field = NULL
+		no_asuransi = EXCLUDED.no_asuransi, updated_at = NOW(),
+		created_at = EXCLUDED.created_at, sheet_row_num = NULL, edit_field = NULL
 	`
-	// memuat data dan langsung set ke langkah konfirmasi (42)
 	_, err := dbConn.Exec(query,
-		jid, 42, true, // Sesi (jid, current_step, awaiting_answer) - $1, $2, $3
-		data.NIK, data.NoKK, data.Nama, data.Alamat, data.Dusun, data.RW, data.RT, data.SexID,
+		jid, 42, true,
+		data.NIK, data.NoKK, data.Nama, data.Dusun, data.RT, data.SexID,
 		data.TempatLahir, data.TanggalLahir, data.AgamaID, data.PendidikanKkID,
 		data.PendidikanSedangID, data.PekerjaanID, data.StatusKawinID, data.KkLevelID,
-		data.WarganegaraID, data.NikAyah, data.NamaAyah, data.NikIbu, data.NamaIbu,
-		data.GolonganDarahID, data.AktaLahir, data.DokumenPassport,
+		data.WarganegaraID, data.NamaAyah, data.NamaIbu, data.StatusDasarID, data.SukuID,
+		data.NikAyah, data.NikIbu, data.GolonganDarahID, data.AktaLahir, data.DokumenPassport,
 		data.TanggalAkhirPassport, data.DokumenKitas, data.AktaPerkawinan,
 		data.TanggalPerkawinan, data.AktaPerceraian, data.TanggalPerceraian, data.CacatID,
 		data.CaraKbID, data.HamilID, data.KtpElID, data.StatusRekamID, data.AlamatSekarang,
-		data.StatusDasarID, data.SukuID, data.TagCard, data.IDAsuransiID, data.NoAsuransi, // $4 - $44
+		data.TagCard, data.IDAsuransiID, data.NoAsuransi,
 	)
 	return err
 }

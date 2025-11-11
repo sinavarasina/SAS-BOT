@@ -83,7 +83,7 @@ func BuildDataMap(data db.DataPenduduk) map[string]string {
 		"TTL":     ttl,
 		"JK":      jk,
 		"NIK":     data.NIK.String,
-		"ALAMAT":  fmt.Sprintf("%s, Dusun %s, RT/RW %s/%s", data.Alamat.String, data.Dusun.String, data.RT.String, data.RW.String),
+		"ALAMAT":  fmt.Sprintf("%s, Dusun %s, RT %s", data.AlamatSekarang.String, data.Dusun.String, data.RT.String),
 		"TANGGAL": time.Now().Format("02 January 2006"),
 	}
 }
