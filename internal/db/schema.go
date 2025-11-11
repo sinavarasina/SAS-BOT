@@ -115,7 +115,11 @@ func InitDB(dsn string) (*sqlx.DB, error) {
 		id_asuransi_id INTEGER REFERENCES id_asuransi(id_asuransi_id),
 		no_asuransi TEXT,
 		created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-		updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+		updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+		surat_valid_nik TEXT,
+		surat_fields_pending TEXT,
+		surat_field_now TEXT,
+		surat_data_map TEXT
 	);
 
 	CREATE TABLE IF NOT EXISTS data_penduduk (

@@ -52,6 +52,24 @@ type DataPenduduk struct {
 	NoAsuransi           sql.NullString `db:"no_asuransi"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
+
+	SexNama              sql.NullString `db:"sex_nama"`
+	AgamaNama            sql.NullString `db:"agama_nama"`
+	PendidikanKKNama     sql.NullString `db:"pendidikan_kk_nama"`
+	PendidikanSedangNama sql.NullString `db:"pendidikan_sedang_nama"`
+	PekerjaanNama        sql.NullString `db:"pekerjaan_nama"`
+	StatusKawinNama      sql.NullString `db:"status_kawin_nama"`
+	KKLevelNama          sql.NullString `db:"kk_level_nama"`
+	WarganegaraNama      sql.NullString `db:"warganegara_nama"`
+	GolonganDarahNama    sql.NullString `db:"golongan_darah_nama"`
+	CacatNama            sql.NullString `db:"cacat_nama"`
+	CaraKBNama           sql.NullString `db:"cara_kb_nama"`
+	HamilNama            sql.NullString `db:"hamil_nama"`
+	KTPElNama            sql.NullString `db:"ktp_el_nama"`
+	StatusRekamNama      sql.NullString `db:"status_rekam_nama"`
+	StatusDasarNama      sql.NullString `db:"status_dasar_nama"`
+	SukuNama             sql.NullString `db:"suku_nama"`
+	AsuransiNama         sql.NullString `db:"asuransi_nama"`
 }
 
 // CheckNIKExistsInPenduduk adalah pengecekan NIK yang CEPAT.
@@ -68,7 +86,46 @@ func CheckNIKExistsInPenduduk(dbConn *sqlx.DB, nik string) (bool, error) {
 // GetDataPendudukByNIK mengambil data permanen berdasarkan NIK.
 func GetDataPendudukByNIK(dbConn *sqlx.DB, nik string) (*DataPenduduk, error) {
 	var data DataPenduduk
-	query := "SELECT * FROM data_penduduk WHERE nik = $1"
+	
+	query := `
+        SELECT s.*, 
+            sex.nama as sex_nama,
+            ag.nama as agama_nama,
+            pk.nama as pendidikan_kk_nama,
+            ps.nama as pendidikan_sedang_nama,
+            p.nama as pekerjaan_nama,
+            sk.nama as status_kawin_nama,
+            kk.nama as kk_level_nama,
+            w.nama as warganegara_nama,
+            gd.nama as golongan_darah_nama,
+            c.nama as cacat_nama,
+            kb.nama as cara_kb_nama,
+            h.nama as hamil_nama,
+            ke.nama as ktp_el_nama,
+            sr.nama as status_rekam_nama,
+            sd.nama as status_dasar_nama,
+            su.nama as suku_nama,
+            a.nama as asuransi_nama
+        FROM data_penduduk s
+        LEFT JOIN sex ON s.sex_id = sex.sex_id
+        LEFT JOIN agama ag ON s.agama_id = ag.agama_id
+        LEFT JOIN pendidikan_kk pk ON s.pendidikan_kk_id = pk.pendidikan_kk_id
+        LEFT JOIN pendidikan_sedang ps ON s.pendidikan_sedang_id = ps.pendidikan_sedang_id
+        LEFT JOIN pekerjaan p ON s.pekerjaan_id = p.pekerjaan_id
+        LEFT JOIN status_kawin sk ON s.status_kawin_id = sk.status_kawin_id
+        LEFT JOIN kk_level kk ON s.kk_level_id = kk.kk_level_id
+        LEFT JOIN warganegara w ON s.warganegara_id = w.warganegara_id
+        LEFT JOIN golongan_darah gd ON s.golongan_darah_id = gd.golongan_darah_id
+        LEFT JOIN cacat c ON s.cacat_id = c.cacat_id
+        LEFT JOIN cara_kb kb ON s.cara_kb_id = kb.cara_kb_id
+        LEFT JOIN hamil h ON s.hamil_id = h.hamil_id
+        LEFT JOIN ktp_el ke ON s.ktp_el_id = ke.ktp_el_id
+        LEFT JOIN status_rekam sr ON s.status_rekam_id = sr.status_rekam_id
+        LEFT JOIN status_dasar sd ON s.status_dasar_id = sd.status_dasar_id
+        LEFT JOIN suku su ON s.suku_id = su.suku_id
+        LEFT JOIN id_asuransi a ON s.id_asuransi_id = a.id_asuransi_id
+        WHERE s.nik = $1`
+
 	err := dbConn.Get(&data, query, nik)
 	if err != nil {
 		return nil, err
