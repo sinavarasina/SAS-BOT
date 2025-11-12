@@ -11,7 +11,7 @@ import (
 
 func main() {
 	// Flag untuk custom CSV path
-	csvPath := flag.String("csv", "csv/csv_datadiri.csv", "Path ke file CSV")
+	csvPath := flag.String("csv", "csv/datadiri.csv", "Path ke file CSV")
 
 	// Ambil database URL dari environment variable POSTGRES_DSN
 	defaultDBURL := os.Getenv("POSTGRES_DSN")
