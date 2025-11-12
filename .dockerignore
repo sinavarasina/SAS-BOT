@@ -1,0 +1,103 @@
+# Git
+.git
+.gitignore
+.github/
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+
+# Go
+.mod
+go.sum.bak
+*.test
+*.out
+vendor/
+
+# Binaries
+*.exe
+*.dll
+*.so
+*.dylib
+bin/
+dist/
+
+# Build artifacts
+build/
+tmp/
+*.o
+
+# Logs
+*.log
+logs/
+
+# Dependencies cache
+node_modules/
+.npm/
+
+# Environment
+.env.local
+.env.*.local
+.env.example
+
+# OS specific
+Thumbs.db
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+cache/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+*.bak
+
+# Documentation
+*.md
+README.md
+CHANGELOG.md
+LICENSE
+docs/
+
+# Testing
+coverage/
+.coverage
+htmlcov/
+test-results/
+
+# CI/CD
+.gitlab-ci.yml
+.travis.yml
+azure-pipelines.yml
+.circleci/
+
+# Root files (keep only essential)
+docker-compose.yml
+docker-compose.*.yml
+Makefile
+*.sh
+
+# Package files
+.packages
+package-lock.json
+yarn.lock
+
+# Uploads (akan di-generate di runtime)
+uploads/
+temp/
+
+# Dev files
+.air.toml
+nodemon.json
