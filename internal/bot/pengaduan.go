@@ -87,25 +87,26 @@ func HandleImagePengaduan(
 
 		publicID := fmt.Sprintf("P-%d", 100+newID)
 
-		// Write to Google Sheets asynchronously
-		go func() {
-			defer func() {
-				if r := recover(); r != nil {
-					log.Printf("[WARN] Panic recovered in sheets writer: %v", r)
-				}
-			}()
-			log.Printf("[ASYNC] Writing complaint to Google Sheets for %s", senderJID)
-			sheetsClient.AppendPengaduan(aduan, publicID)
-			log.Printf("[DONE] Successfully written complaint to Google Sheets for %s", senderJID)
-		}()
+	go sheetsClient.AppendPengaduan(aduan, publicID)
 
-		// Notify user after processing is completed
-		sendMessageSafe(client, chatJID, fmt.Sprintf("Pengaduan Anda telah tersimpan dan akan segera ditindaklanjuti.\n\nNomor ID Pengaduan Anda adalah: %s \n\nGunakan ID ini untuk memeriksa status laporan Anda. Terima kasih atas laporannya!", publicID))
+		// --- PERBAIKAN DI SINI ---
+		// 1. Simpan nama layanan untuk ulasan (kita gunakan 'surat_temp_answer' sebagai temp)
+		if err := db.UpdateSessionField(appDB, senderJID, "surat_temp_answer", "Ajukan Pengaduan"); err != nil {
+			log.Printf("[ERROR] Gagal menyimpan nama layanan ulasan: %v", err)
+		}
+		
+		// 2. Pindah ke langkah ulasan (STEP 602)
+		if err := db.UpdateStepOnly(appDB, senderJID, STEP_ULASAN_PENGADUAN); err != nil {
+			log.Printf("[ERROR] Gagal pindah ke langkah ulasan: %v", err)
+		}
+		
+		// 3. Kirim pesan sukses + pertanyaan ulasan
+		sendMessageSafe(client, chatJID, 
+			fmt.Sprintf("Pengaduan Anda telah tersimpan.\nNomor ID Pengaduan Anda adalah: *%s*", publicID) +
+			"\n\n⭐ Sebagai langkah terakhir, mohon berikan ulasan Anda (1-5) untuk layanan pengaduan ini:\n(1 = Sangat Buruk, 5 = Sangat Baik)")
+		// --- AKHIR PERBAIKAN ---
 
 		log.Printf("[DONE] Complaint from %s processed in %v (URL: %s)", senderJID, time.Since(start), publicURL)
-		if err := db.DeleteDataEntrySession(appDB, senderJID); err != nil {
-			log.Printf("[ERROR] Gagal menghapus sesi DB setelah sukses: %v", err)
-		}
 	}()
 }
 
