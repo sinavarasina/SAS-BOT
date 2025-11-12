@@ -32,6 +32,43 @@ type geminiResponse struct {
 	} `json:"candidates"`
 }
 
+// Hardcoded context data dari homechat.json untuk response yang lebih cerdas
+var villageContext = `
+KONTEKS DESA SINDANG ANOM:
+- Nama Desa: Sindang Anom
+- Kecamatan: Sekampung Udik
+- Kabupaten: Lampung Timur
+- Kepala Desa: Aminudin
+- Jumlah Penduduk: ± 5.000 jiwa
+- Luas Wilayah: 1.343 Ha
+- Potensi Utama: Pertanian (Padi, Jagung) dan Perkebunan (Karet, Sawit)
+- Kontak Kantor: 081368774938 / desaindang.anom@gmail.com
+- Jam Operasional: Senin-Sabtu, 08:00-15:00 WIB
+
+LAYANAN SURAT YANG TERSEDIA:
+1. Surat Pengantar KTP/KK (Gratis, 1-2 hari)
+2. Surat Keterangan Usaha (Rp. 50-100rb, 3-5 hari)
+3. Surat Keterangan Tidak Mampu (Gratis, 2-7 hari)
+4. Surat Keterangan Domisili (Gratis-50rb, 1-2 hari)
+5. Surat Kematian (Gratis-25rb, Hari yang sama)
+6. Surat Kelahiran (Gratis, 1-3 hari)
+
+FITUR CHATBOT:
+- Menu 1: Data Diri (Input/Edit data pribadi)
+- Menu 2: Pengajuan Surat (Buat surat atau cek progres)
+- Menu 3: Pengaduan (Lapor masalah atau saran)
+
+PANDUAN RESPONS:
+- Gunakan emoji yang relevan
+- Maksimal 2-3 kalimat
+- Hindari mengulang menu penuh
+- Jangan gunakan kata "Tentu"
+- Arahkan ke menu yang sesuai dengan pertanyaan user
+- Jika user bertanya tentang surat/layanan, sebutkan biaya dan waktu proses
+- Jika user bertanya tentang contact/jam, sebutkan informasi dari konteks
+- Pastikan respons friendly dan helpful
+`
+
 func HandleGeminiPrompt(userText string) string {
 	apiKey := strings.TrimSpace(os.Getenv("GEMINI_API_KEY"))
 	apiURL := strings.TrimSpace(os.Getenv("GEMINI_API_URL"))
@@ -45,11 +82,15 @@ func HandleGeminiPrompt(userText string) string {
 	}
 
 	prompt := fmt.Sprintf(
-		"Kamu adalah bot asisten untuk pencatatan data penduduk di desa Sindang Anom. "+
-			"Pengguna mengirim: '%s'. "+
-			"Balas dalam 1-2 kalimat yang ramah dengan menggunakan emoji yang relevan, dan arahkan agar memilih menu yang sesuai (1 untuk data diri, 2 untuk pengajuan surat, 3 untuk pengaduan). "+
+		"%s\n\n"+
+			"Pengguna mengirim: '%s'\n\n"+
+			"Berdasarkan konteks di atas, balas dengan 1-2 kalimat yang ramah, gunakan emoji, "+
+			"dan arahkan ke menu yang sesuai (Menu 1 untuk data diri, Menu 2 untuk surat, Menu 3 untuk pengaduan). "+
+			"Jika user bertanya tentang jam kerja/kontak, sebutkan jam operasional dan nomor yang ada. "+
 			"Hindari mengulang teks menu penuh dan jangan gunakan kata 'Tentu'. "+
+			"Berikan respons yang spesifik dan helpful sesuai pertanyaan mereka. "+
 			"Gunakan emoji untuk membuat respons lebih menarik dan interaktif.",
+		villageContext,
 		userText,
 	)
 

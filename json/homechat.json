@@ -1,102 +1,362 @@
 {
-  "nama_desa": "Sindang Anom",
-  "kecamatan": "Sekampung Udik",
-  "kabupaten": "Lampung Timur",
-  "kode_pos": "34183",
-  "kontak": {
-    "telepon": "81368774938",
-    "email": "desaindang.anom@gmail.com"
-  },
-  "jam_operasional": "Senin - Sabtu, 08:00 - 15:00 WIB",
-  "perangkat_desa": [
-    {
-      "jabatan": "Kepala Desa",
-      "nama": "Aminudin"
-    },
-    {
-      "jabatan": "Sekretaris Desa (Sekdes)",
-      "nama": "Nama Sekdes [Placeholder]"
-    },
-    {
-      "jabatan": "Kaur Keuangan",
-      "nama": "Nama Kaur Keuangan [Placeholder]"
-    }
-  ],
   "profil_desa": {
+    "nama_desa": "Sindang Anom",
+    "kecamatan": "Sekampung Udik",
+    "kabupaten": "Lampung Timur",
+    "provinsi": "Lampung",
+    "kode_pos": "34183",
     "luas_wilayah": "1.343 Ha",
+    "koordinat": {
+      "latitude": "-4.2345",
+      "longitude": "103.5678"
+    }
+  },
+
+  "demografi": {
     "jumlah_penduduk": {
       "total": "± 5.000 jiwa",
-      "laki_laki": "± 2.550 jiwa",
-      "perempuan": "± 2.450 jiwa"
+      "laki_laki": {
+        "jumlah": "± 2.550 jiwa",
+        "persentase": "51%"
+      },
+      "perempuan": {
+        "jumlah": "± 2.450 jiwa",
+        "persentase": "49%"
+      }
     },
-    "potensi_utama": "Pertanian (Padi, Jagung) dan Perkebunan (Karet, Sawit)"
+    "jumlah_kepala_keluarga": "± 1.200 KK",
+    "tingkat_kepadatan": "± 3.72 jiwa/ha"
   },
-  "chatbot_data": {
-    "chatbot_name": "SINDANG ANOM SERVICE - BOT",
-    "welcome_message": "Selamat datang di layanan pencatatan dan informasi penduduk Desa Sindang Anom.",
-    "info_desa_quick": {
-      "title": "ℹ️ Sekilas Info Desa",
-      "data": [
-        "Kepala Desa: Aminudin",
-        "Kecamatan: Sekampung Udik",
-        "Kabupaten: Lampung Timur",
-        "Luas Wilayah: ± 1.343 Ha",
-        "Potensi Utama: Pertanian (Padi, Jagung) dan Perkebunan"
-      ]
+
+  "potensi_ekonomi": {
+    "sektor_utama": [
+      {
+        "nama": "Pertanian",
+        "jenis_tanaman": ["Padi", "Jagung", "Palawija"],
+        "produksi_tahunan": "± 2.500 ton",
+        "kontribusi": "65%"
+      },
+      {
+        "nama": "Perkebunan",
+        "jenis_tanaman": ["Karet", "Kelapa Sawit"],
+        "luas_areal": "± 450 Ha",
+        "kontribusi": "25%"
+      },
+      {
+        "nama": "UMKM & Kerajinan",
+        "jenis_usaha": ["Pengolahan Hasil Pertanian", "Kerajinan Tangan", "Perdagangan"],
+        "jumlah_pelaku": "± 150 usaha",
+        "kontribusi": "10%"
+      }
+    ]
+  },
+
+  "kelembagaan_desa": {
+    "pemerintahan": [
+      {
+        "jabatan": "Kepala Desa",
+        "nama": "Aminudin",
+        "masa_bakti": "2019 - 2025",
+        "kontak": "081368774938"
+      },
+      {
+        "jabatan": "Sekretaris Desa (Sekdes)",
+        "nama": "[Nama Sekdes]",
+        "kontak": "[Nomor Kontak]"
+      },
+      {
+        "jabatan": "Kaur Keuangan",
+        "nama": "[Nama Kaur Keuangan]",
+        "kontak": "[Nomor Kontak]"
+      },
+      {
+        "jabatan": "Kaur Tata Usaha & Umum",
+        "nama": "[Nama Kaur TU]",
+        "kontak": "[Nomor Kontak]"
+      },
+      {
+        "jabatan": "Kaur Pembangunan",
+        "nama": "[Nama Kaur Pembangunan]",
+        "kontak": "[Nomor Kontak]"
+      }
+    ],
+    "badan_permusyawaratan_desa": {
+      "jumlah_anggota": "7 orang",
+      "ketua": "[Nama Ketua BPD]",
+      "fungsi": "Pengawasan dan pembuat kebijakan desa"
     },
-    "home_menu": {
-      "title": "Menu Utama",
-      "prompt": "Silakan pilih menu dengan mengetik nomor yang sesuai:",
-      "options": [
-        {
-          "id": "1",
-          "label": "Data Diri (Input/Edit)",
-          "description": "Untuk memulai proses pencatatan atau perubahan data pribadi penduduk."
-        },
-        {
-          "id": "2",
-          "label": "Pengajuan Surat",
-          "description": "Untuk melihat persyaratan dan panduan pengajuan surat-surat desa."
-        },
-        {
-          "id": "3",
-          "label": "Pengaduan",
-          "description": "Untuk menyampaikan keluhan, masukan, atau aspirasi masyarakat."
-        }
-      ],
-      "footer": "Ketik nomor menu yang Anda pilih."
+    "organisasi_masyarakat": [
+      {
+        "nama": "PKK (Pemberdayaan Kesejahteraan Keluarga)",
+        "jumlah_anggota": "± 500 orang",
+        "kegiatan": ["Kesehatan Ibu & Anak", "Pemberdayaan Ekonomi Keluarga"]
+      },
+      {
+        "nama": "Karang Taruna",
+        "jumlah_anggota": "± 200 orang",
+        "kegiatan": ["Olahraga", "Seni & Budaya", "Pemberdayaan Pemuda"]
+      }
+    ]
+  },
+
+  "layanan_publik": {
+    "jam_operasional": {
+      "hari": "Senin - Sabtu",
+      "jam_buka": "08:00",
+      "jam_tutup": "15:00",
+      "zona_waktu": "WIB"
     },
-    "menu_response": {
-      "1": {
-        "title": "Menu: Data Diri",
-        "content": "Anda memilih menu **Data Diri**. \n\nApakah Anda ingin **A. Input Data Baru** atau **B. Edit Data yang Sudah Ada**? (Ketik A atau B)",
-        "next_step": "A. Input Data Baru \nB. Edit Data yang Sudah Ada"
+    "kontak": {
+      "telepon": "081368774938",
+      "email": "desaindang.anom@gmail.com",
+      "alamat_kantor": "Jalan Desa Sindang Anom, Kec. Sekampung Udik, Kab. Lampung Timur"
+    },
+    "surat_menyurat": [
+      {
+        "id": 1,
+        "jenis_surat": "Surat Pengantar KTP/KK",
+        "deskripsi": "Surat pengantar untuk pendaftaran atau penggantian KTP/KK",
+        "syarat": [
+          "Fotocopy KK (2 lembar)",
+          "Fotocopy KTP/Identitas lainnya (2 lembar)",
+          "Surat Pengantar RT/RW (jika diperlukan)"
+        ],
+        "biaya": "Gratis",
+        "waktu_proses": "1-2 hari kerja",
+        "keterangan": "Datang langsung ke kantor desa pada jam operasional"
       },
-      "2": {
-        "title": "Menu: Pengajuan Surat",
-        "content": "Anda memilih menu **Pengajuan Surat**. \n\nLayanan surat yang tersedia saat ini: \n\n1. Surat Pengantar KTP/KK \n2. Surat Keterangan Usaha (SKU) \n3. Surat Keterangan Tidak Mampu (SKTM) \n\nKetik nomor surat yang ingin Anda ajukan untuk melihat persyaratannya."
+      {
+        "id": 2,
+        "jenis_surat": "Surat Keterangan Usaha (SKU)",
+        "deskripsi": "Surat keterangan untuk mendukung perizinan usaha",
+        "syarat": [
+          "Fotocopy KK (2 lembar)",
+          "Fotocopy KTP (2 lembar)",
+          "Surat Pengantar RT/RW",
+          "Bukti kepemilikan/sewa tempat usaha",
+          "Rencana usaha (singkat)"
+        ],
+        "biaya": "Rp. 50.000 - Rp. 100.000",
+        "waktu_proses": "3-5 hari kerja",
+        "keterangan": "Verifikasi lapangan akan dilakukan oleh petugas desa"
       },
-      "3": {
-        "title": "Menu: Pengaduan",
-        "content": "Anda memilih menu **Pengaduan**. \n\nSilakan ketikkan detail pengaduan Anda (maksimal 500 karakter). Anda dapat memilih untuk mengirimkannya secara **Anonim** atau **Tercatat** (dengan data diri). \n\nUntuk mengirimkan secara tercatat, masukkan NIK Anda terlebih dahulu."
+      {
+        "id": 3,
+        "jenis_surat": "Surat Keterangan Tidak Mampu (SKTM)",
+        "deskripsi": "Surat untuk keperluan pendidikan, kesehatan, atau bantuan sosial",
+        "syarat": [
+          "Fotocopy KK (2 lembar)",
+          "Fotocopy KTP (2 lembar)",
+          "Surat Pengantar RT/RW",
+          "Kartu KIP/PKH/BPNT (jika ada)",
+          "Formulir permohonan yang sudah diisi"
+        ],
+        "biaya": "Gratis",
+        "waktu_proses": "2-7 hari kerja",
+        "keterangan": "Proses verifikasi oleh petugas sosial. Kemampuan ekonomi keluarga akan dipertimbangkan"
       },
-      "layanan_surat_menyurat": [
-        {
-          "jenis": "Surat Pengantar KTP/KK",
-          "syarat": ["Fotocopy KK", "Fotocopy KTP (jika ada)"],
-          "proses": "Datang ke kantor desa pada jam operasional"
-        },
-        {
-          "jenis": "Surat Keterangan Usaha (SKU)",
-          "syarat": ["Fotocopy KK", "Fotocopy KTP", "Surat Pengantar RT/RW"],
-          "proses": "Ajukan permohonan ke Sekdes"
-        },
-        {
-          "jenis": "Surat Keterangan Tidak Mampu (SKTM)",
-          "syarat": ["Fotocopy KK", "Fotocopy KTP", "Surat Pengantar RT/RW", "Kartu KIP/PKH (jika ada)"],
-          "proses": "Verifikasi data oleh petugas desa"
-        }
-      ]
+      {
+        "id": 4,
+        "jenis_surat": "Surat Keterangan Domisili",
+        "deskripsi": "Surat bukti alamat tinggal untuk keperluan administrasi",
+        "syarat": [
+          "Fotocopy KTP (2 lembar)",
+          "Surat Pengantar RT/RW",
+          "Bukti kepemilikan/sewa tempat tinggal (optional)"
+        ],
+        "biaya": "Gratis - Rp. 50.000",
+        "waktu_proses": "1-2 hari kerja",
+        "keterangan": "Biaya tergantung keperluan (umum atau khusus)"
+      },
+      {
+        "id": 5,
+        "jenis_surat": "Surat Kematian",
+        "deskripsi": "Surat keterangan kematian penduduk desa",
+        "syarat": [
+          "Surat Pengantar dari RT/RW",
+          "Fotocopy KTP/Identitas jenazah",
+          "Sertifikat kematian dari rumah sakit (jika ada)",
+          "Kesaksian dari keluarga/tetangga"
+        ],
+        "biaya": "Gratis - Rp. 25.000",
+        "waktu_proses": "Hari yang sama",
+        "keterangan": "Segera proses setelah kematian untuk keperluan administrasi dan pengurusan warisan"
+      },
+      {
+        "id": 6,
+        "jenis_surat": "Surat Kelahiran",
+        "deskripsi": "Surat keterangan untuk pendaftaran kelahiran anak",
+        "syarat": [
+          "Surat Pengantar dari Bidan/Dukun",
+          "Fotocopy KTP Orang Tua (2 lembar)",
+          "Fotocopy KK (2 lembar)",
+          "Surat Pernikahan (bagi yang sudah menikah)"
+        ],
+        "biaya": "Gratis",
+        "waktu_proses": "1-3 hari kerja",
+        "keterangan": "Harus dikerjakan dalam 30 hari setelah kelahiran"
+      }
+    ]
+  },
+
+  "chatbot_config": {
+    "nama_bot": "🤖 SINDANG ANOM SERVICE - BOT",
+    "versi": "1.0.0",
+    "bahasa": "Bahasa Indonesia",
+    "pesan_sambutan": "_Selamat datang di layanan informasi dan pencatatan penduduk Desa Sindang Anom._\n\n_Kami siap membantu Anda dengan kebutuhan data diri, surat-surat desa, dan pengaduan._",
+    "pesan_error_default": "_Maaf, terjadi kesalahan sistem. Silakan coba lagi atau hubungi admin._",
+    "fitur_utama": [
+      {
+        "id": 1,
+        "nama": "Data Diri",
+        "emoji": "👤",
+        "deskripsi": "Input, edit, dan kelola data pribadi penduduk",
+        "sub_menu": [
+          {
+            "id": "1a",
+            "nama": "Input Data Diri (Baru)",
+            "deskripsi": "Daftar data diri sebagai penduduk baru"
+          },
+          {
+            "id": "1b",
+            "nama": "Ubah Data Diri (Pakai NIK)",
+            "deskripsi": "Edit data diri yang sudah terdaftar"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "nama": "Pengajuan Surat",
+        "emoji": "📄",
+        "deskripsi": "Ajukan berbagai jenis surat desa atau cek progres",
+        "sub_menu": [
+          {
+            "id": "2a",
+            "nama": "Ajukan Surat Baru",
+            "deskripsi": "Buat permohonan surat desa"
+          },
+          {
+            "id": "2b",
+            "nama": "Cek Progres Surat",
+            "deskripsi": "Lihat status surat yang sudah diajukan"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "nama": "Pengaduan",
+        "emoji": "💬",
+        "deskripsi": "Sampaikan keluhan, saran, atau aspirasi masyarakat",
+        "sub_menu": [
+          {
+            "id": "3a",
+            "nama": "Ajukan Pengaduan",
+            "deskripsi": "Buat laporan pengaduan dengan foto"
+          },
+          {
+            "id": "3b",
+            "nama": "Cek Progres Pengaduan",
+            "deskripsi": "Lihat status pengaduan Anda"
+          }
+        ]
+      }
+    ],
+    "validasi_input": {
+      "nik": {
+        "format": "16 digit",
+        "contoh": "3173012345678901",
+        "pesan_error": "_⚠️ NIK harus 16 digit dan hanya angka._"
+      },
+      "nomor_telepon": {
+        "format": "10-12 digit",
+        "contoh": "081368774938",
+        "pesan_error": "_⚠️ Nomor telepon harus 10-12 digit._"
+      },
+      "tanggal": {
+        "format": "DD-MM-YYYY",
+        "contoh": "25-12-2024",
+        "pesan_error": "_⚠️ Format tanggal salah. Gunakan DD-MM-YYYY._"
+      }
     }
+  },
+
+  "faq": {
+    "kategori": [
+      {
+        "judul": "Data Diri",
+        "pertanyaan": [
+          {
+            "q": "Apakah saya perlu mendaftar data diri?",
+            "a": "Ya, semua penduduk desa disarankan untuk mendaftarkan data diri untuk memudahkan proses administratif dan pengajuan surat."
+          },
+          {
+            "q": "Bagaimana cara mengubah data yang sudah terdaftar?",
+            "a": "Gunakan fitur 'Ubah Data Diri' dengan memasukkan NIK Anda. Anda dapat mengedit data sesuai kebutuhan."
+          },
+          {
+            "q": "Berapa lama proses verifikasi data diri?",
+            "a": "Biasanya 1-3 hari kerja setelah data dikirimkan."
+          }
+        ]
+      },
+      {
+        "judul": "Surat Desa",
+        "pertanyaan": [
+          {
+            "q": "Jenis surat apa saja yang bisa saya ajukan?",
+            "a": "Kami melayani Surat Domisili, Surat Usaha, SKTM, Surat Kematian, dan beberapa surat lainnya. Lihat menu 'Pengajuan Surat' untuk detail lengkap."
+          },
+          {
+            "q": "Berapa biaya pengajuan surat?",
+            "a": "Biaya bervariasi tergantung jenis surat. Beberapa surat gratis, ada yang mengenakan biaya administratif kecil."
+          },
+          {
+            "q": "Berapa lama waktu proses surat?",
+            "a": "Umumnya 1-7 hari kerja, tergantung jenis dan kelengkapan dokumen."
+          }
+        ]
+      },
+      {
+        "judul": "Pengaduan",
+        "pertanyaan": [
+          {
+            "q": "Apakah pengaduan saya dijamin rahasia?",
+            "a": "Ya, Anda dapat mengajukan pengaduan secara anonim atau tercatat sesuai preferensi Anda."
+          },
+          {
+            "q": "Apa saja yang bisa saya adukan?",
+            "a": "Anda dapat mengadukan keluhan fasilitas desa, masalah sosial, layanan publik, atau saran untuk pembangunan desa."
+          },
+          {
+            "q": "Berapa lama pengaduan akan ditanggapi?",
+            "a": "Kami berusaha merespons dalam 3-7 hari kerja untuk verifikasi dan tindak lanjut."
+          }
+        ]
+      }
+    ]
+  },
+
+  "info_penting": {
+    "pengumuman": [
+      {
+        "tanggal": "2024-01-15",
+        "judul": "Perbaruan Layanan Data Diri Online",
+        "isi": "Layanan input dan edit data diri sekarang dapat dilakukan melalui chatbot. Proses lebih cepat dan mudah."
+      }
+    ],
+    "jadwal_kegiatan": [
+      {
+        "bulan": "Januari",
+        "kegiatan": "Musyawarah Rencana Pembangunan Desa (Musrenbangdes)"
+      },
+      {
+        "bulan": "Februari",
+        "kegiatan": "Pemeriksaan Kesehatan Gratis & Vaksinasi Rutin"
+      },
+      {
+        "bulan": "Maret",
+        "kegiatan": "Gotong Royong Pembersihan Lingkungan Desa"
+      }
+    ]
   }
 }
