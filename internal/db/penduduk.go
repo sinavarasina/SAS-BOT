@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/jmoiron/sqlx"
 	"log"
 	"time"
@@ -86,7 +87,21 @@ func GetDataPendudukByNIK(dbConn *sqlx.DB, nik string) (*DataPenduduk, error) {
 	var data DataPenduduk
 	
 	query := `
-        SELECT s.*, 
+        SELECT 
+            COALESCE(s.jid, '') as jid,
+            s.nik, s.no_kk, s.nama, s.dusun, s.rt, 
+            s.sex_id, s.tempat_lahir, s.tanggal_lahir, 
+            s.agama_id, s.pendidikan_kk_id, s.pendidikan_sedang_id, 
+            s.pekerjaan_id, s.status_kawin_id, s.kk_level_id, 
+            s.warganegara_id, s.nama_ayah, s.nama_ibu, 
+            s.status_dasar_id, s.suku_id, s.nik_ayah, s.nik_ibu, 
+            s.golongan_darah_id, s.akta_lahir, s.dokumen_passport, 
+            s.tanggal_akhir_passport, s.dokumen_kitas, s.akta_perkawinan, 
+            s.tanggal_perkawinan, s.akta_perceraian, s.tanggal_perceraian, 
+            s.cacat_id, s.cara_kb_id, s.hamil_id, s.ktp_el_id, 
+            s.status_rekam_id, s.alamat_sekarang, s.tag_card, 
+            s.id_asuransi_id, s.no_asuransi,
+            s.created_at, s.updated_at,
             sex.nama as sex_nama,
             ag.nama as agama_nama,
             pk.nama as pendidikan_kk_nama,
@@ -126,8 +141,18 @@ func GetDataPendudukByNIK(dbConn *sqlx.DB, nik string) (*DataPenduduk, error) {
 
 	err := dbConn.Get(&data, query, nik)
 	if err != nil {
+		// Jika data tidak ditemukan, return error
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("NIK %s tidak ditemukan", nik)
+		}
 		return nil, err
 	}
+	
+	// Validasi: selama ada NIK, data dianggap valid meski kolom lain kosong
+	if !data.NIK.Valid || data.NIK.String == "" {
+		return nil, fmt.Errorf("data NIK tidak valid")
+	}
+	
 	return &data, nil
 }
 
