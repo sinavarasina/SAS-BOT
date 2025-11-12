@@ -53,7 +53,7 @@ func HandleImagePengaduan(
 	}
 
 	// Send instant acknowledgment to user
-	sendMessageSafe(client, chatJID, "_Terima kasih, pengaduan Anda sudah kami terima dan sedang diproses..._")
+	sendMessageSafe(client, chatJID, "_🙏 Terima kasih, pengaduan Anda sudah kami terima dan sedang diproses..._")
 
 	// Run heavy tasks asynchronously
 	go func() {
@@ -64,7 +64,7 @@ func HandleImagePengaduan(
 		publicURL, err := uploader.UploadToImgbb(data)
 		if err != nil {
 			log.Printf("[ERROR] Failed to upload to ImgBB: %v", err)
-			sendMessageSafe(client, chatJID, "_Maaf, terjadi kesalahan saat mengunggah gambar. Silakan coba lagi._")
+			sendMessageSafe(client, chatJID, "_❌ Maaf, terjadi kesalahan saat mengunggah gambar. Silakan coba lagi._")
 			// PERBAIKAN: Ganti ResetSession ke DeleteDataEntrySession
 			if err := db.DeleteDataEntrySession(appDB, senderJID); err != nil {
 				log.Printf("[ERROR] Gagal menghapus sesi DB setelah error: %v", err)
@@ -81,7 +81,7 @@ func HandleImagePengaduan(
 		newID, err := db.SavePengaduan(appDB, aduan)
 		if err != nil {
 			log.Printf("[ERROR] Failed to save complaint to database: %v", err)
-			sendMessageSafe(client, chatJID, "_Terjadi kesalahan saat menyimpan laporan Anda._")
+			sendMessageSafe(client, chatJID, "_❌ Terjadi kesalahan saat menyimpan laporan Anda._")
 			return
 		}
 
@@ -102,8 +102,7 @@ func HandleImagePengaduan(
 		
 		// 3. Kirim pesan sukses + pertanyaan ulasan
 		sendMessageSafe(client, chatJID, 
-			fmt.Sprintf("_Pengaduan Anda telah tersimpan._\n_Nomor ID Pengaduan Anda adalah:_ *%s*", publicID) +
-				"\n\n_Sebagai langkah terakhir, mohon berikan ulasan Anda (1-5) untuk layanan Ajukan Pengaduan ini:_\n_(1 = Sangat Buruk, 5 = Sangat Baik)_")
+			fmt.Sprintf("_✅ Pengaduan Anda telah tersimpan._\n\n_📋 Nomor ID Pengaduan Anda adalah:_ *%s*\n\n_Sebagai langkah terakhir, mohon berikan ulasan Anda (1-5) untuk layanan Ajukan Pengaduan ini:_\n_(1 = Sangat Buruk, 5 = Sangat Baik)_", publicID))
 		// --- AKHIR PERBAIKAN ---
 
 		log.Printf("[DONE] Complaint from %s processed in %v (URL: %s)", senderJID, time.Since(start), publicURL)

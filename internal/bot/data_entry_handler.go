@@ -179,6 +179,57 @@ type AsuransiData struct {
 	Asuransi []AsuransiOption `json:"asuransi"`
 }
 
+// Add new type definitions for steps 20-39
+type NikAyahOption struct {
+	ID   int    `json:"id"`
+	Nama string `json:"nama"`
+}
+
+type NikIbuOption struct {
+	ID   int    `json:"id"`
+	Nama string `json:"nama"`
+}
+
+type AktaLahirOption struct {
+	ID   int    `json:"id"`
+	Nama string `json:"nama"`
+}
+
+type DokumenPassportOption struct {
+	ID   int    `json:"id"`
+	Nama string `json:"nama"`
+}
+
+type TanggalAkhirPassportOption struct {
+	ID   int    `json:"id"`
+	Nama string `json:"nama"`
+}
+
+type DokumenKitasOption struct {
+	ID   int    `json:"id"`
+	Nama string `json:"nama"`
+}
+
+type AktaPerkawinanOption struct {
+	ID   int    `json:"id"`
+	Nama string `json:"nama"`
+}
+
+type TanggalPerkawinanOption struct {
+	ID   int    `json:"id"`
+	Nama string `json:"nama"`
+}
+
+type AktaPerceraianOption struct {
+	ID   int    `json:"id"`
+	Nama string `json:"nama"`
+}
+
+type TanggalPerceraianOption struct {
+	ID   int    `json:"id"`
+	Nama string `json:"nama"`
+}
+
 // Define step structure type
 type Step struct {
 	Question string
@@ -190,7 +241,7 @@ type Step struct {
 
 // All package-level variables need to be declared before functions
 var (
-	sexOptions, agamaOptions, pendidikanKKOptions, pendidikanSedangOptions, pekerjaanOptions, statusKawinOptions, kkLevelOptions, warganegaraOptions, statusDasarOptions, sukuOptions = loadJSONOptions()
+	sexOptions, agamaOptions, pendidikanKKOptions, pendidikanSedangOptions, pekerjaanOptions, statusKawinOptions, kkLevelOptions, warganegaraOptions, statusDasarOptions, sukuOptions, golonganDarahOptions, cacatOptions, caraKbOptions, hamilOptions, ktpElOptions, statusRekamOptions, asuransiOptions = loadJSONOptions()
 	steps = map[int]Step{
 		1:  {"Masukkan *Dusun:*", "dusun", false, false, nil},
 		2:  {"Masukkan *RT:*", "rt", false, false, nil},
@@ -210,7 +261,27 @@ var (
 		16: {"Masukkan *Nama Ayah:*", "nama_ayah", false, false, nil},
 		17: {"Masukkan *Nama Ibu:*", "nama_ibu", false, false, nil},
 		18: {"Pilih *Status Dasar:*", "status_dasar_id", true, false, statusDasarOptions},
-		19: {"Pilih *Suku:*", "suku_id", true, false, sukuOptions}, // Checkpoint baru
+		19: {"Pilih *Suku:*", "suku_id", true, false, sukuOptions},
+		20: {"Masukkan *NIK Ayah:*", "nik_ayah", false, false, nil},
+		21: {"Masukkan *NIK Ibu:*", "nik_ibu", false, false, nil},
+		22: {"Pilih *Golongan Darah:*", "golongan_darah_id", true, false, golonganDarahOptions},
+		23: {"Masukkan *No. Akta Lahir:*", "akta_lahir", false, false, nil},
+		24: {"Masukkan *No. Paspor:*", "dokumen_passport", false, false, nil},
+		25: {"Masukkan *Tgl Akhir Paspor:*", "tanggal_akhir_passport", false, true, nil},
+		26: {"Masukkan *No. KITAS:*", "dokumen_kitas", false, false, nil},
+		27: {"Masukkan *No. Akta Perkawinan:*", "akta_perkawinan", false, false, nil},
+		28: {"Masukkan *Tgl Perkawinan:*", "tanggal_perkawinan", false, true, nil},
+		29: {"Masukkan *No. Akta Perceraian:*", "akta_perceraian", false, false, nil},
+		30: {"Masukkan *Tgl Perceraian:*", "tanggal_perceraian", false, true, nil},
+		31: {"Pilih *Cacat:*", "cacat_id", true, false, cacatOptions},
+		32: {"Pilih *Cara KB:*", "cara_kb_id", true, false, caraKbOptions},
+		33: {"Pilih *Status Hamil:*", "hamil_id", true, false, hamilOptions},
+		34: {"Pilih *KTP Elektronik:*", "ktp_el_id", true, false, ktpElOptions},
+		35: {"Pilih *Status Rekam:*", "status_rekam_id", true, false, statusRekamOptions},
+		36: {"Masukkan *Alamat Sekarang:*", "alamat_sekarang", false, false, nil},
+		37: {"Masukkan *Tag Card:*", "tag_card", false, false, nil},
+		38: {"Pilih *Asuransi:*", "id_asuransi_id", true, false, asuransiOptions},
+		39: {"Masukkan *No. Asuransi:*", "no_asuransi", false, false, nil},
 	}
 )
 
@@ -218,7 +289,7 @@ const (
 	STEP_START                  = 1
 	STEP_NIK                    = 5
 	STEP_DATA_INTI              = 19  // Tetap 19 (Suku), bukan 17
-	STEP_GOLONGAN_DARAH         = 22
+	STEP_LANJUT        			= 20
 	STEP_CONFIRMATION           = 40
 	STEP_EDIT                   = 41
 	STEP_CHECKPOINT_DATA_INTI   = 100
@@ -240,7 +311,7 @@ const (
 	STEP_ULASAN_PENGADUAN   = 602
 )
 
-func loadJSONOptions() (map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string) {
+func loadJSONOptions() (map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string) {
 	sexOptions := make(map[int]string)
 	agamaOptions := make(map[int]string)
 	pendidikanKKOptions := make(map[int]string)
@@ -251,6 +322,13 @@ func loadJSONOptions() (map[int]string, map[int]string, map[int]string, map[int]
 	warganegaraOptions := make(map[int]string)
 	statusDasarOptions := make(map[int]string)
 	sukuOptions := make(map[int]string)
+	golonganDarahOptions := make(map[int]string)
+	cacatOptions := make(map[int]string)
+	caraKbOptions := make(map[int]string)
+	hamilOptions := make(map[int]string)
+	ktpElOptions := make(map[int]string)
+	statusRekamOptions := make(map[int]string)
+	asuransiOptions := make(map[int]string)
 
 	// Load sex options (6_sex.json)
 	if data, err := os.ReadFile(filepath.Join("json", "6_sex.json")); err == nil {
@@ -352,7 +430,77 @@ func loadJSONOptions() (map[int]string, map[int]string, map[int]string, map[int]
 		}
 	}
 
-	return sexOptions, agamaOptions, pendidikanKKOptions, pendidikanSedangOptions, pekerjaanOptions, statusKawinOptions, kkLevelOptions, warganegaraOptions, statusDasarOptions, sukuOptions
+	// Load golongan_darah options (22_golongan_darah.json)
+	if data, err := os.ReadFile(filepath.Join("json", "22_golongan_darah.json")); err == nil {
+		var golonganDarahData GolonganDarahData
+		if err := json.Unmarshal(data, &golonganDarahData); err == nil {
+			for _, opt := range golonganDarahData.GolonganDarah {
+				golonganDarahOptions[opt.ID] = opt.Nama
+			}
+		}
+	}
+
+	// Load cacat options (31_cacat.json)
+	if data, err := os.ReadFile(filepath.Join("json", "31_cacat.json")); err == nil {
+		var cacatData CacatData
+		if err := json.Unmarshal(data, &cacatData); err == nil {
+			for _, opt := range cacatData.Cacat {
+				cacatOptions[opt.ID] = opt.Nama
+			}
+		}
+	}
+
+	// Load cara_kb options (32_cara_kb.json)
+	if data, err := os.ReadFile(filepath.Join("json", "32_cara_kb.json")); err == nil {
+		var caraKbData CaraKBData
+		if err := json.Unmarshal(data, &caraKbData); err == nil {
+			for _, opt := range caraKbData.CaraKB {
+				caraKbOptions[opt.ID] = opt.Nama
+			}
+		}
+	}
+
+	// Load hamil options (33_hamil.json)
+	if data, err := os.ReadFile(filepath.Join("json", "33_hamil.json")); err == nil {
+		var hamilData HamilData
+		if err := json.Unmarshal(data, &hamilData); err == nil {
+			for _, opt := range hamilData.Hamil {
+				hamilOptions[opt.ID] = opt.Nama
+			}
+		}
+	}
+
+	// Load ktp_el options (34_ktp_el.json)
+	if data, err := os.ReadFile(filepath.Join("json", "34_ktp_el.json")); err == nil {
+		var ktpElData KTPElektronikData
+		if err := json.Unmarshal(data, &ktpElData); err == nil {
+			for _, opt := range ktpElData.KTPElektronik {
+				ktpElOptions[opt.ID] = opt.Nama
+			}
+		}
+	}
+
+	// Load status_rekam options (35_status_rekam.json)
+	if data, err := os.ReadFile(filepath.Join("json", "35_status_rekam.json")); err == nil {
+		var statusRekamData StatusRekamData
+		if err := json.Unmarshal(data, &statusRekamData); err == nil {
+			for _, opt := range statusRekamData.StatusRekam {
+				statusRekamOptions[opt.ID] = opt.Nama
+			}
+		}
+	}
+
+	// Load asuransi options (38_asuransi.json)
+	if data, err := os.ReadFile(filepath.Join("json", "38_asuransi.json")); err == nil {
+		var asuransiData AsuransiData
+		if err := json.Unmarshal(data, &asuransiData); err == nil {
+			for _, opt := range asuransiData.Asuransi {
+				asuransiOptions[opt.ID] = opt.Nama
+			}
+		}
+	}
+
+	return sexOptions, agamaOptions, pendidikanKKOptions, pendidikanSedangOptions, pekerjaanOptions, statusKawinOptions, kkLevelOptions, warganegaraOptions, statusDasarOptions, sukuOptions, golonganDarahOptions, cacatOptions, caraKbOptions, hamilOptions, ktpElOptions, statusRekamOptions, asuransiOptions
 }
 
 func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySession, sheetsClient *sheets.SheetsClient, waClient *whatsmeow.Client) []string {
@@ -405,14 +553,14 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 			if err := db.UpdateStepOnly(dbConn, jid, STEP_SURAT_VALIDASI_NIK); err != nil {
 				return []string{"_Maaf, terjadi kesalahan sistem._"}
 			}
-			return []string{"_Baik, silakan masukkan NIK 16 digit Anda untuk validasi data:_"}
+			return []string{"_📄 Baik, silakan masukkan NIK 16 digit Anda untuk validasi data:_"}
 		case "2": // 2. Cek Progres Surat
 			if err := db.UpdateStepOnly(dbConn, jid, STEP_SURAT_CEK_PROGRES); err != nil {
 				return []string{"_Maaf, terjadi kesalahan sistem._"}
 			}
-			return []string{"_Silakan masukkan Nomor Unik Surat Anda (contoh: 1234):_"}
+			return []string{"_🔍 Silakan masukkan Nomor Unik Surat Anda (contoh: 1234):_"}
 		default:
-			return []string{"_Pilihan tidak valid. Silakan pilih 1 atau 2._"}
+			return []string{"_❌ Pilihan tidak valid. Silakan pilih 1 atau 2._"}
 		}
 
 	case STEP_SURAT_VALIDASI_NIK: // (Langkah 501)
@@ -438,8 +586,13 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 			return []string{"_Maaf, terjadi kesalahan sistem._"}
 		}
 		return []string{
-			"_NIK Tervalidasi. Silakan pilih jenis surat:_\n" +
-				"_1. Surat Domisili_\n_2. Surat Usaha_\n_3. SKTM Umum_\n_4. SKTM Tanggungan_\n_5. Surat Kematian_",
+			"_✅ NIK Tervalidasi. Silakan pilih jenis surat:_\n\n" +
+				"_📄 1. Surat Domisili_\n" +
+				"_💼 2. Surat Usaha_\n" +
+				"_📋 3. SKTM Umum_\n" +
+				"_👨‍👩‍👧 4. SKTM Tanggungan_\n" +
+				"_⚰️ 5. Surat Kematian_\n\n" +
+				"_⌨️ Ketik nomor (1-5) atau ketik_ _*'reset'*_ _untuk batal._",
 		}
 
 	case STEP_SURAT_PILIH_JENIS: // (Langkah 502)
@@ -477,7 +630,7 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 	}
 		
 		if err := db.UpdateStepOnly(dbConn, jid, STEP_SURAT_KONFIRMASI_FIELD); err != nil { /*...*/ }
-		return []string{fmt.Sprintf("_Anda mengisi: %s_\n\n_Ketik_ _*'ya'*_ _untuk lanjut, atau_ _*'edit'*_ _untuk mengulangi._", text)}
+		return []string{fmt.Sprintf("_📝 Anda mengisi: %s_\n\n_Ketik_ _*'ya'*_ _untuk lanjut, atau_ _*'edit'*_ _untuk mengulangi._", text)}
 
 	case STEP_SURAT_KONFIRMASI_FIELD: // (Langkah 504)
 		currentField := session.SuratFieldNow.String
@@ -517,10 +670,10 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 		unikID := strings.ToUpper(text)
 		status, err := sheetsClient.GetSuratStatus(unikID)
 		if err != nil {
-			return []string{fmt.Sprintf("_Nomor Unik Surat %s tidak ditemukan._", unikID)}
+			return []string{fmt.Sprintf("_❌ Nomor Unik Surat %s tidak ditemukan._", unikID)}
 		}
 		if err := db.DeleteDataEntrySession(dbConn, jid); err != nil { /*...*/ }
-		return []string{fmt.Sprintf("_Status untuk surat %s:_\n\n_STATUS: %s_", unikID, status)}
+		return []string{fmt.Sprintf("_📋 Status untuk surat %s:_\n\n_STATUS: %s_", unikID, status)}
 
 
 	
@@ -639,10 +792,10 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 	case STEP_CHECKPOINT_DATA_INTI: // (100)
 		text = strings.ToLower(text)
 		if text == "lanjut" {
-			if err := db.UpdateStepOnly(dbConn, jid, STEP_GOLONGAN_DARAH); err != nil {
+			if err := db.UpdateStepOnly(dbConn, jid, STEP_LANJUT); err != nil {
 				return []string{"_❌ Maaf, terjadi kesalahan sistem._"}
 			}
-			return []string{formatQuestion(steps[STEP_GOLONGAN_DARAH])}
+			return []string{formatQuestion(steps[STEP_LANJUT])}
 		} else if text == "cukup" {
 			data, err := db.GetFormattedSessionData(dbConn, jid)
 			if err != nil {
@@ -948,7 +1101,7 @@ func handleSuratGeneration(dbConn *sqlx.DB, jid string, session *db.DataEntrySes
 	// 3. Kirim pesan sukses + pertanyaan ulasan
 	return []string{
 		fmt.Sprintf("_Surat %s Anda sedang diproses dan akan segera dikirimkan. Harap tunggu..._\n\n", namaSurat) +
-			"_Sebagai langkah terakhir, mohon berikan ulasan Anda (1-5) untuk layanan pengajuan surat ini:_\n_(1 = Sangat Buruk, 5 = Sangat Baik)_",
+			"_Sebagai langkah terakhir, mohon berikan ulasan Anda (1-5) untuk layanan pengajuan surat ini:_\n_(1 = Sangat Buruk, 5 = Sangat Baik)",
 	}
 
 
