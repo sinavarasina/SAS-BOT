@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"log"
+	"os"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
@@ -12,7 +13,13 @@ import (
 func main() {
 	// Flag untuk custom CSV path
 	csvPath := flag.String("csv", "csv/csv_datadiri.csv", "Path ke file CSV")
-	dbURL := flag.String("db", "postgres://avnadmin:AVNS_s9kSgAdLY8nQqi4ATjz@sas-bot-postgre-db-student-5e9a.j.aivencloud.com:21599/defaultdb?sslmode=require", "Database connection URL")
+
+	// Ambil database URL dari environment variable POSTGRES_DSN
+	defaultDBURL := os.Getenv("POSTGRES_DSN")
+	if defaultDBURL == "" {
+		log.Fatal("[ERROR] Environment variable POSTGRES_DSN tidak di-set di .env")
+	}
+	dbURL := flag.String("db", defaultDBURL, "Database connection URL")
 	flag.Parse()
 
 	log.Printf("[SEEDER] Memulai dengan CSV: %s", *csvPath)
