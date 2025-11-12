@@ -78,7 +78,7 @@ func HandleGeminiPrompt(userText string) string {
 
 	if apiKey == "" {
 		log.Printf("[AI-WARN] GEMINI_API_KEY is empty; returning generic response")
-		return "👋 Halo! Ada yang bisa saya bantu? Silakan pilih menu untuk melanjutkan."
+		return "_👋 Halo! Ada yang bisa saya bantu? Silakan pilih menu untuk melanjutkan._"
 	}
 
 	prompt := fmt.Sprintf(
@@ -111,33 +111,48 @@ func HandleGeminiPrompt(userText string) string {
 	payload, err := json.Marshal(req)
 	if err != nil {
 		log.Printf("[AI-ERROR] marshal request: %v", err)
-		return "👋 Maaf, sedang sibuk. Silakan coba lagi."
+		return "_👋 Maaf, sedang sibuk. Silakan coba lagi._"
 	}
 
 	url := fmt.Sprintf("%s?key=%s", apiURL, apiKey)
 	httpClient := &http.Client{Timeout: 15 * time.Second}
 	resp, err := httpClient.Post(url, "application/json", bytes.NewBuffer(payload))
 	if err != nil {
-		log.Printf("[AI-ERROR] POST request: %v", err)
-		return "👋 Maaf, sedang sibuk. Silakan coba lagi."
+		log.Printf("[AI-ERROR] POST request failed: %v", err)
+		return "_👋 Maaf, sedang sibuk. Silakan coba lagi._"
 	}
 	defer resp.Body.Close()
+
+	log.Printf("[AI-DEBUG] Response Status: %d", resp.StatusCode)
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Printf("[AI-ERROR] read body: %v", err)
-		return "👋 Maaf, sedang sibuk. Silakan coba lagi."
+		return "_👋 Maaf, sedang sibuk. Silakan coba lagi._"
 	}
+
+	log.Printf("[AI-DEBUG] Response Body: %s", string(body))
 
 	var gr geminiResponse
 	if err := json.Unmarshal(body, &gr); err != nil {
 		log.Printf("[AI-ERROR] unmarshal response: %v", err)
-		return "👋 Maaf, sedang sibuk. Silakan coba lagi."
+		return "_👋 Maaf, sedang sibuk. Silakan coba lagi._"
 	}
 
+	// Validasi response Gemini
 	if len(gr.Candidates) > 0 && len(gr.Candidates[0].Content.Parts) > 0 {
-		return strings.TrimSpace(gr.Candidates[0].Content.Parts[0].Text)
+		responseText := strings.TrimSpace(gr.Candidates[0].Content.Parts[0].Text)
+
+		// Jangan wrap dengan underscore jika sudah ada
+		if !strings.HasPrefix(responseText, "_") {
+			responseText = "_" + responseText + "_"
+		}
+
+		log.Printf("[AI-DEBUG] Gemini Response: %s", responseText)
+		return responseText
 	}
-	return "👋 Silakan gunakan menu untuk melanjutkan."
+
+	log.Printf("[AI-ERROR] No candidates or parts in response. Candidates: %d", len(gr.Candidates))
+	return "_👋 Silakan gunakan menu untuk melanjutkan._"
 }
 
