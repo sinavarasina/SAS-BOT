@@ -121,13 +121,13 @@ Ketik nomor pilihanmu, atau ketik ‘reset’ buat balik ke menu utama.`
 			log.Printf("[ERROR] Failed to set step to STEP_PENGADUAN_MENU: %v", err)
 			return []string{"Maaf, terjadi kesalahan sistem."}
 		}
-		subMenu := `*Menu Pengaduan*
-		Menu ini berfungsi untuk mengelola data pengaduan masyarakat.
-		1. Ajukan pengaduan
-		2. Cek progres pengaduan
-
-		Silakan pilih nomor atau ketik 'reset' untuk kembali ke menu utama.`
-			return []string{subMenu}
+		return []string{
+			"*Menu Pengaduan*\n\n" +
+				"Menu ini berfungsi untuk mengelola data pengaduan masyarakat.\n" +
+				"1. Ajukan pengaduan\n" +
+				"2. Cek progres pengaduan\n\n" +
+				"Silakan pilih nomor atau ketik 'reset' untuk kembali ke menu utama.",
+		}
 	}
 
 	if resp, ok := staticResponses[strings.ToLower(text)]; ok {
