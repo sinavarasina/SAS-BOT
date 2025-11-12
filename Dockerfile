@@ -43,7 +43,7 @@ EXPOSE 8080
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD test -f /app/sas-bot || exit 1
+    CMD test -f /app/sas-bot || exit 1
 
 # Run aplikasi
 CMD ["./sas-bot"]
