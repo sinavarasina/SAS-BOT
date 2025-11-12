@@ -6,33 +6,40 @@ import (
 	"os"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/sinavarasina/SAS-BOT/cmd/seeder"
+	"github.com/joho/godotenv" // <-- Tambahan untuk membaca .env
+	"github.com/sinavarasina/SAS-BOT/internal/db"
 )
 
 func main() {
-	// Flag untuk custom CSV path
+	// 🧩 Muat file .env jika ada
+	if err := godotenv.Load(); err != nil {
+		log.Println("[WARN] Tidak dapat memuat file .env, lanjut gunakan environment OS")
+	}
+
+	// 🔖 Flag untuk path CSV (bisa diubah lewat CLI)
 	csvPath := flag.String("csv", "csv/datadiri.csv", "Path ke file CSV")
 
-	// Ambil database URL dari environment variable POSTGRES_DSN
+	// 🌐 Ambil database URL dari environment variable POSTGRES_DSN
 	defaultDBURL := os.Getenv("POSTGRES_DSN")
 	if defaultDBURL == "" {
 		log.Fatal("[ERROR] Environment variable POSTGRES_DSN tidak di-set di .env")
 	}
+
 	dbURL := flag.String("db", defaultDBURL, "Database connection URL")
 	flag.Parse()
 
 	log.Printf("[SEEDER] Memulai dengan CSV: %s", *csvPath)
 	log.Printf("[SEEDER] Database: %s", *dbURL)
 
-	// Buka koneksi ke database
+	// 🗄️ Buka koneksi ke database PostgreSQL
 	dbConn, err := sqlx.Connect("postgres", *dbURL)
 	if err != nil {
 		log.Fatalf("[ERROR] Gagal koneksi ke database: %v", err)
 	}
 	defer dbConn.Close()
 
-	// Jalankan seeder
-	if err := seeder.SeedDataDariCSV(dbConn, *csvPath); err != nil {
+	// 🌱 Jalankan fungsi seeder dari internal/db
+	if err := db.SeedDataDariCSV(dbConn, *csvPath); err != nil {
 		log.Fatalf("[ERROR] Seeder gagal: %v", err)
 	}
 
