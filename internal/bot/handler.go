@@ -36,7 +36,7 @@ func getMainMenu() string {
 📋 _Menu yang tersedia:_
 👤 *1. Data Diri*
 📄 *2. Pengajuan Surat* 
-💬 *3. Pengaduan* 
+💬 *3. Pengaduans* 
 
 ✍️ Ketik *nomor menu* yang ingin kamu pilih.`
 }
