@@ -593,6 +593,39 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 		if err := db.DeleteDataEntrySession(dbConn, jid); err != nil { /*...*/ }
 		return []string{fmt.Sprintf("Status untuk surat *%s*:\n\n*STATUS: %s*", unikID, status)}
 
+
+	
+	//ulasan
+	case STEP_ULASAN_DATA_DIRI, STEP_ULASAN_SURAT, STEP_ULASAN_PENGADUAN:
+		// Validasi input ulasan
+		rating, err := strconv.Atoi(text)
+		if err != nil || rating < 1 || rating > 5 {
+			return []string{"Input tidak valid. Mohon berikan ulasan berupa angka 1, 2, 3, 4, atau 5."}
+		}
+
+		// Tentukan sheetName berdasarkan STEP
+		var sheetName string
+		if session.CurrentStep == STEP_ULASAN_DATA_DIRI {
+			sheetName = "ulasan_input_diri"
+		} else if session.CurrentStep == STEP_ULASAN_SURAT {
+			sheetName = "ulasan_pengajuan_surat"
+		} else { // STEP_ULASAN_PENGADUAN
+			sheetName = "ulasan_pengaduan"
+		}
+		
+		// Ambil nama layanan yang disimpan di sesi
+		serviceName := session.SuratTempAnswer.String
+		if serviceName == "" {
+			serviceName = "Tidak Diketahui" // Fallback
+		}
+
+		// Kirim ulasan ke Google Sheet di background
+		go sheetsClient.AppendUlasan(sheetName, serviceName, text, jid)
+
+		// Hapus sesi dan akhiri percakapan
+		if err := db.DeleteDataEntrySession(dbConn, jid); err != nil { /*...*/ }
+		
+		return []string{"✅ Terima kasih banyak atas ulasan Anda! Kami sangat menghargai masukan Anda.\n\n" + getMainMenu()}
 	// 3. alur fitur pengaduan
 	case STEP_PENGADUAN_MENU:
 		switch text {
@@ -958,6 +991,7 @@ func handleSuratGeneration(dbConn *sqlx.DB, jid string, session *db.DataEntrySes
 	
 	jenisStr := fullSession.EditField.String
 	jenis := surat.JenisSurat(jenisStr)
+	namaSurat := surat.NamaSuratmap[jenis]
 	
 	// 1. Buat ID unik & nama file
 	unikID := fmt.Sprintf("%04d", 1000+rand.Intn(9000)) // 4 digit random
