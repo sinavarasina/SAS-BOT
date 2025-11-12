@@ -234,6 +234,9 @@ const (
 	STEP_SURAT_INPUT_DATA       = 503 // Menunggu jawaban field tambahan
 	STEP_SURAT_KONFIRMASI_FIELD = 504 // Menunggu (ya/edit)
 	STEP_SURAT_CEK_PROGRES      = 505 // Menunggu ID Unik untuk Cek
+	STEP_ULASAN_DATA_DIRI   = 600
+	STEP_ULASAN_SURAT       = 601
+	STEP_ULASAN_PENGADUAN   = 602
 )
 
 func loadJSONOptions() (map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string) {
@@ -709,34 +712,38 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 			fullSession, err := db.GetFullSessionData(dbConn, jid)
 			if err != nil {
 				log.Printf("[ERROR] Gagal mengambil data lengkap: %v", err)
-				return []string{"❌ Maaf, terjadi kesalahan sistem saat mengambil data."}
+				return []string{"Maaf, terjadi kesalahan sistem saat mengambil data."}
 			}
 
-			// 1. Simpan ke Database (PostgreSQL) - Ini akan INSERT atau UPDATE
 			if err := db.SaveDataPenduduk(dbConn, *fullSession); err != nil {
-				return []string{"❌ Maaf, terjadi kesalahan besar saat menyimpan ke database."}
+				return []string{"Maaf, terjadi kesalahan besar saat menyimpan ke database."}
 			}
 
-			// 2. Simpan ke Google Sheet (di background)
 			go func() {
+				// (Logika sinkronisasi ke Google Sheet tidak berubah)
 				nik := fullSession.NIK.String
 				rowNum, err := sheetsClient.FindRowByNIK(nik)
 				if err != nil {
-					// NIK tidak ditemukan, berarti INPUT BARU
 					log.Printf("Menambah NIK %s baru ke Sheet.", nik)
 					sheetsClient.AppendDataPenduduk(*fullSession)
 				} else {
-					// NIK ditemukan, berarti EDIT
 					log.Printf("Mengupdate NIK %s di baris %d Sheet.", nik, rowNum)
 					sheetsClient.UpdateRowData(rowNum, *fullSession)
 				}
 			}()
 
-			// 3. Hapus sesi sementara
-			if err := db.DeleteDataEntrySession(dbConn, jid); err != nil {
-				return []string{"❌ Maaf, terjadi kesalahan sistem"}
+			// --- PERBAIKAN: Pindah ke Alur Ulasan ---
+			// 1. Simpan nama layanan
+			if err := db.UpdateSessionField(dbConn, jid, "surat_temp_answer", "Input Data Diri"); err != nil {
+				log.Printf("[ERROR] Gagal menyimpan nama layanan ulasan: %v", err)
 			}
-			return []string{"✅ Terima kasih! Data Anda telah berhasil disimpan di Database dan sedang disinkronkan ke Spreadsheet."}
+			// 2. Pindah ke langkah ulasan
+			if err := db.UpdateStepOnly(dbConn, jid, STEP_ULASAN_DATA_DIRI); err != nil {
+				log.Printf("[ERROR] Gagal pindah ke langkah ulasan: %v", err)
+			}
+			// 3. Kirim pesan sukses + pertanyaan ulasan
+			return []string{"✅ Terima kasih! Data Anda telah berhasil disimpan.\n\n" +
+				"Sebagai langkah terakhir, mohon berikan ulasan Anda (1-5) untuk layanan *Input Data Diri* ini:\n(1 = Sangat Buruk, 5 = Sangat Baik)"}
 
 		case "edit":
 			data, err := db.GetFormattedSessionData(dbConn, jid)
@@ -967,6 +974,19 @@ func handleSuratGeneration(dbConn *sqlx.DB, jid string, session *db.DataEntrySes
 	if err != nil {
 		log.Printf("[SURAT-ERROR] %v", err)
 		return []string{"Terjadi kesalahan saat memproses surat."}
+	}
+
+	if err := db.UpdateSessionField(dbConn, jid, "surat_temp_answer", namaSurat); err != nil {
+		log.Printf("[ERROR] Gagal menyimpan nama layanan ulasan: %v", err)
+	}
+	// 2. Pindah ke langkah ulasan
+	if err := db.UpdateStepOnly(dbConn, jid, STEP_ULASAN_SURAT); err != nil {
+		log.Printf("[ERROR] Gagal pindah ke langkah ulasan: %v", err)
+	}
+	// 3. Kirim pesan sukses + pertanyaan ulasan
+	return []string{
+		fmt.Sprintf("Surat *%s* Anda sedang diproses dan akan segera dikirimkan. Harap tunggu...\n\n", namaSurat) +
+			"Sebagai langkah terakhir, mohon berikan ulasan Anda (1-5) untuk layanan pengajuan surat ini:\n(1 = Sangat Buruk, 5 = Sangat Baik)",
 	}
 
 
