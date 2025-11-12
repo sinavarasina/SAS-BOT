@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/sinavarasina/SAS-BOT/internal/db"
+	"github.com/sinavarasina/SAS-BOT/cmd/seeder"
 )
 
 func main() {
@@ -32,7 +32,7 @@ func main() {
 	defer dbConn.Close()
 
 	// Jalankan seeder
-	if err := db.SeedDataDariCSV(dbConn, *csvPath); err != nil {
+	if err := seeder.SeedDataDariCSV(dbConn, *csvPath); err != nil {
 		log.Fatalf("[ERROR] Seeder gagal: %v", err)
 	}
 
