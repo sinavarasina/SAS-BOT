@@ -47,8 +47,9 @@ func HandleGeminiPrompt(userText string) string {
 	prompt := fmt.Sprintf(
 		"Kamu adalah bot asisten untuk pencatatan data penduduk di desa Sindang Anom. "+
 			"Pengguna mengirim: '%s'. "+
-			"Balas dalam 1-2 kalimat yang ramah, dan arahkan agar memilih menu yang sesuai (1 untuk data diri, 2 untuk pengajuan surat, 3 untuk pengaduan). "+
-			"Hindari mengulang teks menu penuh dan jangan gunakan kata 'Tentu'.",
+			"Balas dalam 1-2 kalimat yang ramah dengan menggunakan emoji yang relevan, dan arahkan agar memilih menu yang sesuai (1 untuk data diri, 2 untuk pengajuan surat, 3 untuk pengaduan). "+
+			"Hindari mengulang teks menu penuh dan jangan gunakan kata 'Tentu'. "+
+			"Gunakan emoji untuk membuat respons lebih menarik dan interaktif.",
 		userText,
 	)
 

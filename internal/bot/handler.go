@@ -31,15 +31,14 @@ var staticResponses = map[string]string{
 }
 
 func getMainMenu() string {
-	return `*SINDANG ANOM SERVICE - BOT*
+	return `🤖 *SINDANG ANOM SERVICE - BOT*
 
-Menu yang tersedia:
+📋 _Menu yang tersedia:_
+👤 *1. Data Diri*
+📄 *2. Pengajuan Surat* 
+💬 *3. Pengaduan* 
 
-*1.* Data Diri
-*2.* Pengajuan Surat 
-*3.* Pengaduan 
-
-Silakan pilih menu dengan mengetik nomor yang sesuai.`
+✍️ Ketik *nomor menu* yang ingin kamu pilih.`
 }
 
 func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string, sheetsClient *sheets.SheetsClient, waClient *whatsmeow.Client) []string {
@@ -91,14 +90,14 @@ func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string, sh
 			log.Printf("[ERROR] Failed to set step to STEP_MENU_DATA_DIRI: %v", err)
 			return []string{"Maaf, terjadi kesalahan sistem."}
 		}
-		subMenu := `*Menu Data Diri*
+		subMenu := `👤 Menu Data Diri
 
-Gunakan menu ini buat ngatur data kependudukan kamu.
+📝 Gunakan menu ini untuk mengatur data kependudukan kamu.
 
-*1.* Input Data Diri (Baru)
-*2.* Ubah Data Diri (pakai NIK)
+✏️ *1. Input Data Diri (Baru)*
+🔄 *2. Ubah Data Diri (pakai NIK)*
 
-Ketik nomor pilihanmu, atau ketik ‘reset’ buat balik ke menu utama.`
+⌨️ Ketik *nomor pilihanmu*, atau ketik *'reset'* untuk kembali ke menu utama.`
 		return []string{subMenu}
 
 	case "2":
