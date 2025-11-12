@@ -20,6 +20,7 @@ type SheetsClient struct {
 	DataSpreadsheetID     string // Untuk Data Diri
 	PengaduanSpreadsheetID string // Untuk Pengaduan
 	SuratSpreadsheetID     string
+	UlasanSpreadsheetID    string
 }
 
 // InitSheetsClient sekarang membaca KEDUA ID dari .env
@@ -55,11 +56,18 @@ func InitSheetsClient() (*SheetsClient, error) {
 		log.Println("Environment variable SURAT_SPREADSHEET_ID tidak di-set")
 	}
 
+	//baca id feedback
+	ulasanSpreadsheetID := os.Getenv("ULASAN_SPREADSHEET_ID")
+	if ulasanSpreadsheetID == "" {
+		log.Fatal("Environment variable ULASAN_SPREADSHEET_ID tidak di-set")
+	}
+
 	return &SheetsClient{
 		Service:               srv,
 		DataSpreadsheetID:     dataSpreadsheetID,
 		PengaduanSpreadsheetID: pengaduanSpreadsheetID,
 		SuratSpreadsheetID: suratSpreadsheetID,
+		UlasanSpreadsheetID:    ulasanSpreadsheetID,
 	}, nil
 }
 
@@ -194,6 +202,25 @@ func (c *SheetsClient) AppendPengaduan(aduan db.Pengaduan, publicID string) {
 		log.Printf("[ERROR] Gagal menulis Pengaduan ke Google Sheet: %v", err)
 	} else {
 		log.Println("[INFO] Berhasil menulis Pengaduan ke Google Sheet.")
+	}
+}
+
+func (c *SheetsClient) AppendUlasan(sheetName, layanan, rating, jid string) {
+	rangeData := fmt.Sprintf("%s!A2", sheetName) // Selalu append
+	var vr sheets.ValueRange
+	vr.Values = append(vr.Values, []interface{}{
+		time.Now().Format("2006-01-02 15:04:05"), // Timestamp
+		jid,     // JID Pengguna
+		layanan, // Misal: "SK Domisili" atau "Input Data Diri"
+		rating,  // Misal: "5"
+	})
+
+	// Gunakan c.UlasanSpreadsheetID
+	_, err := c.Service.Spreadsheets.Values.Append(c.UlasanSpreadsheetID, rangeData, &vr).ValueInputOption("USER_ENTERED").Do()
+	if err != nil {
+		log.Printf("[ULASAN-ERROR] Gagal AppendUlasan ke %s: %v", sheetName, err)
+	} else {
+		log.Printf("[ULASAN] Berhasil menyimpan ulasan ke %s", sheetName)
 	}
 }
 
