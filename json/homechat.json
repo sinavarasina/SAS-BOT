@@ -44,7 +44,11 @@
       },
       {
         "nama": "UMKM & Kerajinan",
-        "jenis_usaha": ["Pengolahan Hasil Pertanian", "Kerajinan Tangan", "Perdagangan"],
+        "jenis_usaha": [
+          "Pengolahan Hasil Pertanian",
+          "Kerajinan Tangan",
+          "Perdagangan"
+        ],
         "jumlah_pelaku": "± 150 usaha",
         "kontribusi": "10%"
       }
