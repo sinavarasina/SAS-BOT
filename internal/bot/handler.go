@@ -90,14 +90,14 @@ func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string, sh
 			log.Printf("[ERROR] Failed to set step to STEP_MENU_DATA_DIRI: %v", err)
 			return []string{"Maaf, terjadi kesalahan sistem."}
 		}
-		subMenu := `👤 Menu Data Diri
+		subMenu := `👤*Menu Data Diri*
 
 📝 _Gunakan menu ini untuk mengatur data kependudukan kamu._
 
-✏️ *1. Input Data Diri (Baru)*
-🔄 *2. Ubah Data Diri (pakai NIK)*
+✏️*1. Input Data Diri (Baru)*
+🔄*2. Ubah Data Diri (pakai NIK)*
 
-⌨️ _Ketik *nomor pilihanmu*, atau ketik *'reset'* untuk kembali ke menu utama._`
+⌨️_Ketik *nomor (1-2)*, atau ketik *'reset'* untuk kembali ke menu utama._`
 		return []string{subMenu}
 
 	case "2":
@@ -109,10 +109,11 @@ func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string, sh
 
 		// PERBAIKAN: Tampilkan sub-menu "Ajukan" / "Cek"
 		return []string{
-			"*Menu Pengajuan Surat*\n\n" +
-				"1. Ajukan Surat Baru\n" +
-				"2. Cek Progres Surat\n\n" +
-				"Ketik nomor (1-2) atau 'reset' untuk batal.",
+			"📄*Menu Pengajuan Surat*\n\n" +
+				"📝_Gunakan menu ini untuk mengatur pengajuan surat kamu._\n\n" +
+				"✏️*1. Ajukan Surat Baru*\n" +
+				"🔍*2. Cek Progres Surat*\n\n" +
+				"⌨️_Ketik *nomor (1-2)* atau ketik *'reset'* untuk kembali ke menu utama._",
 		}
 
 	case "3":
@@ -121,11 +122,11 @@ func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string, sh
 			return []string{"Maaf, terjadi kesalahan sistem."}
 		}
 		return []string{
-			"*Menu Pengaduan*\n\n" +
-				"Menu ini berfungsi untuk mengelola data pengaduan masyarakat.\n" +
-				"1. Ajukan pengaduan\n" +
-				"2. Cek progres pengaduan\n\n" +
-				"Silakan pilih nomor atau ketik 'reset' untuk kembali ke menu utama.",
+			"📢*Menu Pengaduan*\n\n" +
+				"📝_Gunakan menu ini untuk mengelola data pengaduan masyarakat._\n\n" +
+				"✏️*1. Ajukan pengaduan*\n" +
+				"🔍*2. Cek progres pengaduan*\n\n" +
+				"⌨️_Ketik *nomor (1-2)* atau ketik *'reset'* untuk kembali ke menu utama._",
 		}
 	}
 
