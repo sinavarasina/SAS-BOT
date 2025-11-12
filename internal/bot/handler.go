@@ -36,9 +36,9 @@ func getMainMenu() string {
 📋 _Menu yang tersedia:_
 👤 *1. Data Diri*
 📄 *2. Pengajuan Surat* 
-💬 *3. Pengaduans* 
+💬 *3. Pengaduan* 
 
-✍️ Ketik *nomor menu* yang ingin kamu pilih.`
+✍️ _Ketik *nomor menu* yang ingin kamu pilih._`
 }
 
 func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string, sheetsClient *sheets.SheetsClient, waClient *whatsmeow.Client) []string {
@@ -92,12 +92,12 @@ func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string, sh
 		}
 		subMenu := `👤 Menu Data Diri
 
-📝 Gunakan menu ini untuk mengatur data kependudukan kamu.
+📝 _Gunakan menu ini untuk mengatur data kependudukan kamu._
 
 ✏️ *1. Input Data Diri (Baru)*
 🔄 *2. Ubah Data Diri (pakai NIK)*
 
-⌨️ Ketik *nomor pilihanmu*, atau ketik *'reset'* untuk kembali ke menu utama.`
+⌨️ _Ketik *nomor pilihanmu*, atau ketik *'reset'* untuk kembali ke menu utama._`
 		return []string{subMenu}
 
 	case "2":

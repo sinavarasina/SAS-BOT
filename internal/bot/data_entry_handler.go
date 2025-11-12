@@ -4,6 +4,7 @@ package bot
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"math/rand"
@@ -189,27 +190,27 @@ type Step struct {
 
 // All package-level variables need to be declared before functions
 var (
-	sexOptions, agamaOptions, pendidikanKKOptions, pendidikanSedangOptions, pekerjaanOptions, statusKawinOptions, kkLevelOptions, warganegaraOptions, golonganDarahOptions, cacatOptions, caraKBOptions, hamilOptions, ktpElOptions, statusRekamOptions, statusDasarOptions, sukuOptions, asuransiOptions = loadJSONOptions()
+	sexOptions, agamaOptions, pendidikanKKOptions, pendidikanSedangOptions, pekerjaanOptions, statusKawinOptions, kkLevelOptions, warganegaraOptions, statusDasarOptions, sukuOptions = loadJSONOptions()
 	steps = map[int]Step{
-		1:  {"Masukkan Dusun:", "dusun", false, false, nil},
-		2:  {"Masukkan RT:", "rt", false, false, nil},
-		3:  {"Masukkan Nama:", "nama", false, false, nil},
-		4:  {"Masukkan No. KK:", "no_kk", false, false, nil},
-		5:  {"Masukkan NIK:", "nik", false, false, nil},
-		6:  {"Pilih Jenis Kelamin:", "sex_id", true, false, sexOptions},
-		7:  {"Masukkan Tempat Lahir:", "tempat_lahir", false, false, nil},
-		8:  {"Masukkan Tanggal Lahir (DD-MM-YYYY):", "tanggal_lahir", false, true, nil},
-		9:  {"Pilih Agama:", "agama_id", true, false, agamaOptions},
-		10: {"Pilih Pendidikan Dalam KK:", "pendidikan_kk_id", true, false, pendidikanKKOptions},
-		11: {"Pilih Pendidikan Sedang Ditempuh:", "pendidikan_sedang_id", true, false, pendidikanSedangOptions},
-		12: {"Pilih Pekerjaan:", "pekerjaan_id", true, false, pekerjaanOptions},
-		13: {"Pilih Status Kawin:", "status_kawin_id", true, false, statusKawinOptions},
-		14: {"Pilih Status Hubungan Dalam KK:", "kk_level_id", true, false, kkLevelOptions},
-		15: {"Pilih Warganegara:", "warganegara_id", true, false, warganegaraOptions},
-		16: {"Masukkan Nama Ayah:", "nama_ayah", false, false, nil},
-		17: {"Masukkan Nama Ibu:", "nama_ibu", false, false, nil},
-		18: {"Pilih Status Dasar:", "status_dasar_id", true, false, statusDasarOptions},
-		19: {"Pilih Suku:", "suku_id", true, false, sukuOptions}, // Checkpoint baru
+		1:  {"Masukkan *Dusun:*", "dusun", false, false, nil},
+		2:  {"Masukkan *RT:*", "rt", false, false, nil},
+		3:  {"Masukkan *Nama:*", "nama", false, false, nil},
+		4:  {"Masukkan *No. KK:*", "no_kk", false, false, nil},
+		5:  {"Masukkan *NIK:*", "nik", false, false, nil},
+		6:  {"Pilih *Jenis Kelamin:*", "sex_id", true, false, sexOptions},
+		7:  {"Masukkan *Tempat Lahir:*", "tempat_lahir", false, false, nil},
+		8:  {"Masukkan *Tanggal Lahir:*", "tanggal_lahir", false, true, nil},
+		9:  {"Pilih *Agama:*", "agama_id", true, false, agamaOptions},
+		10: {"Pilih *Pendidikan Dalam KK:*", "pendidikan_kk_id", true, false, pendidikanKKOptions},
+		11: {"Pilih *Pendidikan Sedang Ditempuh:*", "pendidikan_sedang_id", true, false, pendidikanSedangOptions},
+		12: {"Pilih *Pekerjaan:*", "pekerjaan_id", true, false, pekerjaanOptions},
+		13: {"Pilih *Status Kawin:*", "status_kawin_id", true, false, statusKawinOptions},
+		14: {"Pilih *Status Hubungan Dalam KK:*", "kk_level_id", true, false, kkLevelOptions},
+		15: {"Pilih *Warganegara:*", "warganegara_id", true, false, warganegaraOptions},
+		16: {"Masukkan *Nama Ayah:*", "nama_ayah", false, false, nil},
+		17: {"Masukkan *Nama Ibu:*", "nama_ibu", false, false, nil},
+		18: {"Pilih *Status Dasar:*", "status_dasar_id", true, false, statusDasarOptions},
+		19: {"Pilih *Suku:*", "suku_id", true, false, sukuOptions}, // Checkpoint baru
 	}
 )
 
@@ -239,7 +240,7 @@ const (
 	STEP_ULASAN_PENGADUAN   = 602
 )
 
-func loadJSONOptions() (map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string) {
+func loadJSONOptions() (map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string, map[int]string) {
 	sexOptions := make(map[int]string)
 	agamaOptions := make(map[int]string)
 	pendidikanKKOptions := make(map[int]string)
@@ -248,15 +249,8 @@ func loadJSONOptions() (map[int]string, map[int]string, map[int]string, map[int]
 	statusKawinOptions := make(map[int]string)
 	kkLevelOptions := make(map[int]string)
 	warganegaraOptions := make(map[int]string)
-	golonganDarahOptions := make(map[int]string)
-	cacatOptions := make(map[int]string)
-	caraKBOptions := make(map[int]string)
-	hamilOptions := make(map[int]string)
-	ktpElOptions := make(map[int]string)
-	statusRekamOptions := make(map[int]string)
 	statusDasarOptions := make(map[int]string)
 	sukuOptions := make(map[int]string)
-	asuransiOptions := make(map[int]string)
 
 	// Load sex options (6_sex.json)
 	if data, err := os.ReadFile(filepath.Join("json", "6_sex.json")); err == nil {
@@ -338,66 +332,6 @@ func loadJSONOptions() (map[int]string, map[int]string, map[int]string, map[int]
 		}
 	}
 
-	// Load golongan_darah options (22_golongan_darah.json)
-	if data, err := os.ReadFile(filepath.Join("json", "22_golongan_darah.json")); err == nil {
-		var golonganDarahData GolonganDarahData
-		if err := json.Unmarshal(data, &golonganDarahData); err == nil {
-			for _, opt := range golonganDarahData.GolonganDarah {
-				golonganDarahOptions[opt.ID] = opt.Nama
-			}
-		}
-	}
-
-	// Load cacat options (31_cacat.json)
-	if data, err := os.ReadFile(filepath.Join("json", "31_cacat.json")); err == nil {
-		var cacatData CacatData
-		if err := json.Unmarshal(data, &cacatData); err == nil {
-			for _, opt := range cacatData.Cacat {
-				cacatOptions[opt.ID] = opt.Nama
-			}
-		}
-	}
-
-	// Load cara_kb options (32_cara_kb.json)
-	if data, err := os.ReadFile(filepath.Join("json", "32_cara_kb.json")); err == nil {
-		var caraKBData CaraKBData
-		if err := json.Unmarshal(data, &caraKBData); err == nil {
-			for _, opt := range caraKBData.CaraKB {
-				caraKBOptions[opt.ID] = opt.Nama
-			}
-		}
-	}
-
-	// Load hamil options (33_hamil.json)
-	if data, err := os.ReadFile(filepath.Join("json", "33_hamil.json")); err == nil {
-		var hamilData HamilData
-		if err := json.Unmarshal(data, &hamilData); err == nil {
-			for _, opt := range hamilData.Hamil {
-				hamilOptions[opt.ID] = opt.Nama
-			}
-		}
-	}
-
-	// Load ktp_el options (34_ktp_el.json)
-	if data, err := os.ReadFile(filepath.Join("json", "34_ktp_el.json")); err == nil {
-		var ktpElData KTPElektronikData
-		if err := json.Unmarshal(data, &ktpElData); err == nil {
-			for _, opt := range ktpElData.KTPElektronik {
-				ktpElOptions[opt.ID] = opt.Nama
-			}
-		}
-	}
-
-	// Load status_rekam options (35_status_rekam.json)
-	if data, err := os.ReadFile(filepath.Join("json", "35_status_rekam.json")); err == nil {
-		var statusRekamData StatusRekamData
-		if err := json.Unmarshal(data, &statusRekamData); err == nil {
-			for _, opt := range statusRekamData.StatusRekam {
-				statusRekamOptions[opt.ID] = opt.Nama
-			}
-		}
-	}
-
 	// Load status_dasar options (18_status_dasar.json)
 	if data, err := os.ReadFile(filepath.Join("json", "18_status_dasar.json")); err == nil {
 		var statusDasarData StatusDasarData
@@ -418,17 +352,7 @@ func loadJSONOptions() (map[int]string, map[int]string, map[int]string, map[int]
 		}
 	}
 
-	// Load asuransi options (38_asuransi.json)
-	if data, err := os.ReadFile(filepath.Join("json", "38_asuransi.json")); err == nil {
-		var asuransiData AsuransiData
-		if err := json.Unmarshal(data, &asuransiData); err == nil {
-			for _, opt := range asuransiData.Asuransi {
-				asuransiOptions[opt.ID] = opt.Nama
-			}
-		}
-	}
-
-	return sexOptions, agamaOptions, pendidikanKKOptions, pendidikanSedangOptions, pekerjaanOptions, statusKawinOptions, kkLevelOptions, warganegaraOptions, golonganDarahOptions, cacatOptions, caraKBOptions, hamilOptions, ktpElOptions, statusRekamOptions, statusDasarOptions, sukuOptions, asuransiOptions
+	return sexOptions, agamaOptions, pendidikanKKOptions, pendidikanSedangOptions, pekerjaanOptions, statusKawinOptions, kkLevelOptions, warganegaraOptions, statusDasarOptions, sukuOptions
 }
 
 func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySession, sheetsClient *sheets.SheetsClient, waClient *whatsmeow.Client) []string {
@@ -441,16 +365,16 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 		switch text {
 		case "1": // 1. Input Data Diri
 			if err := db.StartNewSession(dbConn, jid); err != nil {
-				return []string{"❌ Maaf, terjadi kesalahan sistem."}
+				return []string{"_❌ Maaf, terjadi kesalahan sistem._"}
 			}
 			return []string{formatQuestion(steps[STEP_START])}
 		case "2": // 2. Edit Data Diri
 			if err := db.UpdateStepOnly(dbConn, jid, STEP_EDIT_CARI_NIK); err != nil {
-				return []string{"❌ Maaf, terjadi kesalahan sistem."}
+				return []string{"_❌ Maaf, terjadi kesalahan sistem._"}
 			}
-			return []string{"🔍 Silakan masukkan *NIK 16 digit* yang datanya ingin Anda edit:"}
+			return []string{"_🔍 Silakan masukkan NIK 16 digit yang ingin kamu ubah datanya._"}
 		default:
-			return []string{"❌ Pilihan tidak valid. Silakan pilih 1 atau 2, atau ketik 'reset'."}
+			return []string{"_❌ Pilihan tidak valid. Silakan pilih 1 atau 2, atau ketik_ _*'reset'*_."}
 		}
 
 	// --- 2. ALUR FITUR EDIT ---
@@ -458,65 +382,70 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 		data, err := db.GetDataPendudukByNIK(dbConn, text)
 		if err != nil {
 			log.Printf("[DEBUG] NIK %s tidak ditemukan di DB: %v", text, err)
-			return []string{"❌ NIK tidak ditemukan di database. Silakan coba lagi atau ketik 'reset'."}
+			return []string{"_❌ NIK tidak ditemukan di database. Silakan coba lagi atau ketik_ _*'reset'*_."}
 		}
 		// Temukan! Salin data permanen ke sesi sementara
 		if err := db.LoadSessionFromPenduduk(dbConn, jid, *data); err != nil {
 			log.Printf("[ERROR] Gagal LoadSessionFromPenduduk: %v", err)
-			return []string{"❌ NIK ditemukan, tapi gagal memuat data ke sesi. Hubungi admin."}
+			return []string{"_❌ NIK ditemukan, tapi gagal memuat data ke sesi. Hubungi admin._"}
 		}
-		// Langsung lompat ke langkah konfirmasi (42)
+		// Update step ke CONFIRMATION (40) sehingga input "valid" akan diproses dengan benar
+		if err := db.UpdateStepOnly(dbConn, jid, STEP_CONFIRMATION); err != nil {
+			log.Printf("[ERROR] Gagal update step ke STEP_CONFIRMATION: %v", err)
+			return []string{"_❌ Maaf, terjadi kesalahan sistem._"}
+		}
+		// Langsung lompat ke langkah konfirmasi (40)
 		dataStr, _ := db.GetFormattedSessionData(dbConn, jid)
-		return []string{"✅ Data ditemukan. Silakan periksa:\n\n📝 Ketik 'valid' untuk menyimpan atau 'edit' untuk mengubah data\n\n" + dataStr}
+		return []string{"_✅ Data ditemukan._\n _Silakan periksa hasil berikut ini:_ 🔍\n\n_📝 Ketik_ _*'valid'*_ _untuk menyimpan, atau_ _*'edit'*_ _untuk mengubah data._\n\n" + dataStr}
 
 	// Menu 2
 	case STEP_SURAT_MENU_UTAMA: // (Langkah 500)
 		switch text {
 		case "1": // 1. Ajukan Surat
 			if err := db.UpdateStepOnly(dbConn, jid, STEP_SURAT_VALIDASI_NIK); err != nil {
-				return []string{"Maaf, terjadi kesalahan sistem."}
+				return []string{"_Maaf, terjadi kesalahan sistem._"}
 			}
-			return []string{"Baik, silakan masukkan **NIK 16 digit** Anda untuk validasi data:"}
+			return []string{"_Baik, silakan masukkan NIK 16 digit Anda untuk validasi data:_"}
 		case "2": // 2. Cek Progres Surat
 			if err := db.UpdateStepOnly(dbConn, jid, STEP_SURAT_CEK_PROGRES); err != nil {
-				return []string{"Maaf, terjadi kesalahan sistem."}
+				return []string{"_Maaf, terjadi kesalahan sistem._"}
 			}
-			return []string{"Silakan masukkan *Nomor Unik Surat* Anda (contoh: 1234):"}
+			return []string{"_Silakan masukkan Nomor Unik Surat Anda (contoh: 1234):_"}
 		default:
-			return []string{"Pilihan tidak valid. Silakan pilih 1 atau 2."}
+			return []string{"_Pilihan tidak valid. Silakan pilih 1 atau 2._"}
 		}
 
 	case STEP_SURAT_VALIDASI_NIK: // (Langkah 501)
 		dataPenduduk, err := db.GetDataPendudukByNIK(dbConn, text)
 		if err != nil {
 			if err := db.DeleteDataEntrySession(dbConn, jid); err != nil { /*...*/ }
-			return []string{"❌ NIK Anda tidak terdaftar di sistem kami.\n\n📝 Silakan pilih *Menu 1 (Data Diri)* untuk melakukan input data diri terlebih dahulu sebelum membuat surat.\n\n" + getMainMenu()}
+			return []string{"_❌ NIK Anda tidak terdaftar di sistem kami._\n\n_📝 Silakan pilih Menu 1 (Data Diri) untuk melakukan input data diri terlebih dahulu sebelum membuat surat._\n\n" + getMainMenu()}
 		}
 		
 		// NIK Ditemukan. Simpan NIK ke kolom sesi DB
 		if err := db.UpdateSessionField(dbConn, jid, "surat_valid_nik", text); err != nil {
-             return []string{"Kesalahan menyimpan NIK. Coba lagi."}
+             return []string{"_Kesalahan menyimpan NIK. Coba lagi._"}
         }
 		
 		// Auto-fill data dasar
 		dataMap := surat.BuildDataMap(db.DataPenduduk(*dataPenduduk))
 		dataMapBytes, _ := json.Marshal(dataMap)
 		if err := db.UpdateSessionField(dbConn, jid, "surat_data_map", string(dataMapBytes)); err != nil {
-			return []string{"Kesalahan menyimpan data map. Coba lagi."}
+			return []string{"_Kesalahan menyimpan data map. Coba lagi._"}
 		}
 
 		if err := db.UpdateStepOnly(dbConn, jid, STEP_SURAT_PILIH_JENIS); err != nil {
-			return []string{"Maaf, terjadi kesalahan sistem."}
+			return []string{"_Maaf, terjadi kesalahan sistem._"}
 		}
 		return []string{
-			"NIK Tervalidasi. Silakan pilih jenis surat:\n" +
-				"1. Surat Domisili\n2. Surat Usaha\n3. SKTM Umum\n4. SKTM Tanggungan\n5. Surat Kematian",
+			"_NIK Tervalidasi. Silakan pilih jenis surat:_\n" +
+				"_1. Surat Domisili_\n_2. Surat Usaha_\n_3. SKTM Umum_\n_4. SKTM Tanggungan_\n_5. Surat Kematian_",
 		}
 
 	case STEP_SURAT_PILIH_JENIS: // (Langkah 502)
 		jenisSurat, ok := surat.JenisSuratMap[text]
 		if !ok {
-			return []string{"❌ Pilihan tidak valid. Masukkan angka 1-5 sesuai jenis surat."}
+			return []string{"_❌ Pilihan tidak valid. Masukkan angka 1-5 sesuai jenis surat._"}
 		}
 		
 		if err := db.SetEditField(dbConn, jid, string(jenisSurat)); err != nil { /*...*/ } // Simpan jenis surat
@@ -536,7 +465,7 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 		if err := db.UpdateSessionField(dbConn, jid, "surat_field_now", fieldList[0]); err != nil { /*...*/ }
 		
 		if err := db.UpdateStepOnly(dbConn, jid, STEP_SURAT_INPUT_DATA); err != nil {
-			return []string{"❌ Maaf, terjadi kesalahan sistem."}
+			return []string{"_❌ Maaf, terjadi kesalahan sistem._"}
 		}
 		
 		return []string{surat.GetPrompt(fieldList[0])}
@@ -544,11 +473,11 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 	case STEP_SURAT_INPUT_DATA: // (Langkah 503)
 		// Simpan jawaban sementara (kita akan gunakan 'edit_field' sebagai 'temp_answer')
 	if err := db.UpdateSessionField(dbConn, jid, "surat_temp_answer", text); err != nil {
-    return []string{"Kesalahan menyimpan jawaban sementara."}
+    return []string{"_Kesalahan menyimpan jawaban sementara._"}
 	}
 		
 		if err := db.UpdateStepOnly(dbConn, jid, STEP_SURAT_KONFIRMASI_FIELD); err != nil { /*...*/ }
-		return []string{fmt.Sprintf("Anda mengisi: *%s*\n\nKetik 'ya' untuk lanjut, atau 'edit' untuk mengulangi.", text)}
+		return []string{fmt.Sprintf("_Anda mengisi: %s_\n\n_Ketik_ _*'ya'*_ _untuk lanjut, atau_ _*'edit'*_ _untuk mengulangi._", text)}
 
 	case STEP_SURAT_KONFIRMASI_FIELD: // (Langkah 504)
 		currentField := session.SuratFieldNow.String
@@ -582,16 +511,16 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 			return handleSuratGeneration(dbConn, jid, session, sheetsClient, waClient)
 		}
 		
-		return []string{"Pilihan tidak valid. Ketik 'ya' atau 'edit'."}
+		return []string{"_Pilihan tidak valid. Ketik_ _*'ya'*_ _atau_ _*'edit'*_."}
 
 	case STEP_SURAT_CEK_PROGRES: // (Langkah 505)
 		unikID := strings.ToUpper(text)
 		status, err := sheetsClient.GetSuratStatus(unikID)
 		if err != nil {
-			return []string{fmt.Sprintf("Nomor Unik Surat *%s* tidak ditemukan.", unikID)}
+			return []string{fmt.Sprintf("_Nomor Unik Surat %s tidak ditemukan._", unikID)}
 		}
 		if err := db.DeleteDataEntrySession(dbConn, jid); err != nil { /*...*/ }
-		return []string{fmt.Sprintf("Status untuk surat *%s*:\n\n*STATUS: %s*", unikID, status)}
+		return []string{fmt.Sprintf("_Status untuk surat %s:_\n\n_STATUS: %s_", unikID, status)}
 
 
 	
@@ -600,7 +529,7 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 		// Validasi input ulasan
 		rating, err := strconv.Atoi(text)
 		if err != nil || rating < 1 || rating > 5 {
-			return []string{"Input tidak valid. Mohon berikan ulasan berupa angka 1, 2, 3, 4, atau 5."}
+			return []string{"_Input tidak valid. Mohon berikan ulasan berupa angka 1, 2, 3, 4, atau 5._"}
 		}
 
 		// Tentukan sheetName berdasarkan STEP
@@ -625,54 +554,54 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 		// Hapus sesi dan akhiri percakapan
 		if err := db.DeleteDataEntrySession(dbConn, jid); err != nil { /*...*/ }
 		
-		return []string{"✅ Terima kasih banyak atas ulasan Anda! Kami sangat menghargai masukan Anda.\n\n" + getMainMenu()}
+		return []string{"_✅ Terima kasih banyak atas ulasan Anda!_\n _Kami sangat menghargai masukan dan kepercayaan Anda._ 🙏\n\n" + getMainMenu()}
 	// 3. alur fitur pengaduan
 	case STEP_PENGADUAN_MENU:
 		switch text {
 		case "1": // 1. Ajukan Pengaduan
 			if err := db.UpdateStepOnly(dbConn, jid, STEP_PENGADUAN_VALIDASI_NIK); err != nil {
-				return []string{"❌ Maaf, terjadi kesalahan sistem."}
+				return []string{"_❌ Maaf, terjadi kesalahan sistem._"}
 			}
-			return []string{"📋 Untuk mengajukan pengaduan, silakan masukkan *NIK 16 digit* Anda untuk verifikasi:"}
+			return []string{"_📋 Untuk mengajukan pengaduan, silakan masukkan NIK 16 digit Anda untuk verifikasi:_"}
 		case "2": // 2. Cek Status Pengaduan
 			if err := db.UpdateStepOnly(dbConn, jid, STEP_PENGADUAN_CARI_ID); err != nil {
-				return []string{"❌ Maaf, terjadi kesalahan sistem."}
+				return []string{"_❌ Maaf, terjadi kesalahan sistem._"}
 			}
-			return []string{"🔍 Silakan masukkan *ID Pengaduan* Anda (contoh: P-101):"}
+			return []string{"_🔍 Silakan masukkan ID Pengaduan Anda (contoh: P-101):_"}
 		default:
-			return []string{"❌ Pilihan tidak valid. Silakan pilih 1 atau 2."}
+			return []string{"_❌ Pilihan tidak valid. Silakan pilih 1 atau 2._"}
 		}
 
 	case STEP_PENGADUAN_VALIDASI_NIK:
 		// 1. Validasi format NIK (opsional tapi disarankan)
 		if len(text) != 16 {
-			return []string{"❌ Format NIK salah. Harap masukkan 16 digit NIK Anda:"}
+			return []string{"_❌ Format NIK salah. Harap masukkan 16 digit NIK Anda:_"}
 		}
 
 		// 2. Cek NIK ke database permanen
 		isRegistered, err := db.CheckNIKExistsInPenduduk(dbConn, text)
 		if err != nil {
 			log.Printf("[ERROR] Gagal mengecek NIK di DB permanen: %v", err)
-			return []string{"❌ Maaf, terjadi kesalahan sistem saat validasi NIK."}
+			return []string{"_❌ Maaf, terjadi kesalahan sistem saat validasi NIK._"}
 		}
 
 		if isRegistered {
 			// 3. JIKA BERHASIL: Lanjutkan ke langkah kirim foto
 			if err := db.UpdateStepOnly(dbConn, jid, STEP_PENGADUAN_WAITING); err != nil {
-				return []string{"❌ Maaf, terjadi kesalahan sistem."}
+				return []string{"_❌ Maaf, terjadi kesalahan sistem._"}
 			}
-			return []string{"✅ NIK Anda terverifikasi. 📸 Silakan kirimkan *satu foto* pengaduan Anda, dan *tulis deskripsi* di bagian caption/keterangan gambar tersebut."}
+			return []string{"_✅ NIK Anda terverifikasi._ 📸 _Silakan kirimkan satu foto pengaduan Anda, dan tulis deskripsi di bagian caption/keterangan gambar tersebut._"}
 		} else {
 			// 4. JIKA GAGAL: Kembalikan ke menu utama
 			if err := db.DeleteDataEntrySession(dbConn, jid); err != nil { // Hapus sesi
 				log.Printf("[ERROR] Gagal hapus sesi setelah NIK tidak ditemukan: %v", err)
 			}
-			return []string{"❌ NIK Anda tidak terdaftar di sistem kami.\n\n📝 Silakan pilih *Menu 1 (Data Diri)* untuk melakukan input data diri terlebih dahulu sebelum membuat pengaduan.\n\n" + getMainMenu()}
+			return []string{"_❌ NIK Anda tidak terdaftar di sistem kami._\n\n_📝 Silakan pilih Menu 1 (Data Diri) untuk melakukan input data diri terlebih dahulu sebelum membuat pengaduan._\n\n" + getMainMenu()}
 		}
 
 	case STEP_PENGADUAN_WAITING:
 		// Jika user mengirim teks padahal kita menunggu gambar
-		return []string{"📸 Mohon kirimkan *gambar* pengaduan, bukan teks. Atau ketik 'reset' untuk batal."}
+		return []string{"_📸 Mohon kirimkan gambar pengaduan, bukan teks. Atau ketik_ _*'reset'*_ _untuk batal._"}
 
 	case STEP_PENGADUAN_CARI_ID:
 		// User mengirimkan ID, kita cari di Sheet
@@ -682,61 +611,61 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 		status, err := sheetsClient.GetPengaduanStatus(publicID)
 		if err != nil {
 			log.Printf("[WARN] Gagal mencari status untuk ID %s: %v", publicID, err)
-			return []string{fmt.Sprintf("❌ ID Pengaduan *%s* tidak ditemukan. Pastikan Anda memasukkan ID dengan benar.", publicID)}
+			return []string{fmt.Sprintf("_❌ ID Pengaduan %s tidak ditemukan. Pastikan Anda memasukkan ID dengan benar._", publicID)}
 		}
 
 		// Sukses! Hapus sesi dan kirim status
 		if err := db.DeleteDataEntrySession(dbConn, jid); err != nil {
 			log.Printf("[ERROR] Gagal hapus sesi setelah cek status: %v", err)
 		}
-		return []string{fmt.Sprintf("📋 Status untuk pengaduan *%s*:\n\n*STATUS: %s*", publicID, status)}
+		return []string{fmt.Sprintf("_📋 Status untuk pengaduan %s:_\n\n_STATUS: %s_", publicID, status)}
 	// --- 1_2. ALUR LANGKAH VIRTUAL (dari fitur input) ---
 	case STEP_NIK_DUPLICATE: // (101)
 		text = strings.ToLower(text)
 		if text == "edit nik" {
 			if err := db.UpdateStepOnly(dbConn, jid, STEP_NIK); err != nil {
-				return []string{"❌ Maaf, terjadi kesalahan sistem."}
+				return []string{"_❌ Maaf, terjadi kesalahan sistem._"}
 			}
 			return []string{formatQuestion(steps[STEP_NIK])}
 		} else if text == "stop" {
 			if err := db.DeleteDataEntrySession(dbConn, jid); err != nil {
-				return []string{"❌ Maaf, terjadi kesalahan sistem."}
+				return []string{"_❌ Maaf, terjadi kesalahan sistem._"}
 			}
-			return []string{"❌ Pendaftaran dibatalkan.\n\n" + getMainMenu()}
+			return []string{"_❌ Pendaftaran dibatalkan._\n\n" + getMainMenu()}
 		} else {
-			return []string{"⚠️ Pilihan tidak valid.\n\n📝 Ketik 'edit nik' untuk memasukkan NIK baru, atau 'stop' untuk membatalkan pendaftaran."}
+			return []string{"_⚠️ Pilihan tidak valid._\n\n_📝 Ketik_ _*'edit nik'*_ _untuk memasukkan NIK baru, atau_ _*'stop'*_ _untuk membatalkan pendaftaran._"}
 		}
 
 	case STEP_CHECKPOINT_DATA_INTI: // (100)
 		text = strings.ToLower(text)
 		if text == "lanjut" {
 			if err := db.UpdateStepOnly(dbConn, jid, STEP_GOLONGAN_DARAH); err != nil {
-				return []string{"❌ Maaf, terjadi kesalahan sistem."}
+				return []string{"_❌ Maaf, terjadi kesalahan sistem._"}
 			}
 			return []string{formatQuestion(steps[STEP_GOLONGAN_DARAH])}
 		} else if text == "cukup" {
 			data, err := db.GetFormattedSessionData(dbConn, jid)
 			if err != nil {
-				return []string{"❌ Maaf, terjadi kesalahan sistem."}
+				return []string{"_❌ Maaf, terjadi kesalahan sistem._"}
 			}
 			if err := db.UpdateStepOnly(dbConn, jid, STEP_CONFIRMATION); err != nil {
-				return []string{"❌ Maaf, terjadi kesalahan sistem."}
+				return []string{"_❌ Maaf, terjadi kesalahan sistem._"}
 			}
-			return []string{"📝 Ketik 'valid' jika sudah benar atau ketik 'edit' untuk mengubah data.\n\n" + data}
+			return []string{"_📝 Ketik_ _*'valid'*_ _jika data sudah benar atau_ _*'edit'*_ _untuk mengubah data._\n\n" + data}
 		} else {
-			return []string{"❌ Mohon ketik 'lanjut' atau 'cukup'."}
+			return []string{"_❌ Mohon ketik_ _*'lanjut'*_ _atau_ _*'cukup'*_."}
 		}
 
 	// --- 5. ALUR KONFIRMASI & EDIT (dari fitur input & edit) ---
-	case STEP_CONFIRMATION, STEP_EDIT: // (42, 43)
+	case STEP_CONFIRMATION, STEP_EDIT: // (40, 41)
 		if session.CurrentStep == STEP_CONFIRMATION {
 			text = strings.ToLower(text)
 			if text != "valid" && text != "edit" {
 				data, err := db.GetFormattedSessionData(dbConn, jid)
 				if err != nil {
-					return []string{"❌ Maaf, terjadi kesalahan sistem."}
+					return []string{"_❌ Maaf, terjadi kesalahan sistem._"}
 				}
-				return []string{"📝 Ketik 'valid' jika sudah benar atau ketik 'edit' untuk mengubah data.\n\n" + data}
+				return []string{"_📝 Ketik_ _*'valid'*_ _jika data sudah benar atau_ _*'edit'*_ _untuk mengubah data._\n\n" + data}
 			}
 		}
 
@@ -745,11 +674,11 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 			fullSession, err := db.GetFullSessionData(dbConn, jid)
 			if err != nil {
 				log.Printf("[ERROR] Gagal mengambil data lengkap: %v", err)
-				return []string{"Maaf, terjadi kesalahan sistem saat mengambil data."}
+				return []string{"_Maaf, terjadi kesalahan sistem saat mengambil data._"}
 			}
 
 			if err := db.SaveDataPenduduk(dbConn, *fullSession); err != nil {
-				return []string{"Maaf, terjadi kesalahan besar saat menyimpan ke database."}
+				return []string{"_Maaf, terjadi kesalahan besar saat menyimpan ke database._"}
 			}
 
 			go func() {
@@ -775,30 +704,29 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 				log.Printf("[ERROR] Gagal pindah ke langkah ulasan: %v", err)
 			}
 			// 3. Kirim pesan sukses + pertanyaan ulasan
-			return []string{"✅ Terima kasih! Data Anda telah berhasil disimpan.\n\n" +
-				"Sebagai langkah terakhir, mohon berikan ulasan Anda (1-5) untuk layanan *Input Data Diri* ini:\n(1 = Sangat Buruk, 5 = Sangat Baik)"}
+			return []string{"_✅ Terima kasih! Data Anda telah berhasil disimpan._\n\n_Sebagai langkah terakhir, mohon berikan ulasan Anda (1-5) untuk layanan Input Data Diri ini:_\n_(1 = Sangat Buruk, 5 = Sangat Baik)_"}
 
 		case "edit":
 			data, err := db.GetFormattedSessionData(dbConn, jid)
 			if err != nil {
 				log.Printf("[ERROR] Failed to get formatted data: %v", err)
-				return []string{"❌ Maaf, terjadi kesalahan sistem"}
+				return []string{"_❌ Maaf, terjadi kesalahan sistem_"}
 			}
 			if err := db.SetEditField(dbConn, jid, ""); err != nil {
 				log.Printf("[ERROR] Failed to clear edit field: %v", err)
-				return []string{"❌ Maaf, terjadi kesalahan sistem"}
+				return []string{"_❌ Maaf, terjadi kesalahan sistem_"}
 			}
 			if err := db.UpdateStepOnly(dbConn, jid, STEP_EDIT); err != nil {
 				log.Printf("[ERROR] Failed to update step: %v", err)
-				return []string{"❌ Maaf, terjadi kesalahan sistem"}
+				return []string{"_❌ Maaf, terjadi kesalahan sistem_"}
 			}
-			return []string{"📝 Ketik nomor yang ingin anda edit (1-39)\n\n" + data}
+			return []string{"_📝 Ketik nomor yang ingin anda edit (1-39)_\n\n" + data}
 
 		default: // Ini adalah logika saat user mengedit field
 			editField, err := db.GetEditField(dbConn, jid)
 			if err != nil {
 				log.Printf("[ERROR] Failed to get edit field: %v", err)
-				return []string{"❌ Maaf, terjadi kesalahan sistem"}
+				return []string{"_❌ Maaf, terjadi kesalahan sistem_"}
 			}
 
 			log.Printf("[DEBUG] STEP_EDIT - editField: '%s', isEmpty: %v", editField, editField == "")
@@ -809,15 +737,15 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 				if err != nil || num < 1 || num > 39 {
 					data, err := db.GetFormattedSessionData(dbConn, jid)
 					if err != nil {
-						return []string{"❌ Maaf, terjadi kesalahan sistem"}
+						return []string{"_❌ Maaf, terjadi kesalahan sistem_"}
 					}
-					return []string{fmt.Sprintf("⚠️ Nomor tidak valid\n\n📝 Silakan ketik:\n- Nomor 1-39 untuk mengedit data\n- 'valid' untuk menyimpan\n\n%s", data)}
+					return []string{fmt.Sprintf("_⚠️ Nomor tidak valid_\n\n_📝 Silakan ketik:_\n_- Nomor 1-39 untuk mengedit data_\n_-_ _*'valid'*_ _untuk menyimpan_\n\n%s", data)}
 				}
 
 				step := steps[num]
 				if err := db.SetEditField(dbConn, jid, step.Field); err != nil {
 					log.Printf("[ERROR] Failed to set edit field: %v", err)
-					return []string{"❌ Maaf, terjadi kesalahan sistem"}
+					return []string{"_❌ Maaf, terjadi kesalahan sistem_"}
 				}
 				if step.Options != nil {
 					return []string{(formatQuestionWithOptionsForError(step.Question, step.Options))}
@@ -841,7 +769,7 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 				// Jika step tidak ditemukan, kembalikan error
 				if currentStep.Field == "" {
 					log.Printf("[ERROR] Step not found for field: %s", editField)
-					return []string{"❌ Maaf, terjadi kesalahan sistem - field tidak ditemukan"}
+					return []string{"_❌ Maaf, terjadi kesalahan sistem - field tidak ditemukan_"}
 				}
 				
 				value, err := validateInput(text, currentStep)
@@ -849,26 +777,26 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 					return []string{err.Error()}
 				}
 				if err := db.UpdateDataEntrySession(dbConn, jid, editField, value); err != nil {
-					return []string{"❌ Maaf, terjadi kesalahan sistem"}
+					return []string{"_❌ Maaf, terjadi kesalahan sistem_"}
 				}
 				if err := db.SetEditField(dbConn, jid, ""); err != nil {
-					return []string{"❌ Maaf, terjadi kesalahan sistem"}
+					return []string{"_❌ Maaf, terjadi kesalahan sistem_"}
 				}
 				data, err := db.GetFormattedSessionData(dbConn, jid)
 				if err != nil {
-					return []string{"❌ Maaf, terjadi kesalahan sistem"}
+					return []string{"_❌ Maaf, terjadi kesalahan sistem_"}
 				}
 				if err := db.UpdateStepOnly(dbConn, jid, STEP_EDIT); err != nil {
-					return []string{"❌ Maaf, terjadi kesalahan sistem"}
+					return []string{"_❌ Maaf, terjadi kesalahan sistem_"}
 				}
 				return []string{
-					"✅ Data berhasil diupdate\n\n📝 Silakan ketik:\n- Nomor 1-39 untuk mengedit data lainnya\n- 'valid' jika sudah selesai\n\n" + data,
+					"_✅ Data berhasil diupdate_\n\n_📝 Silakan ketik:_\n_- Nomor 1-39 untuk mengedit data lainnya_\n_-_ _*'valid'*_ _jika data sudah selesai_\n\n" + data,
 				}
 			}
 
 			// Jika sampai sini berarti ada kondisi tidak terduga
 			log.Printf("[ERROR] Unexpected state in STEP_EDIT - editField: '%s'", editField)
-			return []string{"❌ Maaf, terjadi kesalahan sistem - kondisi tidak valid"}
+			return []string{"_❌ Maaf, terjadi kesalahan sistem - kondisi tidak valid_"}
 		}
 
 	// --- 6. ALUR NORMAL INPUT DATA (LANGKAH 1-41) ---
@@ -877,12 +805,12 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 		if !ok { // Seharusnya ini adalah langkah setelah 39
 			data, err := db.GetFormattedSessionData(dbConn, jid)
 			if err != nil {
-				return []string{"❌ Maaf, terjadi kesalahan sistem."}
+				return []string{"_❌ Maaf, terjadi kesalahan sistem._"}
 			}
 			if err := db.UpdateStepOnly(dbConn, jid, STEP_CONFIRMATION); err != nil {
-				return []string{"❌ Maaf, terjadi kesalahan sistem."}
+				return []string{"_❌ Maaf, terjadi kesalahan sistem._"}
 			}
-			return []string{"📝 Ketik 'valid' jika sudah benar atau ketik 'edit' untuk mengubah data.\n\n" + data}
+			return []string{"_📝 Ketik_ _*'valid'*_ _jika data sudah benar atau_ _*'edit'*_ _untuk mengubah data._\n\n" + data}
 		}
 
 		// (Khusus untuk langkah 1)
@@ -904,25 +832,25 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 			isDuplicate, err := db.CheckNIKExistsInPenduduk(dbConn, nikValue)
 			if err != nil {
 				log.Printf("[ERROR] Gagal mengecek NIK di DB permanen: %v", err)
-				return []string{"❌ Maaf, terjadi kesalahan sistem saat validasi NIK (DB)."}
+				return []string{"_❌ Maaf, terjadi kesalahan sistem saat validasi NIK._"}
 			}
 			if isDuplicate {
 				if err := db.UpdateStepOnly(dbConn, jid, STEP_NIK_DUPLICATE); err != nil {
-					return []string{"❌ Maaf, terjadi kesalahan sistem."}
+					return []string{"_❌ Maaf, terjadi kesalahan sistem._"}
 				}
-				return []string{"⚠️ NIK ini sudah terdaftar di data penduduk desa.\n\n📝 Ketik 'edit nik' untuk memasukkan NIK baru, atau 'stop' untuk membatalkan pendaftaran."}
+				return []string{"_⚠️ NIK ini sudah terdaftar di data penduduk desa._\n\n_📝 Ketik_ _*'edit nik'*_ _untuk memasukkan NIK baru, atau_ _*'stop'*_ _untuk membatalkan pendaftaran._"}
 			}
 			// 2. Cek ke Sesi lain (Sementara)
 			isDuplicate, err = db.CheckNIKExists(dbConn, nikValue, jid)
 			if err != nil {
 				log.Printf("[ERROR] Gagal mengecek NIK di DB sesi: %v", err)
-				return []string{"❌ Maaf, terjadi kesalahan sistem saat validasi NIK (Sesi)."}
+				return []string{"_❌ Maaf, terjadi kesalahan sistem saat validasi NIK._"}
 			}
 			if isDuplicate {
 				if err := db.UpdateStepOnly(dbConn, jid, STEP_NIK_DUPLICATE); err != nil {
-					return []string{"❌ Maaf, terjadi kesalahan sistem."}
+					return []string{"_❌ Maaf, terjadi kesalahan sistem._"}
 				}
-				return []string{"⚠️ NIK ini sedang didaftarkan oleh pengguna lain saat ini.\n\n📝 Ketik 'edit nik' untuk memasukkan NIK baru, atau 'stop' untuk membatalkan pendaftaran."}
+				return []string{"_⚠️ NIK ini sedang didaftarkan oleh pengguna lain saat ini._\n\n_📝 Ketik_ _*'edit nik'*_ _untuk memasukkan NIK baru, atau_ _*'stop'*_ _untuk membatalkan pendaftaran._"}
 			}
 		}
 		// --- AKHIR VALIDASI NIK ---
@@ -931,30 +859,30 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 		if err := db.UpdateDataEntrySession(dbConn, jid, stepInfo.Field, value); err != nil {
 			log.Printf("[ERROR] Failed to update session: %v", err)
 			if strings.Contains(err.Error(), "violates foreign key constraint") {
-				return []string{fmt.Sprintf("⚠️ Pilihan tidak valid. Silakan pilih nomor dari daftar berikut:\n\n%s",
+				return []string{fmt.Sprintf("_⚠️ Pilihan tidak valid. Silakan pilih nomor dari daftar berikut:_\n\n%s",
 					formatQuestionWithOptions(stepInfo.Question, stepInfo.Options))}
-				return []string{"❌ Maaf, terjadi kesalahan sistem."}
+				return []string{"_❌ Maaf, terjadi kesalahan sistem._"}
 			}
 		}
 
 		// Cek checkpoint NAMA IBU
 		if session.CurrentStep == STEP_DATA_INTI {
 			if err := db.UpdateStepOnly(dbConn, jid, STEP_CHECKPOINT_DATA_INTI); err != nil {
-				return []string{"❌ Maaf, terjadi kesalahan sistem."}
+				return []string{"_❌ Maaf, terjadi kesalahan sistem._"}
 			}
-			return []string{"✅ Data inti (sampai Suku) sudah tersimpan.\n\n❓ Apakah Anda ingin melanjutkan mengisi data pelengkap (NIK Ayah, NIK Ibu, Golongan Darah, dll)??\n\n📝 Ketik 'lanjut' untuk melanjutkan atau 'cukup' jika sudah selesai."}
+			return []string{"_✅ Data inti (sampai Suku) sudah tersimpan._\n\n_❓ Apakah Anda ingin melanjutkan mengisi data pelengkap (NIK Ayah, NIK Ibu, Golongan Darah, dll)?_\n\n_📝 Ketik_ _*'lanjut'*_ _untuk melanjutkan atau_ _*'cukup'*_ _jika sudah selesai._"}
 		}
 
 		// Jika sudah 39 langkah, tampilkan konfirmasi
 		if session.CurrentStep == 39 { // STEP sebelum CONFIRMATION
 			data, err := db.GetFormattedSessionData(dbConn, jid)
 			if err != nil {
-				return []string{"❌ Maaf, terjadi kesalahan sistem."}
+				return []string{"_❌ Maaf, terjadi kesalahan sistem._"}
 			}
 			if err := db.UpdateStepOnly(dbConn, jid, STEP_CONFIRMATION); err != nil {
-				return []string{"❌ Maaf, terjadi kesalahan sistem."}
+				return []string{"_❌ Maaf, terjadi kesalahan sistem._"}
 			}
-			return []string{"📝 Ketik 'valid' jika sudah benar atau ketik 'edit' untuk mengubah data.\n\n" + data}
+			return []string{"_📝 Ketik_ _*'valid'*_ _jika data sudah benar atau_ _*'edit'*_ _untuk mengubah data._\n\n" + data}
 		}
 
 		// Untuk step normal (1-38), lanjut ke step berikutnya dengan pertanyaan berikutnya
@@ -962,17 +890,17 @@ func HandleDataEntry(dbConn *sqlx.DB, jid, text string, session *db.DataEntrySes
 			nextStep := session.CurrentStep + 1
 			if nextStepInfo, ok := steps[nextStep]; ok {
 				if err := db.UpdateStepOnly(dbConn, jid, nextStep); err != nil {
-					return []string{"❌ Maaf, terjadi kesalahan sistem."}
+					return []string{"_❌ Maaf, terjadi kesalahan sistem._"}
 				}
 				return []string{formatQuestion(nextStepInfo)}
 			}
 		}
 
-		return []string{"❌ Maaf, terjadi kesalahan sistem."}
+		return []string{"_❌ Maaf, terjadi kesalahan sistem._"}
 	}
 
 	// Default catch-all (seharusnya tidak pernah tercapai)
-	return []string{"❌ Terjadi error pada alur. Sesi direset.\n\n" + getMainMenu()}
+	return []string{"_❌ Terjadi error pada alur. Sesi direset._\n\n" + getMainMenu()}
 }
 
 func handleSuratGeneration(dbConn *sqlx.DB, jid string, session *db.DataEntrySession, sheetsClient *sheets.SheetsClient, waClient *whatsmeow.Client) []string {
@@ -980,13 +908,13 @@ func handleSuratGeneration(dbConn *sqlx.DB, jid string, session *db.DataEntrySes
 	fullSession, err := db.GetFullSessionData(dbConn, jid)
 	if err != nil {
 		log.Printf("[SURAT-ERROR] Gagal mengambil data sesi lengkap: %v", err)
-		return []string{"Terjadi kesalahan saat mengambil data sesi Anda."}
+		return []string{"_Terjadi kesalahan saat mengambil data sesi Anda._"}
 	}
 
 	dataMap := make(map[string]string)
 	if err := json.Unmarshal([]byte(fullSession.SuratDataMap.String), &dataMap); err != nil {
 		log.Printf("[SURAT-ERROR] Gagal unmarshal data map: %v", err)
-		return []string{"Terjadi kesalahan data map. Silakan 'reset'."}
+		return []string{"_Terjadi kesalahan data map. Silakan_ _*'reset'*_."}
 	}
 	
 	jenisStr := fullSession.EditField.String
@@ -1007,7 +935,7 @@ func handleSuratGeneration(dbConn *sqlx.DB, jid string, session *db.DataEntrySes
 	_, err = surat.GenerateAsync(jenis, dataMap, "temp", jid, waClient, pdfName, unikID, sheetsClient)
 	if err != nil {
 		log.Printf("[SURAT-ERROR] %v", err)
-		return []string{"Terjadi kesalahan saat memproses surat."}
+		return []string{"_Terjadi kesalahan saat memproses surat._"}
 	}
 
 	if err := db.UpdateSessionField(dbConn, jid, "surat_temp_answer", namaSurat); err != nil {
@@ -1019,8 +947,8 @@ func handleSuratGeneration(dbConn *sqlx.DB, jid string, session *db.DataEntrySes
 	}
 	// 3. Kirim pesan sukses + pertanyaan ulasan
 	return []string{
-		fmt.Sprintf("Surat *%s* Anda sedang diproses dan akan segera dikirimkan. Harap tunggu...\n\n", namaSurat) +
-			"Sebagai langkah terakhir, mohon berikan ulasan Anda (1-5) untuk layanan pengajuan surat ini:\n(1 = Sangat Buruk, 5 = Sangat Baik)",
+		fmt.Sprintf("_Surat %s Anda sedang diproses dan akan segera dikirimkan. Harap tunggu..._\n\n", namaSurat) +
+			"_Sebagai langkah terakhir, mohon berikan ulasan Anda (1-5) untuk layanan pengajuan surat ini:_\n_(1 = Sangat Buruk, 5 = Sangat Baik)_",
 	}
 
 
@@ -1028,7 +956,7 @@ func handleSuratGeneration(dbConn *sqlx.DB, jid string, session *db.DataEntrySes
 	db.DeleteDataEntrySession(dbConn, jid)
 
 	return []string{
-		fmt.Sprintf("Surat *%s* Anda sedang diproses dan akan segera dikirimkan. Harap tunggu...", surat.NamaSuratmap[jenis]),
+		fmt.Sprintf("_Surat %s Anda sedang diproses dan akan segera dikirimkan. Harap tunggu..._", surat.NamaSuratmap[jenis]),
 	}
 }
 
@@ -1075,11 +1003,11 @@ func formatQuestionWithOptionsForError(question string, options map[int]string) 
 
 	// Build output using sorted IDs
 	for _, id := range ids {
-		builder.WriteString(fmt.Sprintf("\n%d. %s", id, options[id]))
+		builder.WriteString(fmt.Sprintf("\n_%d. %s_", id, options[id]))
 	}
 	
 	// Add example at the end with spasi
-	builder.WriteString("\n\n📝 Contoh input: 1")
+	builder.WriteString("\n\n_📝 Contoh input: 1_")
 	
 	return builder.String()
 }
@@ -1116,7 +1044,6 @@ func validateInput(text string, step Step) (interface{}, error) {
 		return choice, nil
 	}
 
-	// Helper function to build error message with example
 	buildErrorMsg := func(errorMsg string) string {
 		var result strings.Builder
 		result.WriteString(errorMsg)
@@ -1126,92 +1053,92 @@ func validateInput(text string, step Step) (interface{}, error) {
 		// Add example based on field type
 		switch step.Field {
 		case "nik", "no_kk", "nik_ayah", "nik_ibu":
-			result.WriteString("\n\n📝 Contoh: 3173012345678901")
+			result.WriteString("\n\n_📝 Contoh: 3173012345678901_")
 		case "rt", "dusun":
-			result.WriteString("\n\n📝 Contoh: 002")
-		case "nama", "nama_ayah", "nama_ibu":
-			if step.Field == "nama_ayah" {
-				result.WriteString("\n\n📝 Contoh: Ahmad Suhaimi")
-			} else {
-				result.WriteString("\n\n📝 Contoh: Ida Suheti")
-			}
+			result.WriteString("\n\n_📝 Contoh: 002_")
+		case "nama":
+    		result.WriteString("\n\n_📝 Contoh: Reyhan Morgan_")
+		case "nama_ayah":
+    		result.WriteString("\n\n_📝 Contoh: Ahmad Suhaimi_")
+		case "nama_ibu":
+    		result.WriteString("\n\n_📝 Contoh: Ida Suheti_")
 		case "tempat_lahir":
-			result.WriteString("\n\n📝 Contoh: Bandung")
+			result.WriteString("\n\n_📝 Contoh: Bandung_")
 		case "tanggal_lahir":
-			result.WriteString("\n\n📝 Contoh: 15-05-1990")
+			result.WriteString("\n\n_📝 Contoh: 15-05-1990_")
 		case "alamat_sekarang":
-			result.WriteString("\n\n📝 Contoh: Jl. Merdeka No. 123")
+			result.WriteString("\n\n_📝 Contoh: Jl. Merdeka No. 123_")
 		case "akta_lahir", "dokumen_passport", "dokumen_kitas", "akta_perkawinan", "akta_perceraian":
-			result.WriteString("\n\n📝 Contoh: AK-2023-000123")
+			result.WriteString("\n\n_📝 Contoh: AK-2023-000123_")
 		case "tanggal_akhir_passport", "tanggal_perkawinan", "tanggal_perceraian":
-			result.WriteString("\n\n📝 Contoh: 31-12-2030")
+			result.WriteString("\n\n_📝 Contoh: 31-12-2030_")
 		case "tag_card":
-			result.WriteString("\n\n📝 Contoh: TAG-2023-001")
+			result.WriteString("\n\n_📝 Contoh: TAG-2023-001_")
 		case "no_asuransi":
-			result.WriteString("\n\n📝 Contoh: JKN-1234567890")
+			result.WriteString("\n\n_📝 Contoh: JKN-1234567890_")
 		}
 		return result.String()
 	}
-
+	
 	// Field-specific validations
 	switch step.Field {
 	case "nik", "no_kk", "nik_ayah", "nik_ibu":
 		if len(text) != 16 {
-			return nil, fmt.Errorf(buildErrorMsg(fmt.Sprintf("⚠️ %s harus 16 digit, (saat ini: %d)", label, len(text))))
+			return nil, errors.New(buildErrorMsg(fmt.Sprintf("_⚠️ %s harus 16 digit, (saat ini: %d)_", label, len(text))))
 		}
 		if _, err := strconv.ParseInt(text, 10, 64); err != nil {
-			return nil, fmt.Errorf(buildErrorMsg(fmt.Sprintf("⚠️ %s hanya boleh berisi angka", label)))
+			return nil, errors.New(buildErrorMsg(fmt.Sprintf("_⚠️ %s hanya boleh berisi angka_", label)))
 		}
 		return text, nil
 	case "dusun", "rt":
 		if len(text) != 3 {
-			return nil, fmt.Errorf(buildErrorMsg(fmt.Sprintf("⚠️ %s harus 3 digit, (saat ini: %d)", label, len(text))))
+			return nil, errors.New(buildErrorMsg(fmt.Sprintf("_⚠️ %s harus 3 digit, (saat ini: %d)_", label, len(text))))
 		}
 		if _, err := strconv.Atoi(text); err != nil {
-			return nil, fmt.Errorf(buildErrorMsg(fmt.Sprintf("⚠️ %s hanya boleh berisi angka", label)))
+			return nil, errors.New(buildErrorMsg(fmt.Sprintf("_⚠️ %s hanya boleh berisi angka_", label)))
 		}
 		return text, nil
 	case "nama", "nama_ayah", "nama_ibu":
 		if len(text) < 2 {
-			return nil, fmt.Errorf(buildErrorMsg(fmt.Sprintf("⚠️ %s terlalu pendek, minimal 2 karakter (saat ini: %d)", label, len(text))))
+			return nil, errors.New(buildErrorMsg(fmt.Sprintf("_⚠️ %s terlalu pendek, minimal 2 karakter (saat ini: %d)_", label, len(text))))
 		}
 		if strings.ContainsAny(text, "0123456789") {
-			return nil, fmt.Errorf(buildErrorMsg(fmt.Sprintf("⚠️ %s tidak boleh mengandung angka", label)))
+			return nil, errors.New(buildErrorMsg(fmt.Sprintf("_⚠️ %s tidak boleh mengandung angka_", label)))
 		}
 		if strings.ContainsAny(text, "!@#$%^&*()_+=[]{};:'\"\\|,.<>/?") {
-			return nil, fmt.Errorf(buildErrorMsg(fmt.Sprintf("⚠️ %s tidak boleh mengandung karakter khusus", label)))
+			return nil, errors.New(buildErrorMsg(fmt.Sprintf("_⚠️ %s tidak boleh mengandung karakter khusus_", label)))
 		}
 	case "tempat_lahir":
 		if len(text) < 3 {
-			return nil, fmt.Errorf(buildErrorMsg(fmt.Sprintf("⚠️ %s terlalu pendek, minimal 3 karakter (saat ini: %d)", label, len(text))))
+			return nil, errors.New(buildErrorMsg(fmt.Sprintf("_⚠️ %s terlalu pendek, minimal 3 karakter (saat ini: %d)_", label, len(text))))
 		}
 		if strings.ContainsAny(text, "0123456789") {
-			return nil, fmt.Errorf(buildErrorMsg(fmt.Sprintf("⚠️ %s tidak boleh mengandung angka", label)))
+			return nil, errors.New(buildErrorMsg(fmt.Sprintf("_⚠️ %s tidak boleh mengandung angka_", label)))
 		}
 	case "alamat_sekarang":
 		if len(text) < 5 {
-			return nil, fmt.Errorf(buildErrorMsg(fmt.Sprintf("⚠️ %s terlalu pendek, minimal 5 karakter (saat ini: %d)", label, len(text))))
+			return nil, errors.New(buildErrorMsg(fmt.Sprintf("_⚠️ %s terlalu pendek, minimal 5 karakter (saat ini: %d)_", label, len(text))))
 		}
 	case "tag_card":
 		if len(text) < 3 {
-			return nil, fmt.Errorf(buildErrorMsg(fmt.Sprintf("⚠️ %s terlalu pendek, minimal 3 karakter (saat ini: %d)", label, len(text))))
+			return nil, errors.New(buildErrorMsg(fmt.Sprintf("_⚠️ %s terlalu pendek, minimal 3 karakter (saat ini: %d)_", label, len(text))))
 		}
 		if !regexp.MustCompile(`^[a-zA-Z0-9-/]+$`).MatchString(text) {
-			return nil, fmt.Errorf(buildErrorMsg(fmt.Sprintf("⚠️ %s hanya boleh berisi huruf, angka, dash (-) dan garis miring (/)", label)))
+			return nil, errors.New(buildErrorMsg(fmt.Sprintf("_⚠️ %s hanya boleh berisi huruf, angka, dash (-) dan garis miring (/)_", label)))
 		}
 	case "no_asuransi":
 		if len(text) < 3 {
-			return nil, fmt.Errorf(buildErrorMsg(fmt.Sprintf("⚠️ %s terlalu pendek, minimal 3 karakter (saat ini: %d)", label, len(text))))
+			return nil, errors.New(buildErrorMsg(fmt.Sprintf("_⚠️ %s terlalu pendek, minimal 3 karakter (saat ini: %d)_", label, len(text))))
 		}
 		if !regexp.MustCompile(`^[a-zA-Z0-9-/]+$`).MatchString(text) {
-			return nil, fmt.Errorf(buildErrorMsg(fmt.Sprintf("⚠️ %s hanya boleh berisi huruf, angka, dash (-) dan garis miring (/)", label)))
+			return nil, errors.New(buildErrorMsg(fmt.Sprintf("_⚠️ %s hanya boleh berisi huruf, angka, dash (-) dan garis miring (/)_", label)))
 		}
 	case "akta_lahir", "dokumen_passport", "dokumen_kitas", "akta_perkawinan", "akta_perceraian":
 		if len(text) < 3 {
-			return nil, fmt.Errorf(buildErrorMsg(fmt.Sprintf("⚠️ nomor dokumen terlalu pendek, minimal 3 karakter (saat ini: %d)", len(text))))
+			return nil, errors.New(buildErrorMsg("_⚠️ nomor dokumen terlalu pendek, minimal 3 karakter_"))
 		}
 		if !regexp.MustCompile(`^[a-zA-Z0-9-/]+$`).MatchString(text) {
-			return nil, fmt.Errorf(buildErrorMsg("⚠️ nomor dokumen hanya boleh berisi huruf, angka, dash (-) dan garis miring (/)"))
+			return nil, errors.New(buildErrorMsg("_⚠️ nomor dokumen hanya boleh berisi huruf, angka, dash (-) dan garis miring (/)_"))
 		}
 	}
 
@@ -1226,35 +1153,35 @@ func formatQuestion(step Step) string {
 	var result strings.Builder
 	
 	// Add format hint at the beginning for all questions
-	result.WriteString("💡 Mohon masukkan data sesuai format yang tersedia.\n\n")
+	result.WriteString("_💡 Mohon masukkan data sesuai format yang tersedia._\n\n")
 	result.WriteString(step.Question)
 
 	// Add hints for specific fields
 	switch step.Field {
 	case "nik", "no_kk", "nik_ayah", "nik_ibu":
-		result.WriteString("\n\n📝 Contoh: 3173012345678901")
+		result.WriteString("\n\n_📝 Contoh: 3173012345678901_")
 	case "rt", "dusun":
-		result.WriteString("\n\n📝 Contoh: 002")
-	case "nama", "nama_ayah", "nama_ibu":
-		if step.Field == "nama_ayah" {
-			result.WriteString("\n\n📝 Contoh: Ahmad Suhaimi")
-		} else {
-			result.WriteString("\n\n📝 Contoh: Ida Suheti")
-		}
+		result.WriteString("\n\n_📝 Contoh: 002_")
+	case "nama":
+    result.WriteString("\n\n_📝 Contoh: Reyhan Morgan_")
+	case "nama_ayah":
+    result.WriteString("\n\n_📝 Contoh: Ahmad Suhaimi_")
+	case "nama_ibu":
+    result.WriteString("\n\n_📝 Contoh: Ida Suheti_")
 	case "tempat_lahir":
-		result.WriteString("\n\n📝 Contoh: Bandung")
+		result.WriteString("\n\n_📝 Contoh: Bandung_")
 	case "tanggal_lahir":
-		result.WriteString("\n\n📝 Contoh: 15-05-1990")
+		result.WriteString("\n\n_📝 Contoh: 15-05-1990_")
 	case "alamat_sekarang":
-		result.WriteString("\n\n📝 Contoh: Jl. Merdeka No. 123")
+		result.WriteString("\n\n_📝 Contoh: Jl. Merdeka No. 123_")
 	case "akta_lahir", "dokumen_passport", "dokumen_kitas", "akta_perkawinan", "akta_perceraian":
-		result.WriteString("\n\n📝 Contoh: AK-2023-000123")
+		result.WriteString("\n\n_📝 Contoh: AK-2023-000123_")
 	case "tanggal_akhir_passport", "tanggal_perkawinan", "tanggal_perceraian":
-		result.WriteString("\n\n📝 Contoh: 31-12-2030")
+		result.WriteString("\n\n_📝 Contoh: 31-12-2030_")
 	case "tag_card":
-		result.WriteString("\n\n📝 Contoh: TAG-2023-001")
+		result.WriteString("\n\n_📝 Contoh: TAG-2023-001_")
 	case "no_asuransi":
-		result.WriteString("\n\n📝 Contoh: JKN-1234567890")
+		result.WriteString("\n\n_📝 Contoh: JKN-1234567890_")
 	}
 
 	return result.String()
@@ -1264,7 +1191,7 @@ func formatQuestionWithOptions(question string, options map[int]string) string {
 	var builder strings.Builder
 	
 	// Add format hint at the beginning
-	builder.WriteString("💡 Mohon masukkan pilihan sesuai format yang tersedia.\n\n")
+	builder.WriteString("_💡 Mohon masukkan pilihan sesuai format yang tersedia._\n\n")
 	builder.WriteString(question)
 
 	// Create sorted slice of IDs
@@ -1277,11 +1204,11 @@ func formatQuestionWithOptions(question string, options map[int]string) string {
 
 	// Build output using sorted IDs
 	for _, id := range ids {
-		builder.WriteString(fmt.Sprintf("\n%d. %s", id, options[id]))
+		builder.WriteString(fmt.Sprintf("\n_%d. %s_", id, options[id]))
 	}
 	
 	// Add example at the end with spasi
-	builder.WriteString("\n\n📝 Contoh input: 1")
+	builder.WriteString("\n\n_📝 Contoh input: 1_")
 	
 	return builder.String()
 }

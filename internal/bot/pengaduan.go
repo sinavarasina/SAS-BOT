@@ -34,26 +34,26 @@ func HandleImagePengaduan(
 	data, err := client.Download(context.Background(), imageMsg)
 	if err != nil {
 		log.Printf("[ERROR] Failed to download image from %s: %v", senderJID, err)
-		sendMessageSafe(client, chatJID, "Gagal mengunduh gambar. Mohon coba lagi.")
+		sendMessageSafe(client, chatJID, "_Gagal mengunduh gambar. Mohon coba lagi._")
 		return
 	}
 
 	// Save temporarily to local storage
 	if err := os.MkdirAll("uploads", os.ModePerm); err != nil {
 		log.Printf("[ERROR] Failed to create uploads directory: %v", err)
-		sendMessageSafe(client, chatJID, "Terjadi kesalahan sistem saat memproses laporan Anda.")
+		sendMessageSafe(client, chatJID, "_Terjadi kesalahan sistem saat memproses laporan Anda._")
 		return
 	}
 
 	filePath := fmt.Sprintf("uploads/%s.jpg", messageID)
 	if err := os.WriteFile(filePath, data, 0600); err != nil {
 		log.Printf("[ERROR] Failed to save image from %s: %v", senderJID, err)
-		sendMessageSafe(client, chatJID, "Terjadi kesalahan saat menyimpan gambar.")
+		sendMessageSafe(client, chatJID, "_Terjadi kesalahan saat menyimpan gambar._")
 		return
 	}
 
 	// Send instant acknowledgment to user
-	sendMessageSafe(client, chatJID, "Terima kasih, pengaduan Anda sudah kami terima dan sedang diproses...")
+	sendMessageSafe(client, chatJID, "_Terima kasih, pengaduan Anda sudah kami terima dan sedang diproses..._")
 
 	// Run heavy tasks asynchronously
 	go func() {
@@ -64,7 +64,7 @@ func HandleImagePengaduan(
 		publicURL, err := uploader.UploadToImgbb(data)
 		if err != nil {
 			log.Printf("[ERROR] Failed to upload to ImgBB: %v", err)
-			sendMessageSafe(client, chatJID, "Maaf, terjadi kesalahan saat mengunggah gambar. Silakan coba lagi.")
+			sendMessageSafe(client, chatJID, "_Maaf, terjadi kesalahan saat mengunggah gambar. Silakan coba lagi._")
 			// PERBAIKAN: Ganti ResetSession ke DeleteDataEntrySession
 			if err := db.DeleteDataEntrySession(appDB, senderJID); err != nil {
 				log.Printf("[ERROR] Gagal menghapus sesi DB setelah error: %v", err)
@@ -81,13 +81,13 @@ func HandleImagePengaduan(
 		newID, err := db.SavePengaduan(appDB, aduan)
 		if err != nil {
 			log.Printf("[ERROR] Failed to save complaint to database: %v", err)
-			sendMessageSafe(client, chatJID, "Terjadi kesalahan saat menyimpan laporan Anda.")
+			sendMessageSafe(client, chatJID, "_Terjadi kesalahan saat menyimpan laporan Anda._")
 			return
 		}
 
 		publicID := fmt.Sprintf("P-%d", 100+newID)
 
-	go sheetsClient.AppendPengaduan(aduan, publicID)
+		go sheetsClient.AppendPengaduan(aduan, publicID)
 
 		// --- PERBAIKAN DI SINI ---
 		// 1. Simpan nama layanan untuk ulasan (kita gunakan 'surat_temp_answer' sebagai temp)
@@ -102,8 +102,8 @@ func HandleImagePengaduan(
 		
 		// 3. Kirim pesan sukses + pertanyaan ulasan
 		sendMessageSafe(client, chatJID, 
-			fmt.Sprintf("Pengaduan Anda telah tersimpan.\nNomor ID Pengaduan Anda adalah: *%s*", publicID) +
-			"\n\n⭐ Sebagai langkah terakhir, mohon berikan ulasan Anda (1-5) untuk layanan pengaduan ini:\n(1 = Sangat Buruk, 5 = Sangat Baik)")
+			fmt.Sprintf("_Pengaduan Anda telah tersimpan._\n_Nomor ID Pengaduan Anda adalah:_ *%s*", publicID) +
+				"\n\n_Sebagai langkah terakhir, mohon berikan ulasan Anda (1-5) untuk layanan Ajukan Pengaduan ini:_\n_(1 = Sangat Buruk, 5 = Sangat Baik)_")
 		// --- AKHIR PERBAIKAN ---
 
 		log.Printf("[DONE] Complaint from %s processed in %v (URL: %s)", senderJID, time.Since(start), publicURL)

@@ -342,16 +342,16 @@ func GetFormattedSessionData(dbConn *sqlx.DB, jid string) (string, error) {
 		emoji := getFieldEmoji(num)
 		if str, ok := value.(sql.NullInt64); ok && str.Valid {
 			if name.Valid && name.String != "" {
-				fmt.Fprintf(&result, "%s *%d.* %s: %s\n", emoji, num, label, name.String)
+				fmt.Fprintf(&result, "%s *%d. %s:* %s\n", emoji, num, label, name.String)
 			} else {
-				fmt.Fprintf(&result, "%s *%d.* %s: %d\n", emoji, num, label, str.Int64)
+				fmt.Fprintf(&result, "%s *%d. %s:* %d\n", emoji, num, label, str.Int64)
 			}
 		} else if str, ok := value.(sql.NullString); ok && str.Valid {
-			fmt.Fprintf(&result, "%s *%d.* %s: %s\n", emoji, num, label, str.String)
+			fmt.Fprintf(&result, "%s *%d. %s:* %s\n", emoji, num, label, str.String)
 		} else if str, ok := value.(sql.NullTime); ok && str.Valid {
-			fmt.Fprintf(&result, "%s *%d.* %s: %s\n", emoji, num, label, FormatDate(str))
+			fmt.Fprintf(&result, "%s *%d. %s:* %s\n", emoji, num, label, FormatDate(str))
 		} else {
-			fmt.Fprintf(&result, "%s *%d.* %s: -\n", emoji, num, label)
+			fmt.Fprintf(&result, "%s *%d. %s:* -\n", emoji, num, label)
 		}
 	}
 
