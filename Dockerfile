@@ -1,12 +1,16 @@
 # Multi-stage build untuk optimasi ukuran image
 
 # Stage 1: Build
-FROM golang:1.20-alpine AS builder
+FROM golang:1.24 AS builder
 
 WORKDIR /app
 
-# Install dependencies
-RUN apk add --no-cache git ca-certificates tzdata
+# Install dependencies (using apt for Debian-based golang image)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    ca-certificates \
+    tzdata \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy go mod files
 COPY go.mod go.sum ./
@@ -18,7 +22,7 @@ RUN go mod download
 COPY . .
 
 # Build aplikasi
-RUN CGO_ENABLED=0 GOOS=linux go build -o sas-bot main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o sas-bot ./cmd/sas-bot/main.go
 
 # Stage 2: Runtime
 FROM alpine:latest
@@ -34,6 +38,7 @@ COPY --from=builder /app/sas-bot .
 # Copy config files dan JSON data
 COPY json/ ./json/
 COPY .env .env
+COPY sas-sindang-anom-58dc655332ab.json .
 
 # Create uploads directory
 RUN mkdir -p uploads
