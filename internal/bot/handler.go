@@ -17,6 +17,7 @@ func getMainMenu() string {
 	return `🤖 *SINDANG ANOM SERVICE - BOT*
 
 📋 _Menu yang tersedia:_
+
 👤 *1. Data Diri*
 📄 *2. Pengajuan Surat* 
 💬 *3. Pengaduan* 
