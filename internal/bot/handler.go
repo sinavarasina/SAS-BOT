@@ -11,25 +11,6 @@ import (
 	"go.mau.fi/whatsmeow"
 )
 
-var staticResponses = map[string]string{
-	"halo":        "Halo! Selamat datang di SAS-BOT. Silakan pilih menu yang tersedia.",
-	"hi":          "Hi! Selamat datang di SAS-BOT. Silakan pilih menu yang tersedia.",
-	"hello":       "Hello! Selamat datang di SAS-BOT. Silakan pilih menu yang tersedia.",
-	"bantuan":     "Untuk bantuan, silakan pilih menu yang tersedia.",
-	"help":        "Untuk bantuan, silakan pilih menu yang tersedia.",
-	"tolong":      "Saya siap membantu. Silakan pilih menu yang tersedia.",
-	"menu":        "Berikut menu yang tersedia.",
-	"mulai":       "Untuk memulai, silakan pilih menu yang tersedia.",
-	"start":       "Untuk memulai, silakan pilih menu yang tersedia.",
-	"selesai":     "Terima kasih telah menggunakan SAS-BOT. Silakan pilih menu yang tersedia jika butuh bantuan lagi.",
-	"done":        "Terima kasih telah menggunakan SAS-BOT. Silakan pilih menu yang tersedia jika butuh bantuan lagi.",
-	"finish":      "Terima kasih telah menggunakan SAS-BOT. Silakan pilih menu yang tersedia jika butuh bantuan lagi.",
-	"thank":       "Sama-sama! Silakan pilih menu yang tersedia jika butuh bantuan lagi.",
-	"thanks":      "Sama-sama! Silakan pilih menu yang tersedia jika butuh bantuan lagi.",
-	"makasih":     "Sama-sama! Silakan pilih menu yang tersedia jika butuh bantuan lagi.",
-	"terimakasih": "Sama-sama! Silakan pilih menu yang tersedia jika butuh bantuan lagi.",
-}
-
 func getMainMenu() string {
 	return `🤖 *SINDANG ANOM SERVICE - BOT*
 
@@ -39,6 +20,51 @@ func getMainMenu() string {
 💬 *3. Pengaduan* 
 
 ✍️ _Ketik *nomor menu* yang ingin kamu pilih._`
+}
+
+func getDataDiriMenu() string {
+	return `👤 *Menu Data Diri*
+
+📝 _Gunakan menu ini untuk mengatur data kependudukan kamu._
+
+✏️ *1. Input Data Diri (Baru)*
+🔄 *2. Ubah Data Diri (pakai NIK)*
+
+⌨️ _Ketik *nomor (1-2)*, atau ketik *'reset'* untuk kembali ke menu utama._`
+}
+
+func getSuratMenu() string {
+	return `📄 *Menu Pengajuan Surat*
+
+📝 _Gunakan menu ini untuk mengatur pengajuan surat kamu._
+
+✏️ *1. Ajukan Surat Baru*
+🔍 *2. Cek Progres Surat*
+
+⌨️ _Ketik *nomor (1-2)* atau ketik *'reset'* untuk kembali ke menu utama._`
+}
+
+func getPengaduanMenu() string {
+	return `📢 *Menu Pengaduan*
+
+📝 _Gunakan menu ini untuk mengelola data pengaduan masyarakat._
+
+✏️ *1. Ajukan pengaduan*
+🔍 *2. Cek progres pengaduan*
+
+⌨️ _Ketik *nomor (1-2)* atau ketik *'reset'* untuk kembali ke menu utama._`
+}
+
+func getSystemError() string {
+	return `❌ Maaf, terjadi kesalahan sistem.
+
+Silakan coba lagi atau ketik *'reset'* untuk kembali ke menu utama.`
+}
+
+func getGroupChatMessage() string {
+	return `📱 Gunakan private chat untuk mengakses menu layanan. 
+
+💬 Silakan chat bot secara langsung untuk menggunakan layanan.`
 }
 
 func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string, sheetsClient *sheets.SheetsClient, waClient *whatsmeow.Client) []string {
@@ -58,7 +84,7 @@ func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string, sh
 	case "reset", "!batal":
 		if err := db.DeleteDataEntrySession(dbConn, jid); err != nil {
 			log.Printf("[ERROR] Failed to reset session: %v", err)
-			return []string{"Terjadi kesalahan sistem."}
+			return []string{getSystemError()}
 		}
 		return []string{getMainMenu()}
 	}
@@ -66,7 +92,7 @@ func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string, sh
 	session, err := db.GetOrCreateDataEntrySession(dbConn, jid)
 	if err != nil {
 		log.Printf("[ERROR] Session error: %v", err)
-		return []string{"Maaf, terjadi kesalahan sistem."}
+		return []string{getSystemError()}
 	}
 
 	// im kinda frustate, so i choose this stupid nuclear way.
@@ -88,50 +114,24 @@ func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string, sh
 	case "1":
 		if err := db.UpdateStepOnly(dbConn, jid, STEP_MENU_DATA_DIRI); err != nil {
 			log.Printf("[ERROR] Failed to set step to STEP_MENU_DATA_DIRI: %v", err)
-			return []string{"Maaf, terjadi kesalahan sistem."}
+			return []string{getSystemError()}
 		}
-		subMenu := `👤*Menu Data Diri*
-
-📝 _Gunakan menu ini untuk mengatur data kependudukan kamu._
-
-✏️*1. Input Data Diri (Baru)*
-🔄*2. Ubah Data Diri (pakai NIK)*
-
-⌨️_Ketik *nomor (1-2)*, atau ketik *'reset'* untuk kembali ke menu utama._`
-		return []string{subMenu}
+		return []string{getDataDiriMenu()}
 
 	case "2":
 		// PERBAIKAN: Set ke Menu Utama Surat (500)
 		if err := db.UpdateStepOnly(dbConn, jid, STEP_SURAT_MENU_UTAMA); err != nil {
 			log.Printf("[ERROR] Failed to set step to STEP_SURAT_MENU_UTAMA: %v", err)
-			return []string{"Maaf, terjadi kesalahan sistem."}
+			return []string{getSystemError()}
 		}
-
-		// PERBAIKAN: Tampilkan sub-menu "Ajukan" / "Cek"
-		return []string{
-			"📄*Menu Pengajuan Surat*\n\n" +
-				"📝_Gunakan menu ini untuk mengatur pengajuan surat kamu._\n\n" +
-				"✏️*1. Ajukan Surat Baru*\n" +
-				"🔍*2. Cek Progres Surat*\n\n" +
-				"⌨️_Ketik *nomor (1-2)* atau ketik *'reset'* untuk kembali ke menu utama._",
-		}
+		return []string{getSuratMenu()}
 
 	case "3":
 		if err := db.UpdateStepOnly(dbConn, jid, STEP_PENGADUAN_MENU); err != nil {
 			log.Printf("[ERROR] Failed to set step to STEP_PENGADUAN_MENU: %v", err)
-			return []string{"Maaf, terjadi kesalahan sistem."}
+			return []string{getSystemError()}
 		}
-		return []string{
-			"📢*Menu Pengaduan*\n\n" +
-				"📝_Gunakan menu ini untuk mengelola data pengaduan masyarakat._\n\n" +
-				"✏️*1. Ajukan pengaduan*\n" +
-				"🔍*2. Cek progres pengaduan*\n\n" +
-				"⌨️_Ketik *nomor (1-2)* atau ketik *'reset'* untuk kembali ke menu utama._",
-		}
-	}
-
-	if resp, ok := staticResponses[strings.ToLower(text)]; ok {
-		return []string{resp + "\n\n" + getMainMenu()}
+		return []string{getPengaduanMenu()}
 	}
 
 	if !session.AwaitingAnswer && session.CurrentStep < STEP_MENU_DATA_DIRI {
@@ -145,7 +145,7 @@ func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string, sh
 
 func HandlerRouteGroup(dbConn *sqlx.DB, jid, text, username, number string) string {
 	if strings.HasPrefix(strings.ToLower(strings.TrimSpace(text)), "!menu") {
-		return "Gunakan private chat untuk mengakses menu layanan. Terima kasih."
+		return getGroupChatMessage()
 	}
 	return ""
 }

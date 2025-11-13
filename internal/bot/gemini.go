@@ -77,7 +77,7 @@ func HandleGeminiPrompt(userText string) string {
 	}
 
 	if apiKey == "" {
-		log.Printf("[AI-WARN] GEMINI_API_KEY is empty; returning generic response")
+		go log.Printf("[AI-WARN] GEMINI_API_KEY is empty; returning generic response")
 		return "_👋 Halo! Ada yang bisa saya bantu? Silakan pilih menu untuk melanjutkan._"
 	}
 
@@ -110,7 +110,7 @@ func HandleGeminiPrompt(userText string) string {
 
 	payload, err := json.Marshal(req)
 	if err != nil {
-		log.Printf("[AI-ERROR] marshal request: %v", err)
+		go log.Printf("[AI-ERROR] marshal request: %v", err)
 		return "_👋 Maaf, sedang sibuk. Silakan coba lagi._"
 	}
 
@@ -118,28 +118,31 @@ func HandleGeminiPrompt(userText string) string {
 	httpClient := &http.Client{Timeout: 15 * time.Second}
 	resp, err := httpClient.Post(url, "application/json", bytes.NewBuffer(payload))
 	if err != nil {
-		log.Printf("[AI-ERROR] POST request failed: %v", err)
+		go log.Printf("[AI-ERROR] POST request failed: %v", err)
 		return "_👋 Maaf, sedang sibuk. Silakan coba lagi._"
 	}
 	defer resp.Body.Close()
 
-	log.Printf("[AI-DEBUG] Response Status: %d", resp.StatusCode)
+	// Log status code di background
+	go log.Printf("[AI-DEBUG] Response Status: %d", resp.StatusCode)
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Printf("[AI-ERROR] read body: %v", err)
+		go log.Printf("[AI-ERROR] read body: %v", err)
 		return "_👋 Maaf, sedang sibuk. Silakan coba lagi._"
 	}
-
-	log.Printf("[AI-DEBUG] Response Body: %s", string(body))
 
 	var gr geminiResponse
 	if err := json.Unmarshal(body, &gr); err != nil {
-		log.Printf("[AI-ERROR] unmarshal response: %v", err)
+		// Log error di background
+		go func() {
+			log.Printf("[AI-ERROR] unmarshal response: %v", err)
+			log.Printf("[AI-DEBUG] Response Body: %s", string(body))
+		}()
 		return "_👋 Maaf, sedang sibuk. Silakan coba lagi._"
 	}
 
-	// Validasi response Gemini
+	// Validasi response Gemini - PRIORITAS RETURN KE CLIENT
 	if len(gr.Candidates) > 0 && len(gr.Candidates[0].Content.Parts) > 0 {
 		responseText := strings.TrimSpace(gr.Candidates[0].Content.Parts[0].Text)
 
@@ -148,11 +151,21 @@ func HandleGeminiPrompt(userText string) string {
 			responseText = "_" + responseText + "_"
 		}
 
-		log.Printf("[AI-DEBUG] Gemini Response: %s", responseText)
+		// Log SEMUA di background secara concurrent agar tidak block return
+		go func(rt string, respBody []byte) {
+			log.Printf("[AI-SUCCESS] Response sent to client")
+			log.Printf("[AI-DEBUG] Response Body: %s", string(respBody))
+			log.Printf("[AI-DEBUG] Parsed Text: %s", rt)
+		}(responseText, body)
+		
+		// LANGSUNG RETURN KE CLIENT - NO BLOCKING
 		return responseText
 	}
 
-	log.Printf("[AI-ERROR] No candidates or parts in response. Candidates: %d", len(gr.Candidates))
+	// Log error di background
+	go func() {
+		log.Printf("[AI-ERROR] No candidates or parts in response. Candidates: %d", len(gr.Candidates))
+		log.Printf("[AI-DEBUG] Response Body: %s", string(body))
+	}()
 	return "_👋 Silakan gunakan menu untuk melanjutkan._"
 }
-
