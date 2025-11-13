@@ -11,6 +11,8 @@ import (
 	"go.mau.fi/whatsmeow"
 )
 
+
+
 func getMainMenu() string {
 	return `🤖 *SINDANG ANOM SERVICE - BOT*
 
@@ -135,9 +137,16 @@ func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string, sh
 	}
 
 	if !session.AwaitingAnswer && session.CurrentStep < STEP_MENU_DATA_DIRI {
-		log.Printf("[LOG] Calling Gemini for step=%d, text=%q", session.CurrentStep, text)
+		go log.Printf("[LOG] Calling Gemini for step=%d, text=%q", session.CurrentStep, text)
+		
+		// Get menu first (instant, no blocking)
+		menu := getMainMenu()
+		
+		// Get Gemini response (this is the only blocking part)
 		resp := HandleGeminiPrompt(text)
-		return []string{resp + "\n\n" + getMainMenu()}
+		
+		// Concatenate in memory (very fast, non-blocking)
+		return []string{resp + "\n\n" + menu}
 	}
 
 	return []string{getMainMenu()}
