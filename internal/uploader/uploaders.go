@@ -2,6 +2,7 @@ package uploader
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -10,7 +11,11 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
-	"strings"
+
+	"github.com/aws/aws-sdk-go-v2/aws" 
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
 // --- Fungsi 1: Untuk Gambar (Pengaduan) ---
@@ -58,40 +63,56 @@ func UploadToImgbb(data []byte) (string, error) {
 	return imgbbResp.Data.URL, nil
 }
 
+func UploadToR2(data []byte, fileName string) (string, error) {
+    accountID := os.Getenv("R2_ACCOUNT_ID")
+    accessKeyID := os.Getenv("R2_ACCESS_KEY_ID")
+    secretAccessKey := os.Getenv("R2_SECRET_ACCESS_KEY")
+    bucketName := os.Getenv("R2_BUCKET_NAME")
+    publicURL := os.Getenv("R2_PUBLIC_URL")
 
-// --- FUNGSI BARU: Untuk File (PDF Surat) ---
-func UploadFile(data []byte, fileName string) (string, error) {
-	log.Printf("[INFO] Mengunggah file %s ke 0x0.st...", fileName)
-	
-	body := new(bytes.Buffer)
-	writer := multipart.NewWriter(body)
-	part, err := writer.CreateFormFile("file", fileName)
-	if err != nil {
-		return "", err
-	}
-	if _, err := part.Write(data); err != nil {
-		return "", err
-	}
-	writer.Close()
-	req, err := http.NewRequest("POST", "http://0x0.st", body)
-	if err != nil {
-		return "", err
-	}
-	req.Header.Set("Content-Type", writer.FormDataContentType())
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-	respBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-	url := strings.TrimSpace(string(respBody))
-	if !strings.HasPrefix(url, "http") {
-		return "", fmt.Errorf("gagal upload file, respons server: %s", url)
-	}
-	log.Printf("[INFO] File berhasil di-upload ke: %s", url)
-	return url, nil
+    if accountID == "" || accessKeyID == "" || secretAccessKey == "" || bucketName == "" || publicURL == "" {
+        return "", fmt.Errorf("kredensial R2 tidak di-set di .env")
+    }
+
+    log.Printf("[R2] Mengunggah %s ke bucket %s...", fileName, bucketName)
+
+    endpoint := fmt.Sprintf("https://%s.r2.cloudflarestorage.com", accountID)
+
+    // Resolver endpoint R2
+    resolver := aws.EndpointResolverWithOptionsFunc(
+        func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+            return aws.Endpoint{
+                URL:           endpoint,
+                SigningRegion: "auto",
+            }, nil
+        },
+    )
+
+    // Konfigurasi AWS SDK
+    cfg, err := config.LoadDefaultConfig(context.TODO(),
+        config.WithEndpointResolverWithOptions(resolver),
+        config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(accessKeyID, secretAccessKey, "")),
+        config.WithRegion("auto"),
+    )
+    if err != nil {
+        return "", fmt.Errorf("gagal memuat konfigurasi AWS/R2: %w", err)
+    }
+
+    client := s3.NewFromConfig(cfg)
+
+    // Upload file
+    _, err = client.PutObject(context.TODO(), &s3.PutObjectInput{
+        Bucket: &bucketName,
+        Key:    &fileName,
+        Body:   bytes.NewReader(data),
+        ACL:    "public-read",
+    })
+    if err != nil {
+        return "", fmt.Errorf("gagal mengunggah file ke R2: %w", err)
+    }
+
+    finalURL := fmt.Sprintf("%s/%s", publicURL, fileName)
+    log.Printf("[R2] Berhasil upload: %s", finalURL)
+
+    return finalURL, nil
 }

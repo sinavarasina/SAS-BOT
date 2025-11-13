@@ -31,11 +31,9 @@ func GenerateAsync(template JenisSurat, data map[string]string, tempDir string, 
 		return "", fmt.Errorf("gagal membaca template: %w", err)
 	}
 
-	// --- PERBAIKAN DI SINI ---
 	// Gunakan path RELATIF dari folder 'temp' ke folder 'templates'.
 	relLogoPath := filepath.Join("..", "templates", "logo", "logo.jpg")
 	data["LOGOPATH"] = filepath.ToSlash(relLogoPath)
-	// --- AKHIR PERBAIKAN ---
 
 	filled := fillTemplate(string(texBytes), data)
 	texPath := filepath.Join(tempDir, strings.Replace(pdfName, ".pdf", ".tex", 1))
@@ -93,19 +91,19 @@ func GenerateAsync(template JenisSurat, data map[string]string, tempDir string, 
 				fmt.Sprintf("Laporan Surat Baru Dibuat:\nJenis: %s\nID Unik: %s\nAtas Nama: %s", NamaSuratmap[template], uniqueID, data["NAMA"]))
 		}
 
-		log.Printf("[SURAT] Mengunggah %s ke cloud...", pdfName)
+		log.Printf("[SURAT] Mengunggah %s ke Cloudflare R2...", pdfName)
 		pdfData, err := os.ReadFile(pdfPath)
 		if err != nil {
 			log.Printf("[SURAT-ERROR] Gagal membaca PDF untuk di-upload: %v", err)
-			return 
+			return
 		}
 
-		fileURL, err := uploader.UploadFile(pdfData, pdfName) 
+		fileURL, err := uploader.UploadToR2(pdfData, pdfName) // <-- Panggil fungsi baru
 		if err != nil {
-			log.Printf("[SURAT-ERROR] Gagal upload file: %v", err)
+			log.Printf("[SURAT-ERROR] Gagal upload file ke R2: %v", err)
 			fileURL = "Gagal Upload"
 		} else {
-			log.Printf("[SURAT] Berhasil upload file: %s", fileURL)
+			log.Printf("[SURAT] Berhasil upload file ke R2: %s", fileURL)
 		}
 		
 		tgl := time.Now().Format("02-01-2006")
