@@ -1,4 +1,3 @@
-
 package surat
 
 import (
@@ -14,7 +13,6 @@ import (
 	// "github.com/sinavarasina/SAS-BOT/internal/db"
 	"github.com/sinavarasina/SAS-BOT/internal/sheets"
 	"github.com/sinavarasina/SAS-BOT/internal/uploader"
-
 )
 
 func fillTemplate(content string, data map[string]string) string {
@@ -24,18 +22,20 @@ func fillTemplate(content string, data map[string]string) string {
 	return content
 }
 
-func GenerateAsync(template JenisSurat, data map[string]string, tempDir string, jid string, client *whatsmeow.Client,pdfName string, uniqueID string, sheetsClient *sheets.SheetsClient) (string, error) {
+func GenerateAsync(template JenisSurat, data map[string]string, tempDir string, jid string, client *whatsmeow.Client, pdfName string, uniqueID string, sheetsClient *sheets.SheetsClient) (string, error) {
 	src := filepath.Join("templates", string(template))
 	texBytes, err := os.ReadFile(src)
 	if err != nil {
 		return "", fmt.Errorf("gagal membaca template: %w", err)
 	}
 
-	// --- PERBAIKAN DI SINI ---
-	// Gunakan path RELATIF dari folder 'temp' ke folder 'templates'.
 	relLogoPath := filepath.Join("..", "templates", "logo", "logo.jpg")
 	data["LOGOPATH"] = filepath.ToSlash(relLogoPath)
-	// --- AKHIR PERBAIKAN ---
+	signer := os.Getenv("SIGNER_NAME")
+	if signer == "" {
+		signer = "........................"
+	}
+	data["SIGNER.NAME"] = signer
 
 	filled := fillTemplate(string(texBytes), data)
 	texPath := filepath.Join(tempDir, strings.Replace(pdfName, ".pdf", ".tex", 1))
@@ -51,7 +51,7 @@ func GenerateAsync(template JenisSurat, data map[string]string, tempDir string, 
 	go func() {
 		absTemp, _ := filepath.Abs(tempDir)
 		// pdfPath := strings.Replace(texPath, ".tex", ".pdf", 1)
-		
+
 		cmd := exec.Command("pdflatex",
 			"-interaction=nonstopmode",
 			"-output-directory", absTemp,
@@ -68,7 +68,7 @@ func GenerateAsync(template JenisSurat, data map[string]string, tempDir string, 
 			_ = SendMessage(client, jid, fmt.Sprintf("Surat %s gagal dikompilasi. File PDF tidak dapat dibuat.", template))
 			return
 		}
-		
+
 		if err != nil {
 			// Log error-nya sebagai peringatan, tapi jangan hentikan proses
 			log.Printf("[SURAT-WARN] pdflatex selesai dengan peringatan (error): %v\n%s", err, output)
@@ -97,17 +97,17 @@ func GenerateAsync(template JenisSurat, data map[string]string, tempDir string, 
 		pdfData, err := os.ReadFile(pdfPath)
 		if err != nil {
 			log.Printf("[SURAT-ERROR] Gagal membaca PDF untuk di-upload: %v", err)
-			return 
+			return
 		}
 
-		fileURL, err := uploader.UploadFile(pdfData, pdfName) 
+		fileURL, err := uploader.UploadFile(pdfData, pdfName)
 		if err != nil {
 			log.Printf("[SURAT-ERROR] Gagal upload file: %v", err)
 			fileURL = "Gagal Upload"
 		} else {
 			log.Printf("[SURAT] Berhasil upload file: %s", fileURL)
 		}
-		
+
 		tgl := time.Now().Format("02-01-2006")
 		sheetsClient.AppendSuratLog(string(template), data["NAMA"], uniqueID, tgl, "Belum Diproses", fileURL)
 		// (Opsional tapi disarankan) Hapus file sementara setelah dikirim
