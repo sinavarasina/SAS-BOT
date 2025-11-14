@@ -10,7 +10,6 @@ const (
 	KEMATIAN        JenisSurat = "sk_kematian.tex"
 )
 
-//
 var BaseFields = []string{
 	"NAMA",
 	"TTL",
@@ -20,15 +19,12 @@ var BaseFields = []string{
 	"PEKERJAAN",
 	"ALAMAT",
 }
-// }
-
-// i think to reduce complexity, i just make it specific.
 
 var SuratFields = map[JenisSurat][]string{
-	DOMISILI: {"ALASANPERLU"}, // Hanya tanya 1 field
-	USAHA:    {"TTLnU", "ALAMATDOM", "DUSUN"}, // Hanya tanya 3 field
-	SKTM_UMUM: {"TTLnU", "ALASANPERLU"}, // Hanya tanya 2 field
-	
+	DOMISILI:  {"ALASANPERLU"},                 // Hanya tanya 1 field
+	USAHA:     {"TTLnU", "ALAMATDOM", "DUSUN"}, // Hanya tanya 3 field
+	SKTM_UMUM: {"TTLnU", "ALASANPERLU"},        // Hanya tanya 2 field
+
 	// SKTM Tanggungan & Kematian tidak pakai data NIK, jadi tanya semua.
 	SKTM_TANGGUNGAN: {
 		"NAMA.P", "JK.P", "TTL.P", "NIK.P", "PEKERJAAN.P", "AGAMA.P", "STATUS.P", "ALAMAT.P",
