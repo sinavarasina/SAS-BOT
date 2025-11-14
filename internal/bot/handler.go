@@ -140,14 +140,11 @@ func HandlerRoutePrivate(dbConn *sqlx.DB, jid, text, username, number string, sh
 	if !session.AwaitingAnswer && session.CurrentStep < STEP_MENU_DATA_DIRI {
 		go log.Printf("[LOG] Calling Gemini for step=%d, text=%q", session.CurrentStep, text)
 		
-		// Get menu first (instant, no blocking)
-		menu := getMainMenu()
-		
-		// Get Gemini response (this is the only blocking part)
+		// Get Gemini response langsung (tanpa background goroutine)
 		resp := HandleGeminiPrompt(text)
 		
-		// Concatenate in memory (very fast, non-blocking)
-		return []string{resp + "\n\n" + menu}
+		// Return response + menu dengan separator - instant, tanpa delay
+		return []string{resp + "\n\n" + getMainMenu()}
 	}
 
 	return []string{getMainMenu()}

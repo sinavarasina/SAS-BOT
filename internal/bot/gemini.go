@@ -81,91 +81,106 @@ func HandleGeminiPrompt(userText string) string {
 		return "_👋 Halo! Ada yang bisa saya bantu? Silakan pilih menu untuk melanjutkan._"
 	}
 
-	prompt := fmt.Sprintf(
-		"%s\n\n"+
-			"Pengguna mengirim: '%s'\n\n"+
-			"Berdasarkan konteks di atas, balas dengan 1-2 kalimat yang ramah, gunakan emoji, "+
-			"dan arahkan ke menu yang sesuai (Menu 1 untuk data diri, Menu 2 untuk surat, Menu 3 untuk pengaduan). "+
-			"Jika user bertanya tentang jam kerja/kontak, sebutkan jam operasional dan nomor yang ada. "+
-			"Hindari mengulang teks menu penuh dan jangan gunakan kata 'Tentu'. "+
-			"Berikan respons yang spesifik dan helpful sesuai pertanyaan mereka. "+
-			"Gunakan emoji untuk membuat respons lebih menarik dan interaktif.",
-		villageContext,
-		userText,
-	)
+	// Channel untuk menerima response dari goroutine
+	respChan := make(chan string, 1)
 
-	req := geminiRequest{
-		Contents: []struct {
-			Parts []struct {
-				Text string `json:"text"`
-			} `json:"parts"`
-		}{
-			{Parts: []struct {
-				Text string `json:"text"`
+	// Jalankan semua proses di goroutine
+	go func() {
+		prompt := fmt.Sprintf(
+			"%s\n\n"+
+				"Pengguna mengirim: '%s'\n\n"+
+				"Berdasarkan konteks di atas, balas dengan 1-2 kalimat yang ramah, gunakan emoji, "+
+				"dan arahkan ke menu yang sesuai (Menu 1 untuk data diri, Menu 2 untuk surat, Menu 3 untuk pengaduan). "+
+				"Jika user bertanya tentang jam kerja/kontak, sebutkan jam operasional dan nomor yang ada. "+
+				"Hindari mengulang teks menu penuh dan jangan gunakan kata 'Tentu'. "+
+				"Berikan respons yang spesifik dan helpful sesuai pertanyaan mereka. "+
+				"Gunakan emoji untuk membuat respons lebih menarik dan interaktif.",
+			villageContext,
+			userText,
+		)
+
+		req := geminiRequest{
+			Contents: []struct {
+				Parts []struct {
+					Text string `json:"text"`
+				} `json:"parts"`
 			}{
-				{Text: prompt},
-			}},
-		},
-	}
-
-	payload, err := json.Marshal(req)
-	if err != nil {
-		go log.Printf("[AI-ERROR] marshal request: %v", err)
-		return "_👋 Maaf, sedang sibuk. Silakan coba lagi._"
-	}
-
-	url := fmt.Sprintf("%s?key=%s", apiURL, apiKey)
-	httpClient := &http.Client{Timeout: 15 * time.Second}
-	resp, err := httpClient.Post(url, "application/json", bytes.NewBuffer(payload))
-	if err != nil {
-		go log.Printf("[AI-ERROR] POST request failed: %v", err)
-		return "_👋 Maaf, sedang sibuk. Silakan coba lagi._"
-	}
-	defer resp.Body.Close()
-
-	// Log status code di background
-	go log.Printf("[AI-DEBUG] Response Status: %d", resp.StatusCode)
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		go log.Printf("[AI-ERROR] read body: %v", err)
-		return "_👋 Maaf, sedang sibuk. Silakan coba lagi._"
-	}
-
-	var gr geminiResponse
-	if err := json.Unmarshal(body, &gr); err != nil {
-		// Log error di background
-		go func() {
-			log.Printf("[AI-ERROR] unmarshal response: %v", err)
-			log.Printf("[AI-DEBUG] Response Body: %s", string(body))
-		}()
-		return "_👋 Maaf, sedang sibuk. Silakan coba lagi._"
-	}
-
-	// Validasi response Gemini - PRIORITAS RETURN KE CLIENT
-	if len(gr.Candidates) > 0 && len(gr.Candidates[0].Content.Parts) > 0 {
-		responseText := strings.TrimSpace(gr.Candidates[0].Content.Parts[0].Text)
-
-		// Jangan wrap dengan underscore jika sudah ada
-		if !strings.HasPrefix(responseText, "_") {
-			responseText = "_" + responseText + "_"
+				{Parts: []struct {
+					Text string `json:"text"`
+				}{
+					{Text: prompt},
+				}},
+			},
 		}
 
-		// Log SEMUA di background secara concurrent agar tidak block return
-		go func(rt string, respBody []byte) {
-			log.Printf("[AI-SUCCESS] Response sent to client")
-			log.Printf("[AI-DEBUG] Response Body: %s", string(respBody))
-			log.Printf("[AI-DEBUG] Parsed Text: %s", rt)
-		}(responseText, body)
-		
-		// LANGSUNG RETURN KE CLIENT - NO BLOCKING
-		return responseText
-	}
+		payload, err := json.Marshal(req)
+		if err != nil {
+			go log.Printf("[AI-ERROR] marshal request: %v", err)
+			respChan <- "_👋 Maaf, sedang sibuk. Silakan coba lagi._"
+			return
+		}
 
-	// Log error di background
-	go func() {
-		log.Printf("[AI-ERROR] No candidates or parts in response. Candidates: %d", len(gr.Candidates))
-		log.Printf("[AI-DEBUG] Response Body: %s", string(body))
+		url := fmt.Sprintf("%s?key=%s", apiURL, apiKey)
+		httpClient := &http.Client{Timeout: 15 * time.Second}
+		resp, err := httpClient.Post(url, "application/json", bytes.NewBuffer(payload))
+		if err != nil {
+			go log.Printf("[AI-ERROR] POST request failed: %v", err)
+			respChan <- "_👋 Maaf, sedang sibuk. Silakan coba lagi._"
+			return
+		}
+		defer resp.Body.Close()
+
+		go log.Printf("[AI-DEBUG] Response Status: %d", resp.StatusCode)
+
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			go log.Printf("[AI-ERROR] read body: %v", err)
+			respChan <- "_👋 Maaf, sedang sibuk. Silakan coba lagi._"
+			return
+		}
+
+		var gr geminiResponse
+		if err := json.Unmarshal(body, &gr); err != nil {
+			go func() {
+				log.Printf("[AI-ERROR] unmarshal response: %v", err)
+				log.Printf("[AI-DEBUG] Response Body: %s", string(body))
+			}()
+			respChan <- "_👋 Maaf, sedang sibuk. Silakan coba lagi._"
+			return
+		}
+
+		// CHECK CANDIDATES PALING AWAL - return langsung jika valid
+		if len(gr.Candidates) > 0 && len(gr.Candidates[0].Content.Parts) > 0 {
+			responseText := strings.TrimSpace(gr.Candidates[0].Content.Parts[0].Text)
+
+			if !strings.HasPrefix(responseText, "_") {
+				responseText = "_" + responseText + "_"
+			}
+
+			// LANGSUNG kirim ke channel SEBELUM logging
+			respChan <- responseText
+			
+			// Logging di background - non-blocking
+			go func(rt string, respBody []byte) {
+				log.Printf("[AI-SUCCESS] Response sent to client: %s", rt)
+				log.Printf("[AI-DEBUG] Response Body: %s", string(respBody))
+			}(responseText, body)
+			
+			return
+		}
+
+		go func() {
+			log.Printf("[AI-ERROR] No candidates or parts in response. Candidates: %d", len(gr.Candidates))
+			log.Printf("[AI-DEBUG] Response Body: %s", string(body))
+		}()
+		respChan <- "_👋 Silakan gunakan menu untuk melanjutkan._"
 	}()
-	return "_👋 Silakan gunakan menu untuk melanjutkan._"
+
+	// TUNGGU response dari channel dengan timeout 10 detik
+	select {
+	case resp := <-respChan:
+		return resp
+	case <-time.After(10 * time.Second):
+		return "_⏳ Sedang memproses..._"
+	}
 }
