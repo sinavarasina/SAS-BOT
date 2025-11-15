@@ -8,14 +8,14 @@ import (
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/mdp/qrterminal"
-	"github.com/sinavarasina/SAS-BOT/internal/sheets"
 
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/store/sqlstore"
 	waLog "go.mau.fi/whatsmeow/util/log"
 )
 
-func InitClient(dsn string, appDB *sqlx.DB, ctx context.Context, sheetsClient *sheets.SheetsClient) (*whatsmeow.Client, error) {
+// NewClient membuat klien WA tetapi TIDAK mendaftarkan handler
+func NewClient(dsn string, ctx context.Context) (*whatsmeow.Client, error) {
 	dbLog := waLog.Stdout("Database", "INFO", true)
 
 	container, err := sqlstore.New(ctx, "postgres", dsn, dbLog)
@@ -30,20 +30,21 @@ func InitClient(dsn string, appDB *sqlx.DB, ctx context.Context, sheetsClient *s
 
 	clientLog := waLog.Stdout("Client", "INFO", true)
 	client := whatsmeow.NewClient(deviceStore, clientLog)
+	return client, nil
+}
 
-	client.AddEventHandler(EventHandler(client, appDB, sheetsClient, ctx))
-
+// StartClient menghubungkan klien dan menangani login
+func StartClient(ctx context.Context, client *whatsmeow.Client) error {
 	if client.Store.ID == nil {
 		if err := QRLogin(ctx, client); err != nil {
-			return nil, err
+			return err
 		}
 	} else {
 		if err := client.Connect(); err != nil {
-			return nil, err
+			return err
 		}
 	}
-
-	return client, nil
+	return nil
 }
 
 func QRLogin(ctx context.Context, client *whatsmeow.Client) error {

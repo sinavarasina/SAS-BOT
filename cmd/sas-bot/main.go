@@ -8,8 +8,11 @@ import (
 	"syscall"
 
 	"github.com/joho/godotenv"
+	"github.com/sinavarasina/SAS-BOT/internal/bot/gemini"
+	"github.com/sinavarasina/SAS-BOT/internal/bot/router"
 	"github.com/sinavarasina/SAS-BOT/internal/db"
 	"github.com/sinavarasina/SAS-BOT/internal/sheets"
+	"github.com/sinavarasina/SAS-BOT/internal/uploader"
 	"github.com/sinavarasina/SAS-BOT/internal/whatsapp"
 )
 
@@ -26,6 +29,7 @@ func main() {
 		log.Printf("[ERROR] Error at os.Getenv('POSTGRES_DSN')")
 	}
 
+	// 1. Inisiasi semua Klien Eksternal
 	appDB, err := db.InitDB(dsn)
 	if err != nil {
 		log.Fatal("[ERROR] Error at db.InitDB(), Message :", err)
@@ -36,14 +40,46 @@ func main() {
 		log.Fatal("[ERROR] Error at sheets.InitSheetsClient(), Message :", err)
 	}
 
-	WaClient, err := whatsapp.InitClient(dsn, appDB, ctx, sheetsClient)
+	// 2. Inisiasi Klien Internal (Uploader & Gemini)
+	r2Uploader := uploader.NewR2Uploader(
+		os.Getenv("R2_ACCOUNT_ID"),
+		os.Getenv("R2_ACCESS_KEY_ID"),
+		os.Getenv("R2_SECRET_ACCESS_KEY"),
+		os.Getenv("R2_BUCKET_NAME"),
+		os.Getenv("R2_PUBLIC_URL"),
+	)
+	imgbbUploader := uploader.NewImgbbUploader(os.Getenv("IMGBB_API_KEY"))
+	geminiService := gemini.NewGeminiService(os.Getenv("GEMINI_API_KEY"))
+
+	// 3. Inisiasi Klien WA (dummy, hanya untuk konteks)
+	// (Kita perlu waClient dulu untuk bisa membuat ServiceContext)
+	waClient, err := whatsapp.NewClient(dsn, ctx)
 	if err != nil {
-		log.Fatal("Error at whatsapp.InitClient(), Message :", err)
+		log.Fatal("Error at whatsapp.NewClient(), Message :", err)
 	}
 
-	log.Println("SAS-BOT Running..")
+	// 4. Buat Konteks Layanan (Service Context)
+	serviceCtx := &router.ServiceContext{
+		DB:            appDB,
+		SheetsClient:  sheetsClient,
+		WAClient:      waClient,
+		R2Uploader:    r2Uploader,
+		ImgbbUploader: imgbbUploader,
+	}
 
+	// 5. Buat Router Utama
+	botRouter := router.NewRouter(serviceCtx, geminiService)
+
+	// 6. Daftarkan Event Handler yang sudah berisi router
+	waClient.AddEventHandler(whatsapp.EventHandler(botRouter, appDB))
+
+	// 7. Mulai Koneksi WA
+	if err := whatsapp.StartClient(ctx, waClient); err != nil {
+		log.Fatal("Error at whatsapp.StartClient(), Message :", err)
+	}
+	
+	log.Println("SAS-BOT Running..")
 	<-ctx.Done()
 	log.Println("Shutting Down SAS-BOT")
-	WaClient.Disconnect()
+	waClient.Disconnect()
 }

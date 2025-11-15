@@ -4,24 +4,23 @@ import (
 	"context"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/sinavarasina/SAS-BOT/internal/bot"
-	"github.com/sinavarasina/SAS-BOT/internal/db"
-	"github.com/sinavarasina/SAS-BOT/internal/sheets"
+	"github.com/sinavarasina/SAS-BOT/internal/bot/router"
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/types/events"
-
 )
 
-func EventHandler(client *whatsmeow.Client, appDB *sqlx.DB, sheetsClient *sheets.SheetsClient, ctx context.Context) func(interface{}) {
+// EventHandler sekarang hanya menerima router
+func EventHandler(botRouter *router.botRouter, appDB *sqlx.DB) func(interface{}) {
 	return func(evt interface{}) {
 		switch v := evt.(type) {
 		case *events.Message:
 			if v.Info.IsFromMe {
 				return
 			}
-
+			
 			chatJID := v.Info.Chat.String()
 			senderJID := v.Info.Sender.String()
 			username := v.Info.PushName
@@ -31,52 +30,41 @@ func EventHandler(client *whatsmeow.Client, appDB *sqlx.DB, sheetsClient *sheets
 				number = senderJID[:idx]
 			}
 
-			session, err := db.GetOrCreateDataEntrySession(appDB, senderJID)
-			if err != nil {
-				log.Printf("[ERROR] Gagal mendapatkan sesi untuk %s: %v", senderJID, err)
-				return
-			}
-
+			// Ekstrak pesan
 			text := v.Message.GetConversation()
 			if text == "" && v.Message.ExtendedTextMessage != nil {
 				text = v.Message.ExtendedTextMessage.GetText()
 			}
-
 			imageMsg := v.Message.GetImageMessage()
-			if !v.Info.IsGroup && imageMsg != nil && session.CurrentStep == bot.STEP_PENGADUAN_WAITING {
-				go bot.HandleImagePengaduan(
-					client,
-					appDB,
-					sheetsClient,
-					senderJID,
-					imageMsg,
-					v.Info.ID,
-					v.Info.Chat,
-				)
-				return
-			}
+			
+			// Panggil Router Utama
+			replies := botRouter.Route(senderJID, text, imageMsg, v.Info.ID, v.Info.Chat, v.Info.IsGroup, username, number)
 
-			if v.Info.IsGroup {
-				reply := bot.HandlerRouteGroup(appDB, chatJID, text, username, number)
-				if reply != "" {
-					SendAsync(ctx, client, v.Info.Chat, reply, "group")
-				}
-				return
-			}
-			replies := bot.HandlerRoutePrivate(appDB, chatJID, text, username, number, sheetsClient, client)
-
+			// Kirim balasan
 			for _, reply := range replies {
 				if reply == "" {
 					continue
 				}
-				select {
-				case <-ctx.Done():
-					log.Printf("[STOP] Global shutdown detected. Canceling send to %s", chatJID)
-					return
-				default:
-					SendAsync(ctx, client, v.Info.Chat, reply, "private")
-				}
+				// (Kita gunakan SendAsync dari sender.go)
+				SendAsync(context.Background(), botRouter.ctx.WAClient, v.Info.Chat, reply, "private")
 			}
 		}
 	}
+}
+
+// (Pindahkan SendAsync dari sender.go ke sini agar lebih mudah)
+func SendAsync(ctx context.Context, client *whatsmeow.Client, chat types.JID, text, msgType string) {
+	go func() {
+		ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+		defer cancel()
+		
+		msg := &waProto.Message{ Conversation: proto.String(text) }
+		_, err := client.SendMessage(ctx, chat, msg)
+		
+		if err != nil {
+			log.Printf("[ERROR] Gagal kirim (%s) ke %s: %v", msgType, chat.String(), err)
+		} else {
+			log.Printf("[SEND] Pesan (%s) terkirim ke %s", msgType, chat.String())
+		}
+	}()
 }
