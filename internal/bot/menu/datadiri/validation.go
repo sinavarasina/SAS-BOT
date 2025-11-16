@@ -8,7 +8,7 @@ import (
 )
 
 // ValidateInput memeriksa input pengguna untuk setiap langkah
-func ValidateInput(text string, step Step) (interface{}, error) {
+func ValidateInput(text string, step Step) (any, error) {
 	text = strings.TrimSpace(text)
 	if text == "" {
 		return nil, fmt.Errorf("Input tidak boleh kosong\n\n%s", FormatQuestion(step))

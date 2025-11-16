@@ -200,7 +200,7 @@ func StartNewSession(dbConn *sqlx.DB, jid string) error {
 }
 
 // UpdateDataEntrySession updates a specific field in the session and increments the step.
-func UpdateDataEntrySession(dbConn *sqlx.DB, jid string, field string, value interface{}) error {
+func UpdateDataEntrySession(dbConn *sqlx.DB, jid string, field string, value any) error {
 	query := `UPDATE data_entry_sessions 
               SET ` + field + ` = $1, 
                   current_step = current_step + 1,
@@ -345,7 +345,7 @@ func GetFormattedSessionData(dbConn *sqlx.DB, jid string) (string, error) {
 		return "•"
 	}
 
-	appendNumberedField := func(num int, label string, value interface{}, name sql.NullString) {
+	appendNumberedField := func(num int, label string, value any, name sql.NullString) {
 		emoji := getFieldEmoji(num)
 		if str, ok := value.(sql.NullInt64); ok && str.Valid {
 			if name.Valid && name.String != "" {
@@ -562,7 +562,7 @@ func EnsureSuratSessionColumns(dbConn *sqlx.DB) error {
 	return nil
 }
 
-func UpdateSessionField(dbConn *sqlx.DB, jid string, field string, value interface{}) error {
+func UpdateSessionField(dbConn *sqlx.DB, jid string, field string, value any) error {
 	query := fmt.Sprintf("UPDATE data_entry_sessions SET %s = $1, updated_at = NOW() WHERE jid = $2", field)
 	_, err := dbConn.Exec(query, value, jid)
 	if err != nil {

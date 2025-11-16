@@ -29,8 +29,8 @@ func (c *GeminiClient) GenerateContent(systemPrompt, userQuestion string) (strin
 
 	fullPrompt := systemPrompt + "\n\n---\n\n" + userQuestion
 
-	payload := map[string]interface{}{
-		"contents": []map[string]interface{}{
+	payload := map[string]any{
+		"contents": []map[string]any{
 			{
 				"role": "user",
 				"parts": []map[string]string{

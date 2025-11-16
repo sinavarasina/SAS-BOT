@@ -71,8 +71,8 @@ const (
 	STEP_NIK   = 5
 	STEP_SEX   = 6
 	// ... (bisa ditambahkan jika perlu)
-	STEP_SUKU       = 19
-	STEP_NIK_AYAH   = 20
+	STEP_SUKU        = 19
+	STEP_NIK_AYAH    = 20
 	STEP_NO_ASURANSI = 39
 )
 
@@ -85,7 +85,7 @@ func loadOptions(fileName, key string) map[int]string {
 		return options
 	}
 
-	var data map[string][]map[string]interface{}
+	var data map[string][]map[string]any
 	if err := json.Unmarshal(file, &data); err == nil {
 		if records, ok := data[key]; ok {
 			for _, opt := range records {
@@ -95,7 +95,7 @@ func loadOptions(fileName, key string) map[int]string {
 			}
 		}
 	} else {
-		var records []map[string]interface{}
+		var records []map[string]any
 		if errAlt := json.Unmarshal(file, &records); errAlt == nil {
 			keyGuess := strings.Split(fileName, "_")[1]
 			keyGuess = strings.TrimSuffix(keyGuess, ".json")

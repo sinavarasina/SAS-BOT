@@ -277,12 +277,12 @@ func insertDataFromJSON(db *sqlx.DB, filePath, tableName, idColumn string) error
 		return fmt.Errorf("[ERROR] Gagal membaca %s: %v", filePath, err)
 	}
 
-	var jsonData map[string][]map[string]interface{}
+	var jsonData map[string][]map[string]any
 	if err := json.Unmarshal(data, &jsonData); err != nil {
 		return fmt.Errorf("[ERROR] Gagal parse %s: %v", filePath, err)
 	}
 
-	var records []map[string]interface{}
+	var records []map[string]any
 	for _, v := range jsonData {
 		records = v
 		break
