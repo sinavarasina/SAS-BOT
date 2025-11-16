@@ -91,7 +91,6 @@ type DataEntrySession struct {
 
 // GetOrCreateDataEntrySession retrieves an existing session or creates a new one.
 func GetOrCreateDataEntrySession(dbConn *sqlx.DB, jid string) (*DataEntrySession, error) {
-	// (Ensure... functions)
 	if err := EnsureColumn(dbConn, "data_entry_sessions", "edit_field", "TEXT"); err != nil { return nil, err }
 	if err := EnsureColumn(dbConn, "data_entry_sessions", "sheet_row_num", "INTEGER"); err != nil { return nil, err }
 	if err := EnsureColumn(dbConn, "data_entry_sessions", "current_flow", "TEXT"); err != nil { return nil, err }

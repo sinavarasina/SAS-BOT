@@ -9,7 +9,7 @@ import (
 func (s *Service) NotifyPerangkatDesa(pdfPath, namaSurat, uniqueID, namaPengaju string) {
 	nomorKades := os.Getenv("NOMOR_PERANGKAT_DESA")
 	if nomorKades == "" {
-		return // Tidak ada nomor, tidak kirim notifikasi
+		return
 	}
 
 	kadesJID := fmt.Sprintf("%s@s.whatsapp.net", nomorKades)

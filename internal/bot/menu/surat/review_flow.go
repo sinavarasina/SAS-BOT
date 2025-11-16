@@ -16,7 +16,7 @@ func (h *SuratHandler) HandleReview(session *db.DataEntrySession, text string) [
 
 	serviceName := session.SuratTempAnswer.String
 	if serviceName == "" {
-		serviceName = "Pengajuan Surat" // Fallback
+		serviceName = "Pengajuan Surat"
 	}
 
 	go h.Service.Ctx.SheetsClient.AppendUlasan("ulasan_pengajuan_surat", serviceName, rating, session.JID)

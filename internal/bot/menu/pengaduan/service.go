@@ -8,14 +8,12 @@ import (
 	"os"
 	"time"
 
-	// "github.com/jmoiron/sqlx" // <-- (Diperlukan oleh db)
 	"github.com/sinavarasina/SAS-BOT/internal/bot/common"
 	"github.com/sinavarasina/SAS-BOT/internal/db"
-	// "github.com/sinavarasina/SAS-BOT/internal/uploader" // <-- (Diperlukan oleh s.Ctx.ImgbbUploader)
 	"go.mau.fi/whatsmeow"
-	waProto "go.mau.fi/whatsmeow/binary/proto" // <-- Diberi nama 'waProto'
+	waProto "go.mau.fi/whatsmeow/binary/proto"
 	"go.mau.fi/whatsmeow/types"
-	"google.golang.org/protobuf/proto" // <-- PERBAIKAN: Import 'proto'
+	"google.golang.org/protobuf/proto"
 )
 
 // Service menangani logika bisnis untuk modul Pengaduan
@@ -52,7 +50,6 @@ func (s *Service) HandleImagePengaduan(session *db.DataEntrySession, imageMsg *w
 		start := time.Now()
 		log.Printf("[ASYNC] Starting upload & synchronization for %s", session.JID)
 
-		// --- PERBAIKAN: Panggil method Uploader ---
 		publicURL, err := s.Ctx.ImgbbUploader.UploadToImgbb(data)
 		if err != nil {
 			log.Printf("[ERROR] Failed to upload to ImgBB: %v", err)
@@ -110,9 +107,8 @@ func (s *Service) GetPengaduanStatus(unikID string) (string, error) {
 func sendMessageSafe(client *whatsmeow.Client, chat types.JID, text string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	// --- PERBAIKAN: Gunakan 'waProto.Message' ---
 	_, err := client.SendMessage(ctx, chat, &waProto.Message{
-		Conversation: proto.String(text), // <-- 'proto' sekarang sudah dikenal
+		Conversation: proto.String(text), 
 	})
 	if err != nil {
 		log.Printf("[WARN] Failed to send message to %s: %v", chat.String(), err)

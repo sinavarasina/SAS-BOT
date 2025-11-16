@@ -1,4 +1,3 @@
-// file: internal/bot/menu/datadiri/service.go
 package datadiri
 
 import (
@@ -6,7 +5,7 @@ import (
 	"log"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/sinavarasina/SAS-BOT/internal/bot/common" // <-- Import ini SEKARANG DIGUNAKAN
+	"github.com/sinavarasina/SAS-BOT/internal/bot/common" 
 	"github.com/sinavarasina/SAS-BOT/internal/db"
 	"github.com/sinavarasina/SAS-BOT/internal/sheets"
 )
@@ -17,14 +16,12 @@ type Service struct {
 	SheetsClient *sheets.SheetsClient
 }
 
-// --- PERBAIKAN: Ganti parameter NewService ---
 func NewService(ctx *common.ServiceContext) *Service {
 	return &Service{
 		DB:           ctx.DB,
 		SheetsClient: ctx.SheetsClient,
 	}
 }
-// --- AKHIR PERBAIKAN ---
 
 // CheckNIKExists memeriksa apakah NIK sudah ada
 func (s *Service) CheckNIKExists(nik, jid string) (string, error) {
@@ -46,7 +43,7 @@ func (s *Service) CheckNIKExists(nik, jid string) (string, error) {
 		return "⚠️ NIK ini sedang didaftarkan oleh pengguna lain saat ini.\n\nKetik 'edit nik' untuk memasukkan NIK baru, atau 'stop' untuk membatalkan pendaftaran.", fmt.Errorf("nik duplikat sesi")
 	}
 	
-	return "", nil // Tidak ada error
+	return "", nil
 }
 
 // SaveDataToDBAndSheets menyimpan data akhir

@@ -7,7 +7,6 @@ import (
 	"github.com/sinavarasina/SAS-BOT/internal/db"
 )
 
-// HandleReview menangani input ulasan
 func (h *PengaduanHandler) HandleReview(session *db.DataEntrySession, text string) []string {
 	rating := common.NormalizeInput(text)
 	if rating != "1" && rating != "2" && rating != "3" && rating != "4" && rating != "5" {
@@ -16,7 +15,7 @@ func (h *PengaduanHandler) HandleReview(session *db.DataEntrySession, text strin
 
 	serviceName := session.SuratTempAnswer.String
 	if serviceName == "" {
-		serviceName = "Ajukan Pengaduan" // Fallback
+		serviceName = "Ajukan Pengaduan" 
 	}
 
 	go h.Service.Ctx.SheetsClient.AppendUlasan("ulasan_pengaduan", serviceName, rating, session.JID)

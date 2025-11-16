@@ -43,7 +43,6 @@ func (s *Service) HandleSuratGeneration(session *db.DataEntrySession) []string {
 	namaSurat := NamaSuratmap[jenis]
 
 	// 3. Buat ID unik & nama file
-	// rand.Seed(time.Now().UnixNano()) // Tidak perlu jika pakai Go 1.20+
 	unikID := fmt.Sprintf("%04d", 1000+rand.Intn(9000)) // 4 digit random
 	tgl := time.Now().Format("02-01-2006")
 	pdfName := fmt.Sprintf("%s_%s_%s.pdf", strings.TrimSuffix(string(jenis), ".tex"), unikID, tgl)

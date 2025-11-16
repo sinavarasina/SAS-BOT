@@ -1,9 +1,8 @@
-// file: internal/bot/menu/pengaduan/handler.go
 package pengaduan
 
 import (
 	"log"
-	"strings" // <-- PERBAIKAN: Tambahkan import 'strings'
+	"strings" 
 
 	"github.com/sinavarasina/SAS-BOT/internal/bot/common"
 	"github.com/sinavarasina/SAS-BOT/internal/db"
@@ -11,7 +10,6 @@ import (
 	"go.mau.fi/whatsmeow/types"
 )
 
-// (Struct PengaduanHandler dan NewHandler tidak berubah)
 type PengaduanHandler struct {
 	Service *Service
 }
@@ -20,7 +18,6 @@ func NewHandler(ctx *common.ServiceContext) *PengaduanHandler {
 	return &PengaduanHandler{Service: service}
 }
 
-// HandleText (Tidak berubah)
 func (h *PengaduanHandler) HandleText(session *db.DataEntrySession, text string) []string {
 	switch session.CurrentStep {
 	case common.STEP_PENGADUAN_MENU:
@@ -40,7 +37,6 @@ func (h *PengaduanHandler) HandleText(session *db.DataEntrySession, text string)
 	}
 }
 
-// HandleImage (Tidak berubah)
 func (h *PengaduanHandler) HandleImage(session *db.DataEntrySession, imageMsg *proto.ImageMessage, messageID string, chatJID types.JID) []string {
 	if session.CurrentStep == common.STEP_PENGADUAN_WAITING {
 		return h.Service.HandleImagePengaduan(session, imageMsg, messageID, chatJID)
@@ -49,7 +45,6 @@ func (h *PengaduanHandler) HandleImage(session *db.DataEntrySession, imageMsg *p
 	return []string{"Maaf, saya tidak mengharapkan gambar saat ini."}
 }
 
-// handleMenuUtama (Tidak berubah)
 func (h *PengaduanHandler) handleMenuUtama(session *db.DataEntrySession, text string) []string {
 	switch text {
 	case "1":
@@ -67,7 +62,6 @@ func (h *PengaduanHandler) handleMenuUtama(session *db.DataEntrySession, text st
 	}
 }
 
-// handleValidasiNik (Tidak berubah)
 func (h *PengaduanHandler) handleValidasiNik(session *db.DataEntrySession, text string) []string {
 	if len(text) != 16 {
 		return []string{"Format NIK salah. Harap masukkan 16 digit NIK Anda:"}
@@ -90,9 +84,8 @@ func (h *PengaduanHandler) handleValidasiNik(session *db.DataEntrySession, text 
 	}
 }
 
-// handleCariID (Tidak berubah)
 func (h *PengaduanHandler) handleCariID(session *db.DataEntrySession, text string) []string {
-	unikID := strings.ToUpper(text) // <-- 'strings' sekarang sudah di-import
+	unikID := strings.ToUpper(text)
 	statusMsg, err := h.Service.GetPengaduanStatus(unikID)
 	if err != nil {
 		return []string{err.Error()}
