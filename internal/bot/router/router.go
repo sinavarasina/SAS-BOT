@@ -15,7 +15,7 @@ import (
 	"github.com/sinavarasina/SAS-BOT/internal/bot/menu/surat"
 	"github.com/sinavarasina/SAS-BOT/internal/db"
 	"go.mau.fi/whatsmeow"
-	waProto "go.mau.fi/whatsmeow/binary/proto"
+	waE2E "go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/types"
 	googleProto "google.golang.org/protobuf/proto"
 )
@@ -66,7 +66,7 @@ func (r *BotRouter) updateCache(jid string) {
 	log.Printf("[CACHE] UPDATED %s (Step: %d, Flow: %s)", jid, updatedSession.CurrentStep, updatedSession.CurrentFlow.String)
 }
 
-func (r *BotRouter) Route(jid string, text string, imageMsg *waProto.ImageMessage, messageID string, chatJID types.JID, isGroup bool, username string, number string) []string {
+func (r *BotRouter) Route(jid string, text string, imageMsg *waE2E.ImageMessage, messageID string, chatJID types.JID, isGroup bool, username string, number string) []string {
 
 	text = strings.TrimSpace(text)
 	log.Printf("[DEBUG] Menerima input: '%s', JID: %s", text, jid)
@@ -181,7 +181,7 @@ func SendAsync(ctx context.Context, client *whatsmeow.Client, chat types.JID, te
 		ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 		defer cancel()
 
-		msg := &waProto.Message{Conversation: googleProto.String(text)}
+		msg := &waE2E.Message{Conversation: googleProto.String(text)}
 		_, err := client.SendMessage(ctx, chat, msg)
 
 		if err != nil {

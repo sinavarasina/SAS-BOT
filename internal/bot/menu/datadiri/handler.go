@@ -5,7 +5,7 @@ import (
 
 	"github.com/sinavarasina/SAS-BOT/internal/bot/common"
 	"github.com/sinavarasina/SAS-BOT/internal/db"
-	"go.mau.fi/whatsmeow/binary/proto"
+	waE2E "go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/types"
 )
 
@@ -43,7 +43,7 @@ func (h *DataDiriHandler) HandleText(session *db.DataEntrySession, text string) 
 	}
 }
 
-func (h *DataDiriHandler) HandleImage(session *db.DataEntrySession, imageMsg *proto.ImageMessage, messageID string, chatJID types.JID) []string {
+func (h *DataDiriHandler) HandleImage(session *db.DataEntrySession, imageMsg *waE2E.ImageMessage, messageID string, chatJID types.JID) []string {
 	log.Printf("[WARN] Modul DataDiri menerima gambar di langkah %d, ini seharusnya tidak terjadi.", session.CurrentStep)
 	return []string{"Maaf, saya tidak mengharapkan gambar saat ini. Mohon kirimkan jawaban dalam bentuk teks."}
 }

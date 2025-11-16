@@ -1,4 +1,3 @@
-// file: internal/whatsapp/event-handler.go
 package whatsapp
 
 import (
@@ -11,7 +10,7 @@ import (
 	"github.com/sinavarasina/SAS-BOT/internal/bot/router"
 	"github.com/sinavarasina/SAS-BOT/internal/utils"
 	"go.mau.fi/whatsmeow"
-	waProto "go.mau.fi/whatsmeow/binary/proto"
+	waE2E "go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 	"google.golang.org/protobuf/proto"
@@ -65,7 +64,7 @@ func SendAsync(ctx context.Context, client *whatsmeow.Client, chat types.JID, te
 		ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 		defer cancel()
 
-		msg := &waProto.Message{Conversation: proto.String(text)}
+		msg := &waE2E.Message{Conversation: proto.String(text)}
 		_, err := client.SendMessage(ctx, chat, msg)
 
 		if err != nil {
