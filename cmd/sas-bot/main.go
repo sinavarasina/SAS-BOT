@@ -58,6 +58,7 @@ func main() {
 
 	limiter := utils.NewRateLimiter(LIMITCOUNT, LIMITTIME*time.Second)
 	log.Println("[INFO] Rate Limiter (", LIMITCOUNT, " pesan / ", LIMITTIME, " detik) diaktifkan.")
+
 	imgbbUploader := uploader.NewImgbbUploader(os.Getenv("IMGBB_API_KEY"))
 	geminiService := gemini.NewGeminiService(os.Getenv("GEMINI_API_KEY"))
 
