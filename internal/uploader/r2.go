@@ -20,7 +20,7 @@ func (u *R2Uploader) UploadToR2(data []byte, fileName string) (string, error) {
 
 	log.Printf("[R2] Mengunggah %s ke bucket %s...", fileName, u.BucketName)
 
-	r2Resolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+	r2Resolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...any) (aws.Endpoint, error) {
 		return aws.Endpoint{
 			URL: fmt.Sprintf("https://%s.r2.cloudflarestorage.com", u.AccountID),
 		}, nil

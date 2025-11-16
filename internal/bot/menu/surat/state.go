@@ -3,6 +3,7 @@ package surat
 import (
 	"fmt"
 	"github.com/sinavarasina/SAS-BOT/internal/db"
+	"slices"
 	"strings"
 	"time"
 )
@@ -124,25 +125,20 @@ func BuildDataMap(data db.DataPenduduk) map[string]string {
 	}
 }
 
-// GetFieldList mem-filter field yang perlu ditanyakan
 func GetFieldList(data db.DataPenduduk, jenis JenisSurat) []string {
 	if jenis == KEMATIAN || jenis == SKTM_TANGGUNGAN {
 		return SuratFields[jenis]
 	}
+
 	neededFields := []string{}
 	allExtraFields := SuratFields[jenis]
+
 	for _, field := range allExtraFields {
-		isBase := false
-		for _, base := range BaseFields {
-			if field == base {
-				isBase = true
-				break
-			}
-		}
-		if !isBase {
+		if !slices.Contains(BaseFields, field) {
 			neededFields = append(neededFields, field)
 		}
 	}
+
 	return neededFields
 }
 

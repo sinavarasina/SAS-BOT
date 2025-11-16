@@ -9,7 +9,8 @@ import (
 	"time"
 
 	"go.mau.fi/whatsmeow"
-	waProto "go.mau.fi/whatsmeow/binary/proto"
+	waE2E "go.mau.fi/whatsmeow/proto/waE2E"
+
 	"go.mau.fi/whatsmeow/types"
 	"google.golang.org/protobuf/proto"
 )
@@ -23,7 +24,7 @@ func SendMessage(client *whatsmeow.Client, jid string, msg string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	_, err = client.SendMessage(ctx, recipient, &waProto.Message{
+	_, err = client.SendMessage(ctx, recipient, &waE2E.Message{
 		Conversation: proto.String(msg),
 	})
 	if err != nil {
@@ -57,8 +58,8 @@ func SendFile(client *whatsmeow.Client, jid string, path string, caption string)
 		return err
 	}
 
-	msg := &waProto.Message{
-		DocumentMessage: &waProto.DocumentMessage{
+	msg := &waE2E.Message{
+		DocumentMessage: &waE2E.DocumentMessage{
 			URL:           proto.String(uploaded.URL),
 			Mimetype:      proto.String("application/pdf"),
 			Title:         proto.String(filepath.Base(path)),

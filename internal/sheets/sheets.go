@@ -64,8 +64,8 @@ func InitSheetsClient() (*SheetsClient, error) {
 }
 
 // --- FUNGSI DATA PENDUDUK (Dipersingkat 19 langkah/21 kolom) ---
-func (c *SheetsClient) buildRowDataPenduduk(s db.DataEntrySession) []interface{} {
-	return []interface{}{
+func (c *SheetsClient) buildRowDataPenduduk(s db.DataEntrySession) []any {
+	return []any{
 		time.Now().Format("2006-01-02 15:04:05"),
 		s.Dusun.String, s.RT.String, s.Nama.String, s.NoKK.String, s.NIK.String,
 		s.SexNama.String, s.TempatLahir.String, db.FormatDate(s.TanggalLahir),
@@ -146,7 +146,7 @@ func (c *SheetsClient) AppendPengaduan(aduan db.Pengaduan, publicID string) {
 	rangeData := "Sheet1!A2" // Ganti 'Sheet1' dengan nama tab pengaduan Anda
 	gambarFormula := fmt.Sprintf("=IMAGE(\"%s\")", aduan.PictPath)
 	var vr sheets.ValueRange
-	vr.Values = append(vr.Values, []interface{}{
+	vr.Values = append(vr.Values, []any{
 		time.Now().Format("2006-01-02 15:04:05"),
 		aduan.UserJID, aduan.Deskripsi, aduan.PictPath,
 		gambarFormula, "Belum Diproses", publicID,
@@ -203,7 +203,7 @@ func (c *SheetsClient) AppendSuratLog(jenisSuratStr string, nama, unikID, tgl, s
 
 	rangeData := fmt.Sprintf("%s!A2", sheetName)
 	var vr sheets.ValueRange
-	vr.Values = append(vr.Values, []interface{}{
+	vr.Values = append(vr.Values, []any{
 		tgl, nama, unikID, status, fileURL,
 	})
 
@@ -241,7 +241,7 @@ func (c *SheetsClient) GetSuratStatus(unikID string) (string, error) {
 func (c *SheetsClient) AppendUlasan(sheetName, layanan, rating, jid string) {
 	rangeData := fmt.Sprintf("%s!A2", sheetName)
 	var vr sheets.ValueRange
-	vr.Values = append(vr.Values, []interface{}{
+	vr.Values = append(vr.Values, []any{
 		time.Now().Format("2006-01-02 15:04:05"), // Timestamp
 		jid,
 		layanan,
