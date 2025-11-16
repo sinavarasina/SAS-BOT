@@ -2,6 +2,7 @@ package datadiri
 
 import (
 	"fmt"
+	"log"
 	"github.com/sinavarasina/SAS-BOT/internal/bot/common"
 	"github.com/sinavarasina/SAS-BOT/internal/db"
 	"strconv"
@@ -13,6 +14,27 @@ func (h *DataDiriHandler) handleEditFlow(session *db.DataEntrySession, text stri
 
 	// Skenario 1: User baru masuk mode edit, menunggu nomor
 	if editField == "" {
+		normText := common.NormalizeInput(text)
+
+		// CEK "valid" SEBELUM hal lain
+		if normText == "valid" {
+			// User selesai mengedit, panggil logika simpan
+			// Ini adalah logika yang sama dengan di 'confirmation.go'
+			if err := h.Service.SaveDataPenduduk(session.JID); err != nil {
+				log.Printf("[ERROR] Gagal menyimpan data penduduk setelah edit: %v", err)
+				return []string{"Maaf, terjadi kesalahan sistem saat menyimpan data."}
+			}
+
+			// Pindah ke langkah Ulasan
+			if err := db.UpdateStepOnly(h.Service.DB, session.JID, common.STEP_ULASAN_DATA_DIRI); err != nil {
+				return []string{"Maaf, terjadi kesalahan sistem."}
+			}
+
+			// Kirim prompt ulasan
+			return []string{"Terima kasih! Data Anda telah berhasil disimpan/diperbarui. ⭐\n\n" +
+				"Sebelum kembali ke menu utama, kami ingin meminta ulasan Anda. " +
+				"Kirim angka *1 (Sangat Buruk)* sampai *5 (Sangat Baik)* untuk layanan *Data Diri* ini."}
+		}
 		num, err := strconv.Atoi(text)
 		if err != nil || num < 1 || num > 39 {
 			data, _ := db.GetFormattedSessionData(h.Service.DB, session.JID)
@@ -30,7 +52,7 @@ func (h *DataDiriHandler) handleEditFlow(session *db.DataEntrySession, text stri
 	var currentStep Step
 	for i, s := range Steps {
 		if s.Field == editField {
-			currentStep = Steps[i+1] // (Ini mungkin salah, kita cari berdasarkan field)
+			currentStep = Steps[i+1]
 			break
 		}
 	}

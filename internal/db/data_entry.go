@@ -95,8 +95,6 @@ func GetOrCreateDataEntrySession(dbConn *sqlx.DB, jid string) (*DataEntrySession
 	if err := EnsureColumn(dbConn, "data_entry_sessions", "edit_field", "TEXT"); err != nil { return nil, err }
 	if err := EnsureColumn(dbConn, "data_entry_sessions", "sheet_row_num", "INTEGER"); err != nil { return nil, err }
 	if err := EnsureColumn(dbConn, "data_entry_sessions", "current_flow", "TEXT"); err != nil { return nil, err }
-	if err := EnsureColumn(dbConn, "data_entry_sessions", "alamat", "TEXT"); err != nil { return nil, err }
-	if err := EnsureColumn(dbConn, "data_entry_sessions", "rw", "TEXT"); err != nil { return nil, err }
 	if err := EnsureSuratSessionColumns(dbConn); err != nil { return nil, err }
 
 	var session DataEntrySession
