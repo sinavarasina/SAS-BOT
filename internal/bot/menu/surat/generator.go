@@ -37,7 +37,6 @@ func GenerateAsync(
 	sheetsClient *sheets.SheetsClient,
 	r2Uploader *uploader.R2Uploader,
 ) (string, error) {
-
 	src := filepath.Join("templates", string(template))
 	texBytes, err := os.ReadFile(src)
 	if err != nil {
@@ -46,6 +45,11 @@ func GenerateAsync(
 
 	relLogoPath := filepath.Join("..", "templates", "logo", "logo.jpg")
 	data["LOGOPATH"] = filepath.ToSlash(relLogoPath)
+	signer := os.Getenv("SIGNER_NAME")
+	if signer == "" {
+		signer = "........................"
+	}
+	data["SIGNER.NAME"] = signer
 
 	filled := fillTemplate(string(texBytes), data)
 	texPath := filepath.Join(tempDir, strings.Replace(pdfName, ".pdf", ".tex", 1))
@@ -60,8 +64,15 @@ func GenerateAsync(
 
 	go func() {
 		absTemp, _ := filepath.Abs(tempDir)
-		cmd := exec.Command("pdflatex", "-interaction=nonstopmode", "-output-directory", absTemp, filepath.Base(texPath))
-		cmd.Dir = absTemp
+		// pdfPath := strings.Replace(texPath, ".tex", ".pdf", 1)
+
+		cmd := exec.Command("pdflatex",
+			"-interaction=nonstopmode",
+			"-output-directory", absTemp,
+			filepath.Base(texPath),
+		)
+		cmd.Dir = absTemp // Direktori kerja adalah 'temp/'
+
 		output, err := cmd.CombinedOutput()
 
 		if _, statErr := os.Stat(pdfPath); os.IsNotExist(statErr) {
@@ -97,8 +108,9 @@ func GenerateAsync(
 		if err != nil {
 			fileURL = "Gagal Upload"
 		}
-		
+
 		// 4. Log ke Sheet
+
 		tgl := time.Now().Format("02-01-2006")
 		sheetsClient.AppendSuratLog(string(template), data["NAMA"], uniqueID, tgl, "Belum Diproses", fileURL)
 

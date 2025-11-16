@@ -43,3 +43,8 @@ uploads/
 .DS_Store
 
 temp/
+
+# Atleast removing some stupid cache pushed into repo
+*.aux
+*.log
+*.pdf

@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
-	"github.com/sinavarasina/SAS-BOT/internal/bot/common" 
+	"github.com/sinavarasina/SAS-BOT/internal/bot/common"
 	"github.com/sinavarasina/SAS-BOT/internal/bot/gemini"
 	"github.com/sinavarasina/SAS-BOT/internal/bot/router"
 	"github.com/sinavarasina/SAS-BOT/internal/db"
@@ -18,6 +18,10 @@ import (
 	"github.com/sinavarasina/SAS-BOT/internal/utils"
 	"github.com/sinavarasina/SAS-BOT/internal/whatsapp"
 )
+
+// wht u think if im doin like this? ~by sina
+const LIMITCOUNT = 3
+const LIMITTIME = 10
 
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
@@ -52,8 +56,8 @@ func main() {
 		os.Getenv("R2_PUBLIC_URL"),
 	)
 
-	limiter := utils.NewRateLimiter(3, 10*time.Second)
-	log.Println("[INFO] Rate Limiter (5 pesan / 10 detik) diaktifkan.")
+	limiter := utils.NewRateLimiter(LIMITCOUNT, LIMITTIME*time.Second)
+	log.Println("[INFO] Rate Limiter (", LIMITCOUNT, " pesan / ", LIMITTIME, " detik) diaktifkan.")
 	imgbbUploader := uploader.NewImgbbUploader(os.Getenv("IMGBB_API_KEY"))
 	geminiService := gemini.NewGeminiService(os.Getenv("GEMINI_API_KEY"))
 
@@ -70,7 +74,7 @@ func main() {
 		WAClient:      waClient,
 		R2Uploader:    r2Uploader,
 		ImgbbUploader: imgbbUploader,
-		Limiter:      limiter,
+		Limiter:       limiter,
 	}
 
 	// 5. Buat Router Utama
@@ -80,7 +84,7 @@ func main() {
 	if err := whatsapp.InitAndStart(ctx, waClient, appDB, sheetsClient, botRouter, limiter); err != nil {
 		log.Fatal("Error at whatsapp.InitAndStart(), Message :", err)
 	}
-	
+
 	log.Println("SAS-BOT Running..")
 	<-ctx.Done()
 	log.Println("Shutting Down SAS-BOT")
