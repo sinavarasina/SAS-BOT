@@ -49,8 +49,8 @@ type DataPenduduk struct {
 	TagCard              sql.NullString `db:"tag_card"`
 	IDAsuransiID         sql.NullInt64  `db:"id_asuransi_id"`
 	NoAsuransi           sql.NullString `db:"no_asuransi"`
-	CreatedAt time.Time `db:"created_at"`
-	UpdatedAt time.Time `db:"updated_at"`
+	CreatedAt            time.Time      `db:"created_at"`
+	UpdatedAt            time.Time      `db:"updated_at"`
 
 	SexNama              sql.NullString `db:"sex_nama"`
 	AgamaNama            sql.NullString `db:"agama_nama"`
@@ -85,7 +85,7 @@ func CheckNIKExistsInPenduduk(dbConn *sqlx.DB, nik string) (bool, error) {
 // GetDataPendudukByNIK mengambil data permanen berdasarkan NIK.
 func GetDataPendudukByNIK(dbConn *sqlx.DB, nik string) (*DataPenduduk, error) {
 	var data DataPenduduk
-	
+
 	query := `
         SELECT 
             COALESCE(s.jid, '') as jid,
@@ -147,12 +147,12 @@ func GetDataPendudukByNIK(dbConn *sqlx.DB, nik string) (*DataPenduduk, error) {
 		}
 		return nil, err
 	}
-	
+
 	// Validasi: selama ada NIK, data dianggap valid meski kolom lain kosong
 	if !data.NIK.Valid || data.NIK.String == "" {
 		return nil, fmt.Errorf("data NIK tidak valid")
 	}
-	
+
 	return &data, nil
 }
 

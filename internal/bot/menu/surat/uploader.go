@@ -10,7 +10,7 @@ import (
 // UploadPDFToR2 membungkus logika upload R2
 func UploadPDFToR2(pdfPath, pdfName string, r2Uploader *uploader.R2Uploader) (string, error) {
 	log.Printf("[SURAT] Mengunggah %s ke Cloudflare R2...", pdfName)
-	
+
 	pdfData, err := os.ReadFile(pdfPath)
 	if err != nil {
 		log.Printf("[SURAT-ERROR] Gagal membaca PDF untuk di-upload: %v", err)
@@ -22,7 +22,7 @@ func UploadPDFToR2(pdfPath, pdfName string, r2Uploader *uploader.R2Uploader) (st
 		log.Printf("[SURAT-ERROR] Gagal upload file ke R2: %v", err)
 		return "Gagal Upload", err
 	}
-	
+
 	log.Printf("[SURAT] Berhasil upload file ke R2: %s", fileURL)
 	return fileURL, nil
 }

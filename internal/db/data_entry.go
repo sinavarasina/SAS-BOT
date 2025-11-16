@@ -1,43 +1,43 @@
 package db
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
 	"strings"
 	"time"
-	"context"
 
 	"github.com/jmoiron/sqlx"
 )
 
 type DataEntrySession struct {
-	JID                  string         `db:"jid"`
-	CurrentStep          int            `db:"current_step"`
-	AwaitingAnswer       bool           `db:"awaiting_answer"`
-	CurrentFlow        sql.NullString `db:"current_flow"`
-	SheetRowNum          sql.NullInt64  `db:"sheet_row_num"`
-	EditField            sql.NullString `db:"edit_field"`
+	JID            string         `db:"jid"`
+	CurrentStep    int            `db:"current_step"`
+	AwaitingAnswer bool           `db:"awaiting_answer"`
+	CurrentFlow    sql.NullString `db:"current_flow"`
+	SheetRowNum    sql.NullInt64  `db:"sheet_row_num"`
+	EditField      sql.NullString `db:"edit_field"`
 
-	Dusun                sql.NullString `db:"dusun"`
-	RT                   sql.NullString `db:"rt"`
-	Nama                 sql.NullString `db:"nama"`
-	NoKK                 sql.NullString `db:"no_kk"`
-	NIK                  sql.NullString `db:"nik"`
-	SexID                sql.NullInt64  `db:"sex_id"`
-	TempatLahir          sql.NullString `db:"tempat_lahir"`
-	TanggalLahir         sql.NullTime   `db:"tanggal_lahir"`
-	AgamaID              sql.NullInt64  `db:"agama_id"`
-	PendidikanKkID       sql.NullInt64  `db:"pendidikan_kk_id"`
-	PendidikanSedangID   sql.NullInt64  `db:"pendidikan_sedang_id"`
-	PekerjaanID          sql.NullInt64  `db:"pekerjaan_id"`
-	StatusKawinID        sql.NullInt64  `db:"status_kawin_id"`
-	KkLevelID            sql.NullInt64  `db:"kk_level_id"`
-	WarganegaraID        sql.NullInt64  `db:"warganegara_id"`
-	NamaAyah             sql.NullString `db:"nama_ayah"`
-	NamaIbu              sql.NullString `db:"nama_ibu"`
-	StatusDasarID        sql.NullInt64  `db:"status_dasar_id"`
-	SukuID               sql.NullInt64  `db:"suku_id"`
+	Dusun              sql.NullString `db:"dusun"`
+	RT                 sql.NullString `db:"rt"`
+	Nama               sql.NullString `db:"nama"`
+	NoKK               sql.NullString `db:"no_kk"`
+	NIK                sql.NullString `db:"nik"`
+	SexID              sql.NullInt64  `db:"sex_id"`
+	TempatLahir        sql.NullString `db:"tempat_lahir"`
+	TanggalLahir       sql.NullTime   `db:"tanggal_lahir"`
+	AgamaID            sql.NullInt64  `db:"agama_id"`
+	PendidikanKkID     sql.NullInt64  `db:"pendidikan_kk_id"`
+	PendidikanSedangID sql.NullInt64  `db:"pendidikan_sedang_id"`
+	PekerjaanID        sql.NullInt64  `db:"pekerjaan_id"`
+	StatusKawinID      sql.NullInt64  `db:"status_kawin_id"`
+	KkLevelID          sql.NullInt64  `db:"kk_level_id"`
+	WarganegaraID      sql.NullInt64  `db:"warganegara_id"`
+	NamaAyah           sql.NullString `db:"nama_ayah"`
+	NamaIbu            sql.NullString `db:"nama_ibu"`
+	StatusDasarID      sql.NullInt64  `db:"status_dasar_id"`
+	SukuID             sql.NullInt64  `db:"suku_id"`
 
 	NikAyah              sql.NullString `db:"nik_ayah"`
 	NikIbu               sql.NullString `db:"nik_ibu"`
@@ -60,8 +60,8 @@ type DataEntrySession struct {
 	IDAsuransiID         sql.NullInt64  `db:"id_asuransi_id"`
 	NoAsuransi           sql.NullString `db:"no_asuransi"`
 
-	CreatedAt            time.Time      `db:"created_at"`
-	UpdatedAt            time.Time      `db:"updated_at"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
 
 	SuratValidNik      sql.NullString `db:"surat_valid_nik"`
 	SuratFieldsPending sql.NullString `db:"surat_fields_pending"`
@@ -92,15 +92,23 @@ type DataEntrySession struct {
 
 // GetOrCreateDataEntrySession retrieves an existing session or creates a new one.
 func GetOrCreateDataEntrySession(dbConn *sqlx.DB, jid string) (*DataEntrySession, error) {
-	if err := EnsureColumn(dbConn, "data_entry_sessions", "edit_field", "TEXT"); err != nil { return nil, err }
-	if err := EnsureColumn(dbConn, "data_entry_sessions", "sheet_row_num", "INTEGER"); err != nil { return nil, err }
-	if err := EnsureColumn(dbConn, "data_entry_sessions", "current_flow", "TEXT"); err != nil { return nil, err }
-	if err := EnsureSuratSessionColumns(dbConn); err != nil { return nil, err }
+	if err := EnsureColumn(dbConn, "data_entry_sessions", "edit_field", "TEXT"); err != nil {
+		return nil, err
+	}
+	if err := EnsureColumn(dbConn, "data_entry_sessions", "sheet_row_num", "INTEGER"); err != nil {
+		return nil, err
+	}
+	if err := EnsureColumn(dbConn, "data_entry_sessions", "current_flow", "TEXT"); err != nil {
+		return nil, err
+	}
+	if err := EnsureSuratSessionColumns(dbConn); err != nil {
+		return nil, err
+	}
 
 	var session DataEntrySession
 	query := `SELECT * FROM data_entry_sessions WHERE jid = $1`
 	err := dbConn.Get(&session, query, jid)
-	
+
 	if err == sql.ErrNoRows {
 		log.Printf("[DEBUG] Creating new session for jid: %s", jid)
 		newSession := DataEntrySession{
@@ -224,7 +232,7 @@ func DeleteDataEntrySession(dbConn *sqlx.DB, jid string) error {
 func GetFullSessionData(dbConn *sqlx.DB, jid string) (*DataEntrySession, error) {
 	log.Printf("[DEBUG] Getting full session data for jid: %s", jid)
 	var session DataEntrySession
-	
+
 	query := `
         SELECT s.*, 
             sex.nama as sex_nama,
@@ -280,7 +288,6 @@ func GetFormattedSessionData(dbConn *sqlx.DB, jid string) (string, error) {
 		log.Printf("[ERROR] Failed to get session data: %v", err)
 		return "", err
 	}
-
 
 	// Add debug logging for IDs and names
 	log.Printf("[DEBUG] Session data - sex_id: %v, sex_nama: %v",
@@ -523,7 +530,7 @@ func EnsureSuratSessionColumns(dbConn *sqlx.DB) error {
 		"surat_data_map",
 		"surat_temp_answer",
 	}
-	
+
 	for _, col := range columns {
 		var exists bool
 		query := fmt.Sprintf(`

@@ -1,9 +1,9 @@
 package datadiri
 
 import (
-	"log"
 	"github.com/sinavarasina/SAS-BOT/internal/bot/common"
 	"github.com/sinavarasina/SAS-BOT/internal/db"
+	"log"
 )
 
 // handleInputFlow menangani alur 19 langkah
@@ -12,7 +12,9 @@ func (h *DataDiriHandler) handleInputFlow(session *db.DataEntrySession, text str
 	if !ok {
 		// Jika langkah tidak ada di map (misal > 19), anggap selesai dan kirim ke konfirmasi
 		data, err := db.GetFormattedSessionData(h.Service.DB, session.JID)
-		if err != nil { return []string{"Maaf, terjadi kesalahan sistem."} }
+		if err != nil {
+			return []string{"Maaf, terjadi kesalahan sistem."}
+		}
 		if err := db.UpdateStepOnly(h.Service.DB, session.JID, common.STEP_KONFIRMASI_DATA_DIRI); err != nil {
 			return []string{"Maaf, terjadi kesalahan sistem."}
 		}

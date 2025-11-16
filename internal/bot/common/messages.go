@@ -1,6 +1,6 @@
 package common
 
-import "fmt" 
+import "fmt"
 
 // GetMainMenu mengembalikan teks menu utama
 func GetMainMenu() string {

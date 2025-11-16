@@ -17,7 +17,7 @@ func (u *R2Uploader) UploadToR2(data []byte, fileName string) (string, error) {
 	if u.AccountID == "" || u.AccessKeyID == "" || u.SecretAccessKey == "" || u.BucketName == "" || u.PublicURL == "" {
 		return "", fmt.Errorf("kredensial R2 tidak di-set")
 	}
-	
+
 	log.Printf("[R2] Mengunggah %s ke bucket %s...", fileName, u.BucketName)
 
 	r2Resolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {

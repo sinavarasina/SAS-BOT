@@ -32,4 +32,3 @@ func GetUser(dbConn *sqlx.DB, jid string) (*User, error) {
 	}
 	return &user, nil
 }
-

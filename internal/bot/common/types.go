@@ -18,11 +18,11 @@ type ServiceContext struct {
 	WAClient      *whatsmeow.Client
 	R2Uploader    *uploader.R2Uploader
 	ImgbbUploader *uploader.ImgbbUploader
-	Limiter      *utils.RateLimiter
+	Limiter       *utils.RateLimiter
 }
 
 // MenuHandler adalah antarmuka yang harus dipatuhi oleh setiap modul menu
 type MenuHandler interface {
-	HandleText(session *db.DataEntrySession, text string) []string	
+	HandleText(session *db.DataEntrySession, text string) []string
 	HandleImage(session *db.DataEntrySession, imageMsg *proto.ImageMessage, messageID string, chatJID types.JID) []string
 }

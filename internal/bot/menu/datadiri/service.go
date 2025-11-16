@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/sinavarasina/SAS-BOT/internal/bot/common" 
+	"github.com/sinavarasina/SAS-BOT/internal/bot/common"
 	"github.com/sinavarasina/SAS-BOT/internal/db"
 	"github.com/sinavarasina/SAS-BOT/internal/sheets"
 )
@@ -42,7 +42,7 @@ func (s *Service) CheckNIKExists(nik, jid string) (string, error) {
 	if isDuplicate {
 		return "⚠️ NIK ini sedang didaftarkan oleh pengguna lain saat ini.\n\nKetik 'edit nik' untuk memasukkan NIK baru, atau 'stop' untuk membatalkan pendaftaran.", fmt.Errorf("nik duplikat sesi")
 	}
-	
+
 	return "", nil
 }
 

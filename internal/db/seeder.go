@@ -37,7 +37,7 @@ func SeedDataDariCSV(dbConn *sqlx.DB, csvPath string) error {
 	defer file.Close()
 
 	reader := csv.NewReader(file)
-	
+
 	// Baca header (baris pertama)
 	header, err := reader.Read()
 	if err != nil {
@@ -149,15 +149,15 @@ func insertOrUpdateDataDiri(dbConn *sqlx.DB, data CSVDataDiri, tanggalLahir time
 	`
 
 	_, err := dbConn.NamedExec(query, map[string]interface{}{
-		"nik":               data.NIK,
-		"no_kk":             data.NoKK,
-		"nama":              data.Nama,
-		"dusun":             data.Dusun,
-		"rt":                data.RT,
-		"tempat_lahir":      data.TempatLahir,
-		"tanggal_lahir":     tanggalLahir,
-		"status_kawin_id":   data.KawinID,
-		"sex_id":            data.SexID,
+		"nik":             data.NIK,
+		"no_kk":           data.NoKK,
+		"nama":            data.Nama,
+		"dusun":           data.Dusun,
+		"rt":              data.RT,
+		"tempat_lahir":    data.TempatLahir,
+		"tanggal_lahir":   tanggalLahir,
+		"status_kawin_id": data.KawinID,
+		"sex_id":          data.SexID,
 	})
 
 	return err
@@ -166,7 +166,7 @@ func insertOrUpdateDataDiri(dbConn *sqlx.DB, data CSVDataDiri, tanggalLahir time
 // RunSeeder adalah wrapper function untuk menjalankan seeder dengan path CSV default
 func RunSeeder(dbConn *sqlx.DB) error {
 	csvPath := filepath.Join("csv", "csv_datadiri.csv")
-	
+
 	// Cek apakah file ada
 	if _, err := os.Stat(csvPath); os.IsNotExist(err) {
 		log.Printf("[WARN] File CSV tidak ditemukan di: %s", csvPath)

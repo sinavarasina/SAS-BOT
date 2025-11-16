@@ -13,7 +13,6 @@ import (
 	"github.com/sinavarasina/SAS-BOT/internal/sheets"
 	"github.com/sinavarasina/SAS-BOT/internal/utils"
 
-
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/store/sqlstore"
 	waLog "go.mau.fi/whatsmeow/util/log"
@@ -39,7 +38,7 @@ func NewClient(dsn string, ctx context.Context) (*whatsmeow.Client, error) {
 }
 
 func InitAndStart(ctx context.Context, client *whatsmeow.Client, appDB *sqlx.DB, sheetsClient *sheets.SheetsClient, botRouter *router.BotRouter, limiter *utils.RateLimiter) error {
-	
+
 	client.AddEventHandler(EventHandler(botRouter, appDB, limiter))
 
 	// Hubungkan

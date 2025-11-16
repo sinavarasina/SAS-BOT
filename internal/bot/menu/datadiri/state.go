@@ -38,6 +38,7 @@ var Steps = map[int]Step{
 	18: {"Pilih Status Dasar:", "status_dasar_id", false, loadOptions("18_status_dasar.json", "status_dasar")},
 	19: {"Pilih Suku:", "suku_id", false, loadOptions("19_suku.json", "suku")},
 }
+
 func loadOptions(fileName, key string) map[int]string {
 	options := make(map[int]string)
 	filePath := filepath.Join("json", fileName)
@@ -62,7 +63,7 @@ func loadOptions(fileName, key string) map[int]string {
 			keyGuess := strings.Split(fileName, "_")[1]
 			keyGuess = strings.TrimSuffix(keyGuess, ".json")
 			if key == keyGuess || (key == "dusun" && fileName == "1_dusun.json") || (key == "sex" && fileName == "6_sex.json") || (key == "agama" && fileName == "9_agama.json") || (key == "pendidikan_kk" && fileName == "10_pendidikan_kk.json") || (key == "pendidikan_sedang" && fileName == "11_pendidikan_sedang.json") || (key == "pekerjaan" && fileName == "12_pekerjaan.json") || (key == "status_kawin" && fileName == "13_status_kawin.json") || (key == "kk_level" && fileName == "14_kk_level.json") || (key == "warganegara" && fileName == "15_warganegara.json") || (key == "status_dasar" && fileName == "18_status_dasar.json") || (key == "suku" && fileName == "19_suku.json") {
-				 for _, opt := range records {
+				for _, opt := range records {
 					id := int(opt["id"].(float64))
 					nama := opt["nama"].(string)
 					options[id] = nama

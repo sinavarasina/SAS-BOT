@@ -14,7 +14,7 @@ func (h *SuratHandler) handleInputFlow(session *db.DataEntrySession, text string
 	if err := db.UpdateSessionField(h.Service.Ctx.DB, session.JID, "surat_temp_answer", text); err != nil {
 		return []string{"Kesalahan menyimpan jawaban sementara."}
 	}
-	
+
 	// 3. Lanjut ke konfirmasi
 	if err := db.UpdateStepOnly(h.Service.Ctx.DB, session.JID, common.STEP_SURAT_KONFIRMASI_FIELD); err != nil {
 		return []string{"Maaf, terjadi kesalahan sistem."}

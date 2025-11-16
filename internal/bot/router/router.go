@@ -21,9 +21,9 @@ import (
 )
 
 type BotRouter struct {
-	Ctx      *common.ServiceContext
-	handlers map[common.FlowName]common.MenuHandler
-	gemini   *gemini.GeminiService
+	Ctx          *common.ServiceContext
+	handlers     map[common.FlowName]common.MenuHandler
+	gemini       *gemini.GeminiService
 	sessionCache *sync.Map
 }
 
@@ -37,9 +37,9 @@ func NewRouter(ctx *common.ServiceContext, geminiSvc *gemini.GeminiService) *Bot
 	log.Println("[INFO] Router berhasil dibuat dengan modul: DataDiri, Surat, Pengaduan")
 
 	return &BotRouter{
-		Ctx:      ctx,
-		handlers: handlers,
-		gemini:   geminiSvc,
+		Ctx:          ctx,
+		handlers:     handlers,
+		gemini:       geminiSvc,
 		sessionCache: new(sync.Map),
 	}
 }

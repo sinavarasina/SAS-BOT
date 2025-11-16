@@ -9,17 +9,17 @@ import (
 )
 
 type GeminiService struct {
-	client       *GeminiClient
+	client         *GeminiClient
 	villageContext string
 }
 
 // InfoDesa struct untuk mem-parsing info_desa.json
 type InfoDesa struct {
-	NamaDesa        string `json:"nama_desa"`
-	Kecamatan       string `json:"kecamatan"`
-	Kabupaten       string `json:"kabupaten"`
-	JamOperasional  string `json:"jam_operasional"`
-	PerangkatDesa   []struct {
+	NamaDesa       string `json:"nama_desa"`
+	Kecamatan      string `json:"kecamatan"`
+	Kabupaten      string `json:"kabupaten"`
+	JamOperasional string `json:"jam_operasional"`
+	PerangkatDesa  []struct {
 		Jabatan string `json:"jabatan"`
 		Nama    string `json:"nama"`
 	} `json:"perangkat_desa"`
@@ -29,7 +29,7 @@ func NewGeminiService(apiKey string) *GeminiService {
 	client := NewGeminiClient(apiKey)
 	context := loadVillageContext("knowledge/info_desa.json")
 	return &GeminiService{
-		client:       client,
+		client:         client,
 		villageContext: context,
 	}
 }

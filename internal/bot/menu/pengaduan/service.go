@@ -57,7 +57,7 @@ func (s *Service) HandleImagePengaduan(session *db.DataEntrySession, imageMsg *w
 			db.DeleteDataEntrySession(s.Ctx.DB, session.JID)
 			return
 		}
-		
+
 		os.Remove(filePath)
 
 		aduan := db.Pengaduan{
@@ -82,7 +82,7 @@ func (s *Service) HandleImagePengaduan(session *db.DataEntrySession, imageMsg *w
 		if err := db.UpdateStepOnly(s.Ctx.DB, session.JID, common.STEP_ULASAN_PENGADUAN); err != nil {
 			log.Printf("[ERROR] Gagal pindah ke langkah ulasan: %v", err)
 		}
-		
+
 		ulasanMsg := fmt.Sprintf("Pengaduan Anda telah tersimpan.\nNomor ID Pengaduan Anda adalah: *%s*", publicID) +
 			"\n\n" + common.GetUlasanMessage("Ajukan Pengaduan")
 		sendMessageSafe(s.Ctx.WAClient, chatJID, ulasanMsg)
@@ -108,7 +108,7 @@ func sendMessageSafe(client *whatsmeow.Client, chat types.JID, text string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	_, err := client.SendMessage(ctx, chat, &waProto.Message{
-		Conversation: proto.String(text), 
+		Conversation: proto.String(text),
 	})
 	if err != nil {
 		log.Printf("[WARN] Failed to send message to %s: %v", chat.String(), err)

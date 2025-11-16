@@ -5,30 +5,30 @@ const (
 	STEP_AWAL = 1 // Menggantikan 'CurrentStep: 1, AwaitingAnswer: false'
 
 	// --- ALUR DATA DIRI (19 Langkah) ---
-	STEP_DUSUN        = 1
-	STEP_RT           = 2
-	STEP_NAMA         = 3
-	STEP_NO_KK        = 4
-	STEP_NIK          = 5
-	STEP_SEX          = 6
-	STEP_TEMPAT_LAHIR = 7
-	STEP_TANGGAL_LAHIR  = 8
-	STEP_AGAMA        = 9
-	STEP_PENDIDIKAN_KK = 10
-	STEP_PENDIDIKAN_SEDANG = 11
-	STEP_PEKERJAAN      = 12
-	STEP_STATUS_KAWIN = 13
-	STEP_KK_LEVEL     = 14
-	STEP_WARGANEGARA  = 15
-	STEP_NAMA_AYAH    = 16
-	STEP_NAMA_IBU     = 17
-	STEP_STATUS_DASAR = 18
-	STEP_SUKU         = 19 // Checkpoint
+	STEP_DUSUN                = 1
+	STEP_RT                   = 2
+	STEP_NAMA                 = 3
+	STEP_NO_KK                = 4
+	STEP_NIK                  = 5
+	STEP_SEX                  = 6
+	STEP_TEMPAT_LAHIR         = 7
+	STEP_TANGGAL_LAHIR        = 8
+	STEP_AGAMA                = 9
+	STEP_PENDIDIKAN_KK        = 10
+	STEP_PENDIDIKAN_SEDANG    = 11
+	STEP_PEKERJAAN            = 12
+	STEP_STATUS_KAWIN         = 13
+	STEP_KK_LEVEL             = 14
+	STEP_WARGANEGARA          = 15
+	STEP_NAMA_AYAH            = 16
+	STEP_NAMA_IBU             = 17
+	STEP_STATUS_DASAR         = 18
+	STEP_SUKU                 = 19 // Checkpoint
 	STEP_KONFIRMASI_DATA_DIRI = 20
 	STEP_EDIT_DATA_DIRI       = 21
 
 	STEP_CHECKPOINT_SUKU = 100
-	STEP_NIK_DUPLIKATE    = 101
+	STEP_NIK_DUPLIKATE   = 101
 
 	STEP_MENU_DATA_DIRI = 200
 	STEP_EDIT_CARI_NIK  = 201

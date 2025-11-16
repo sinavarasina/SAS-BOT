@@ -69,12 +69,12 @@ func (h *DataDiriHandler) handleEditCariNik(session *db.DataEntrySession, text s
 
 func (h *DataDiriHandler) handleSubmenu(session *db.DataEntrySession, text string) []string {
 	switch text {
-	case "1": 
+	case "1":
 		if err := db.StartNewSession(h.Service.DB, session.JID); err != nil {
 			return []string{"Maaf, terjadi kesalahan sistem."}
 		}
 		return []string{FormatQuestion(Steps[common.STEP_DUSUN])}
-	case "2": 
+	case "2":
 		if err := db.UpdateStepOnly(h.Service.DB, session.JID, common.STEP_EDIT_CARI_NIK); err != nil {
 			return []string{"Maaf, terjadi kesalahan sistem."}
 		}

@@ -2,9 +2,9 @@ package datadiri
 
 import (
 	"fmt"
-	"log"
 	"github.com/sinavarasina/SAS-BOT/internal/bot/common"
 	"github.com/sinavarasina/SAS-BOT/internal/db"
+	"log"
 	"strconv"
 )
 
@@ -63,7 +63,6 @@ func (h *DataDiriHandler) handleEditFlow(session *db.DataEntrySession, text stri
 			break
 		}
 	}
-
 
 	value, err := ValidateInput(text, currentStep)
 	if err != nil {

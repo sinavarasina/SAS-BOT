@@ -2,7 +2,7 @@ package pengaduan
 
 import (
 	"log"
-	"strings" 
+	"strings"
 
 	"github.com/sinavarasina/SAS-BOT/internal/bot/common"
 	"github.com/sinavarasina/SAS-BOT/internal/db"
@@ -13,6 +13,7 @@ import (
 type PengaduanHandler struct {
 	Service *Service
 }
+
 func NewHandler(ctx *common.ServiceContext) *PengaduanHandler {
 	service := NewService(ctx)
 	return &PengaduanHandler{Service: service}

@@ -24,7 +24,7 @@ func EventHandler(botRouter *router.BotRouter, appDB *sqlx.DB, limiter *utils.Ra
 			if v.Info.IsFromMe {
 				return
 			}
-			
+
 			senderJID := v.Info.Sender.String()
 
 			if !limiter.Allow(senderJID) {
@@ -44,7 +44,7 @@ func EventHandler(botRouter *router.BotRouter, appDB *sqlx.DB, limiter *utils.Ra
 				text = v.Message.ExtendedTextMessage.GetText()
 			}
 			imageMsg := v.Message.GetImageMessage()
-			
+
 			// Panggil Router Utama
 			replies := botRouter.Route(senderJID, text, imageMsg, v.Info.ID, v.Info.Chat, v.Info.IsGroup, username, number)
 
@@ -64,10 +64,10 @@ func SendAsync(ctx context.Context, client *whatsmeow.Client, chat types.JID, te
 	go func() {
 		ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 		defer cancel()
-		
-		msg := &waProto.Message{ Conversation: proto.String(text) }
+
+		msg := &waProto.Message{Conversation: proto.String(text)}
 		_, err := client.SendMessage(ctx, chat, msg)
-		
+
 		if err != nil {
 			log.Printf("[ERROR] Gagal kirim (%s) ke %s: %v", msgType, chat.String(), err)
 		} else {

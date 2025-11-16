@@ -196,12 +196,22 @@ func InitDB(dsn string) (*sqlx.DB, error) {
 		return nil, fmt.Errorf("[ERROR] Failed to populate lookup tables: %v", err)
 	}
 
-	if err := EnsureFlowColumn(db); err != nil { return nil, err }
-	if err := EnsureEditFieldColumn(db); err != nil { return nil, err }
-	if err := EnsureSheetRowNumColumn(db); err != nil { return nil, err }
-	if err := EnsureSuratSessionColumns(db); err != nil { return nil, err }
+	if err := EnsureFlowColumn(db); err != nil {
+		return nil, err
+	}
+	if err := EnsureEditFieldColumn(db); err != nil {
+		return nil, err
+	}
+	if err := EnsureSheetRowNumColumn(db); err != nil {
+		return nil, err
+	}
+	if err := EnsureSuratSessionColumns(db); err != nil {
+		return nil, err
+	}
 
-	if err := DropColumnIfExists(db, "data_entry_sessions", "current_menu"); err != nil { return nil, err }
+	if err := DropColumnIfExists(db, "data_entry_sessions", "current_menu"); err != nil {
+		return nil, err
+	}
 
 	return db, err
 }
@@ -275,7 +285,7 @@ func insertDataFromJSON(db *sqlx.DB, filePath, tableName, idColumn string) error
 	var records []map[string]interface{}
 	for _, v := range jsonData {
 		records = v
-		break 
+		break
 	}
 
 	for _, record := range records {

@@ -15,7 +15,7 @@ func (h *PengaduanHandler) HandleReview(session *db.DataEntrySession, text strin
 
 	serviceName := session.SuratTempAnswer.String
 	if serviceName == "" {
-		serviceName = "Ajukan Pengaduan" 
+		serviceName = "Ajukan Pengaduan"
 	}
 
 	go h.Service.Ctx.SheetsClient.AppendUlasan("ulasan_pengaduan", serviceName, rating, session.JID)
