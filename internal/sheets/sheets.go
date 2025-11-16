@@ -66,7 +66,7 @@ func InitSheetsClient() (*SheetsClient, error) {
 // --- FUNGSI DATA PENDUDUK (Dipersingkat 19 langkah/21 kolom) ---
 func (c *SheetsClient) buildRowDataPenduduk(s db.DataEntrySession) []interface{} {
 	return []interface{}{
-		time.Now().Format("2006-01-02 15:04:05"), s.JID,
+		time.Now().Format("2006-01-02 15:04:05"),
 		s.Dusun.String, s.RT.String, s.Nama.String, s.NoKK.String, s.NIK.String,
 		s.SexNama.String, s.TempatLahir.String, db.FormatDate(s.TanggalLahir),
 		s.AgamaNama.String, s.PendidikanKKNama.String, s.PendidikanSedangNama.String,
@@ -87,7 +87,7 @@ func (c *SheetsClient) AppendDataPenduduk(s db.DataEntrySession) {
 	}
 }
 func (c *SheetsClient) FindRowByNIK(nik string) (int, error) {
-	readRange := "Data_penduduk!G:G" // NIK di Kolom G
+	readRange := "Data_penduduk!F:F" // NIK di Kolom G
 	resp, err := c.Service.Spreadsheets.Values.Get(c.DataSpreadsheetID, readRange).Do()
 	if err != nil {
 		return 0, fmt.Errorf("gagal membaca Sheet: %w", err)

@@ -47,7 +47,7 @@ func (h *DataDiriHandler) handleInputFlow(session *db.DataEntrySession, text str
 			return []string{"Maaf, terjadi kesalahan sistem."}
 		}
 		return []string{"Data inti (sampai Suku) sudah tersimpan.\n\n" +
-			"Ketik 'cukup' untuk menyelesaikan."}
+			"Ketik 'cukup' untuk menyelesaikan atau 'lanjut' untuk mengisi data opsional(20 data)."}
 	}
 
 	nextStep := session.CurrentStep + 1
