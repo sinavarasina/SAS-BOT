@@ -137,7 +137,7 @@ func (c *SheetsClient) AppendPengaduan(aduan db.Pengaduan, publicID string) {
 		aduan.UserJID, aduan.Deskripsi, aduan.PictPath,
 		gambarFormula, "Belum Diproses", publicID,
 	})
-	_, err := c.Service.Spreadsheets.Values.Append(c.PengaduanSpreadsheetID, rangeData, &vr).ValueInputOption("USER_ENTERTERED").Do()
+	_, err := c.Service.Spreadsheets.Values.Append(c.PengaduanSpreadsheetID, rangeData, &vr).ValueInputOption("USER_ENTERED").Do()
 	if err != nil {
 		log.Printf("[ERROR] Gagal menulis Pengaduan ke Google Sheet: %v", err)
 	} else {
@@ -222,7 +222,6 @@ func (c *SheetsClient) GetSuratStatus(unikID string) (string, error) {
 }
 
 
-// --- FUNGSI ULASAN (BARU) ---
 func (c *SheetsClient) AppendUlasan(sheetName, layanan, rating, jid string) {
 	rangeData := fmt.Sprintf("%s!A2", sheetName)
 	var vr sheets.ValueRange
@@ -240,7 +239,6 @@ func (c *SheetsClient) AppendUlasan(sheetName, layanan, rating, jid string) {
 		log.Printf("[ULASAN] Berhasil menyimpan ulasan ke %s", sheetName)
 	}
 }
-// --- AKHIR FUNGSI BARU ---
 
 
 // --- FUNGSI HELPER (findSheetIdByName) ---

@@ -18,7 +18,7 @@ type GeminiClient struct {
 func NewGeminiClient(apiKey string) *GeminiClient {
 	return &GeminiClient{
 		APIKey: apiKey,
-		URL:    fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=%s", apiKey),
+		URL:    fmt.Sprintf("https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key=%s", apiKey),
 	}
 }
 
@@ -38,7 +38,17 @@ func (c *GeminiClient) GenerateContent(systemPrompt, userQuestion string) (strin
 		return "", fmt.Errorf("gagal marshal request Gemini: %w", err)
 	}
 
-	resp, err := http.Post(c.URL, "application/json", bytes.NewBuffer(body))
+
+	req, err := http.NewRequestWithContext(context.TODO(), "POST", c.URL, bytes.NewBuffer(body))
+	if err != nil {
+		return "", fmt.Errorf("gagal membuat request Gemini: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	
+	
 	if err != nil {
 		return "", fmt.Errorf("gagal request ke Gemini: %w", err)
 	}

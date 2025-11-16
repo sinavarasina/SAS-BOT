@@ -1,22 +1,17 @@
+// file: internal/bot/router/router_types.go
 package router
 
 import (
-	"github.com/jmoiron/sqlx"
-	"github.com/sinavarasina/SAS-BOT/internal/sheets"
-	"github.com/sinavarasina/SAS-BOT/internal/uploader"
-	"go.mau.fi/whatsmeow"
+	// --- TAMBAHKAN 2 IMPORT INI ---
+	"go.mau.fi/whatsmeow/binary/proto"
+	"go.mau.fi/whatsmeow/types"
+	// --- AKHIR TAMBAHAN ---
 )
 
-// ServiceContext berisi semua dependensi yang dibutuhkan oleh modul menu
-type ServiceContext struct {
-	DB            *sqlx.DB
-	SheetsClient  *sheets.SheetsClient
-	WAClient      *whatsmeow.Client
-	R2Uploader    *uploader.R2Uploader
-	ImgbbUploader *uploader.ImgbbUploader
-}
+// (Struct ServiceContext dihapus dari sini, karena sudah ada di common/types.go)
 
 // Router adalah antarmuka untuk router utama bot
 type Router interface {
-	Route(jid string, text string, imageMsg *whatsmeow.ImageMessage, messageID string, chatJID types.JID, isGroup bool, username string, number string) []string
+	// --- PERBAIKAN: Gunakan 'proto.ImageMessage' dan 'types.JID' ---
+	Route(jid string, text string, imageMsg *proto.ImageMessage, messageID string, chatJID types.JID, isGroup bool, username string, number string) []string
 }

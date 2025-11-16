@@ -13,7 +13,11 @@ import (
 type DataEntrySession struct {
 	JID                  string         `db:"jid"`
 	CurrentStep          int            `db:"current_step"`
+	AwaitingAnswer       bool           `db:"awaiting_answer"`
+	CurrentFlow        sql.NullString `db:"current_flow"`
 	SheetRowNum          sql.NullInt64  `db:"sheet_row_num"`
+	EditField            sql.NullString `db:"edit_field"`
+
 	Dusun                sql.NullString `db:"dusun"`
 	RT                   sql.NullString `db:"rt"`
 	Nama                 sql.NullString `db:"nama"`
@@ -33,6 +37,7 @@ type DataEntrySession struct {
 	NamaIbu              sql.NullString `db:"nama_ibu"`
 	StatusDasarID        sql.NullInt64  `db:"status_dasar_id"`
 	SukuID               sql.NullInt64  `db:"suku_id"`
+
 	NikAyah              sql.NullString `db:"nik_ayah"`
 	NikIbu               sql.NullString `db:"nik_ibu"`
 	GolonganDarahID      sql.NullInt64  `db:"golongan_darah_id"`
@@ -53,10 +58,10 @@ type DataEntrySession struct {
 	TagCard              sql.NullString `db:"tag_card"`
 	IDAsuransiID         sql.NullInt64  `db:"id_asuransi_id"`
 	NoAsuransi           sql.NullString `db:"no_asuransi"`
+
 	CreatedAt            time.Time      `db:"created_at"`
 	UpdatedAt            time.Time      `db:"updated_at"`
-	AwaitingAnswer       bool           `db:"awaiting_answer"`
-	EditField            sql.NullString `db:"edit_field"`
+
 	SuratValidNik      sql.NullString `db:"surat_valid_nik"`
 	SuratFieldsPending sql.NullString `db:"surat_fields_pending"`
 	SuratFieldNow      sql.NullString `db:"surat_field_now"`
@@ -86,25 +91,18 @@ type DataEntrySession struct {
 
 // GetOrCreateDataEntrySession retrieves an existing session or creates a new one.
 func GetOrCreateDataEntrySession(dbConn *sqlx.DB, jid string) (*DataEntrySession, error) {
-	// Ensure edit_field column exists
-	if err := EnsureEditFieldColumn(dbConn); err != nil {
-		log.Printf("[ERROR] Failed to ensure edit_field column: %v", err)
-		return nil, err
-	}
-	if err := EnsureSheetRowNumColumn(dbConn); err != nil {
-		log.Printf("[ERROR] Failed to ensure sheet_row_num column: %v", err)
-		return nil, err
-	}
-
-	if err := EnsureSuratSessionColumns(dbConn); err != nil {
-		log.Printf("[ERROR] Failed to ensure surat session columns: %v", err)
-		return nil, err
-	}
+	// (Ensure... functions)
+	if err := EnsureColumn(dbConn, "data_entry_sessions", "edit_field", "TEXT"); err != nil { return nil, err }
+	if err := EnsureColumn(dbConn, "data_entry_sessions", "sheet_row_num", "INTEGER"); err != nil { return nil, err }
+	if err := EnsureColumn(dbConn, "data_entry_sessions", "current_flow", "TEXT"); err != nil { return nil, err }
+	if err := EnsureColumn(dbConn, "data_entry_sessions", "alamat", "TEXT"); err != nil { return nil, err }
+	if err := EnsureColumn(dbConn, "data_entry_sessions", "rw", "TEXT"); err != nil { return nil, err }
+	if err := EnsureSuratSessionColumns(dbConn); err != nil { return nil, err }
 
 	var session DataEntrySession
-	// Query hanya kolom yang benar-benar ada di database
 	query := `SELECT * FROM data_entry_sessions WHERE jid = $1`
 	err := dbConn.Get(&session, query, jid)
+	
 	if err == sql.ErrNoRows {
 		log.Printf("[DEBUG] Creating new session for jid: %s", jid)
 		newSession := DataEntrySession{
@@ -114,8 +112,8 @@ func GetOrCreateDataEntrySession(dbConn *sqlx.DB, jid string) (*DataEntrySession
 			EditField:      sql.NullString{String: "", Valid: false},
 		}
 		_, err := dbConn.NamedExec(`
-			INSERT INTO data_entry_sessions (jid, current_step, awaiting_answer, edit_field) 
-			VALUES (:jid, :current_step, :awaiting_answer, :edit_field)`, newSession)
+			INSERT INTO data_entry_sessions (jid, current_step, awaiting_answer, edit_field, current_flow) 
+			VALUES (:jid, :current_step, :awaiting_answer, :edit_field, NULL)`, newSession)
 		if err != nil {
 			log.Printf("[ERROR] Failed to create session: %v", err)
 			return nil, err
@@ -126,7 +124,7 @@ func GetOrCreateDataEntrySession(dbConn *sqlx.DB, jid string) (*DataEntrySession
 		log.Printf("[ERROR] Error fetching session: %v", err)
 		return nil, err
 	}
-	log.Printf("[DEBUG] Existing session found - Step: %d, Awaiting: %v", session.CurrentStep, session.AwaitingAnswer)
+	log.Printf("[DEBUG] Existing session found - Step: %d, Awaiting: %v, Flow: %s", session.CurrentStep, session.AwaitingAnswer, session.CurrentFlow.String)
 	return &session, nil
 }
 
@@ -140,6 +138,8 @@ func StartNewSession(dbConn *sqlx.DB, jid string) error {
         ON CONFLICT (jid) DO UPDATE 
         SET current_step = 1,
             awaiting_answer = true,
+						current_flow = 'FLOW_DATA_DIRI',
+
             dusun = NULL,
             rt = NULL,
             nama = NULL,
@@ -159,6 +159,7 @@ func StartNewSession(dbConn *sqlx.DB, jid string) error {
             nama_ibu = NULL,
             status_dasar_id = NULL,
             suku_id = NULL,
+
             nik_ayah = NULL,
             nik_ibu = NULL,
             golongan_darah_id = NULL,
@@ -179,7 +180,8 @@ func StartNewSession(dbConn *sqlx.DB, jid string) error {
             tag_card = NULL,
             id_asuransi_id = NULL,
             no_asuransi = NULL,
-            edit_field = NULL,sheet_row_num = NULL,surat_valid_nik = NULL, surat_fields_pending = NULL, surat_field_now = NULL, surat_data_map = NULL,
+
+            edit_field = NULL,sheet_row_num = NULL,surat_valid_nik = NULL, surat_fields_pending = NULL, surat_field_now = NULL, surat_data_map = NULL,surat_temp_answer = NULL,
             updated_at = NOW()`, jid)
 
 	if err != nil {
@@ -569,4 +571,52 @@ func GetSessionField(dbConn *sqlx.DB, jid string, field string) (sql.NullString,
 	query := fmt.Sprintf("SELECT %s FROM data_entry_sessions WHERE jid = $1", field)
 	err := dbConn.Get(&result, query, jid)
 	return result, err
+}
+
+func UpdateSessionFlow(dbConn *sqlx.DB, jid string, flow string, step int) error {
+	log.Printf("[DEBUG] Updating flow to %s, step %d for jid: %s", flow, step, jid)
+	query := `
+        UPDATE data_entry_sessions 
+        SET current_flow = $1,
+            current_step = $2,
+            awaiting_answer = true,
+            updated_at = NOW()
+        WHERE jid = $3`
+	_, err := dbConn.Exec(query, flow, step, jid)
+	return err
+}
+
+func EnsureFlowColumn(dbConn *sqlx.DB) error {
+	return EnsureColumn(dbConn, "data_entry_sessions", "current_flow", "TEXT")
+}
+
+// (Helper EnsureColumn dari schema.go dipindah ke sini)
+func EnsureColumn(dbConn *sqlx.DB, tableName, columnName, columnType string) error {
+	var exists bool
+	query := fmt.Sprintf(`
+		SELECT EXISTS (
+			SELECT 1 
+			FROM information_schema.columns 
+			WHERE table_schema = 'public'
+			AND table_name = '%s' 
+			AND column_name = '%s'
+		);
+	`, tableName, columnName)
+	err := dbConn.QueryRow(query).Scan(&exists)
+	if err != nil {
+		return fmt.Errorf("failed to check %s column: %v", columnName, err)
+	}
+
+	if !exists {
+		log.Printf("[DEBUG] Column '%s' not found in table '%s', adding it...", columnName, tableName)
+		_, err = dbConn.Exec(fmt.Sprintf(`
+			ALTER TABLE %s 
+			ADD COLUMN %s %s;
+		`, tableName, columnName, columnType))
+		if err != nil {
+			return fmt.Errorf("failed to add %s column: %v", columnName, err)
+		}
+		log.Printf("[DEBUG] Added %s column to %s table", columnName, tableName)
+	}
+	return nil
 }

@@ -2,7 +2,7 @@ package datadiri
 
 import (
 	"fmt"
-	"regexp"
+	// "regexp" // (Tidak dipakai lagi setelah hapus alamat/rw)
 	"strconv"
 	"strings"
 	"time"
@@ -51,7 +51,7 @@ func ValidateInput(text string, step Step) (interface{}, error) {
 		if _, err := strconv.Atoi(text); err != nil {
 			return nil, fmt.Errorf("⚠️ RT hanya boleh berisi angka\n\n%s", step.Question)
 		}
-	case "nama", "nama_ayah", "nama_ibu":
+	case "nama", "nama_ayah", "nama_ibu", "tempat_lahir":
 		if len(text) < 2 {
 			return nil, fmt.Errorf("⚠️ %s terlalu pendek\nMinimal 2 karakter\n\n%s",
 				strings.ToLower(step.Field), step.Question)
@@ -59,11 +59,6 @@ func ValidateInput(text string, step Step) (interface{}, error) {
 		if strings.ContainsAny(text, "0123456789!@#$%^&*()_+=[]{};:'\"\\|,.<>/?") {
 			return nil, fmt.Errorf("⚠️ %s tidak boleh mengandung angka atau karakter khusus\n\n%s",
 				strings.ToLower(step.Field), step.Question)
-		}
-	case "tempat_lahir":
-		if len(text) < 3 {
-			return nil, fmt.Errorf("⚠️ Tempat lahir terlalu pendek\nMinimal 3 karakter\n\n%s",
-				step.Question)
 		}
 	}
 

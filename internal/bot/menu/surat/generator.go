@@ -14,6 +14,17 @@ import (
 	"go.mau.fi/whatsmeow"
 )
 
+func fillTemplate(content string, data map[string]string) string {
+	for key, value := range data {
+		if key == "ALASANPERLU" {
+			content = strings.ReplaceAll(content, "{{"+key+"}}", " "+value+" ")
+		} else {
+			content = strings.ReplaceAll(content, "{{"+key+"}}", value)
+		}
+	}
+	return content
+}
+
 // GenerateAsync menjalankan kompilasi LaTeX di background
 func GenerateAsync(
 	template JenisSurat,

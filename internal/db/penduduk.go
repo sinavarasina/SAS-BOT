@@ -265,3 +265,27 @@ func LoadSessionFromPenduduk(dbConn *sqlx.DB, jid string, data DataPenduduk) err
 	)
 	return err
 }
+
+func GetUserGoogleToken(dbConn *sqlx.DB, nik string) (string, error) {
+	var token sql.NullString
+	err := dbConn.Get(&token, "SELECT google_token FROM data_penduduk WHERE nik = $1", nik)
+	if err != nil {
+		return "", err
+	}
+	if !token.Valid || token.String == "" {
+		return "", fmt.Errorf("token tidak ditemukan")
+	}
+	return token.String, nil
+}
+func SetUserGoogleToken(dbConn *sqlx.DB, jid string, tokenJSON string) error {
+	var nik sql.NullString
+	err := dbConn.Get(&nik, "SELECT nik FROM data_entry_sessions WHERE jid = $1 AND nik IS NOT NULL", jid)
+	if err != nil {
+		err = dbConn.Get(&nik, "SELECT nik FROM data_penduduk WHERE jid = $1 AND nik IS NOT NULL", jid)
+		if err != nil {
+			return fmt.Errorf("tidak dapat menemukan NIK untuk JID %s", jid)
+		}
+	}
+	_, err = dbConn.Exec("UPDATE data_penduduk SET google_token = $1 WHERE nik = $2", tokenJSON, nik.String)
+	return err
+}

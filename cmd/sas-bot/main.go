@@ -1,3 +1,4 @@
+// file: cmd/sas-bot/main.go
 package main
 
 import (
@@ -8,6 +9,7 @@ import (
 	"syscall"
 
 	"github.com/joho/godotenv"
+	"github.com/sinavarasina/SAS-BOT/internal/bot/common" 
 	"github.com/sinavarasina/SAS-BOT/internal/bot/gemini"
 	"github.com/sinavarasina/SAS-BOT/internal/bot/router"
 	"github.com/sinavarasina/SAS-BOT/internal/db"
@@ -51,15 +53,14 @@ func main() {
 	imgbbUploader := uploader.NewImgbbUploader(os.Getenv("IMGBB_API_KEY"))
 	geminiService := gemini.NewGeminiService(os.Getenv("GEMINI_API_KEY"))
 
-	// 3. Inisiasi Klien WA (dummy, hanya untuk konteks)
-	// (Kita perlu waClient dulu untuk bisa membuat ServiceContext)
+	// 3. Inisiasi Klien WA
 	waClient, err := whatsapp.NewClient(dsn, ctx)
 	if err != nil {
 		log.Fatal("Error at whatsapp.NewClient(), Message :", err)
 	}
 
 	// 4. Buat Konteks Layanan (Service Context)
-	serviceCtx := &router.ServiceContext{
+	serviceCtx := &common.ServiceContext{
 		DB:            appDB,
 		SheetsClient:  sheetsClient,
 		WAClient:      waClient,
@@ -70,12 +71,9 @@ func main() {
 	// 5. Buat Router Utama
 	botRouter := router.NewRouter(serviceCtx, geminiService)
 
-	// 6. Daftarkan Event Handler yang sudah berisi router
-	waClient.AddEventHandler(whatsapp.EventHandler(botRouter, appDB))
-
-	// 7. Mulai Koneksi WA
-	if err := whatsapp.StartClient(ctx, waClient); err != nil {
-		log.Fatal("Error at whatsapp.StartClient(), Message :", err)
+	// 6. Daftarkan Event Handler dan Mulai Koneksi
+	if err := whatsapp.InitAndStart(ctx, waClient, appDB, sheetsClient, botRouter); err != nil {
+		log.Fatal("Error at whatsapp.InitAndStart(), Message :", err)
 	}
 	
 	log.Println("SAS-BOT Running..")

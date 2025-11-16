@@ -10,16 +10,6 @@ import (
 
 // handleInputFlow menangani pengiriman pertanyaan
 func (h *SuratHandler) handleInputFlow(session *db.DataEntrySession, text string) []string {
-	// 1. Validasi input
-	currentField := session.SuratFieldNow.String
-	stepInfo := Step{Question: GetPrompt(currentField), Field: currentField} // Buat step tiruan
-	
-	// (Kita lewati validasi untuk input surat agar lebih fleksibel)
-	// value, err := ValidateInput(text, stepInfo)
-	// if err != nil {
-	// 	return []string{err.Error()}
-	// }
-	
 	// 2. Simpan jawaban sementara
 	if err := db.UpdateSessionField(h.Service.Ctx.DB, session.JID, "surat_temp_answer", text); err != nil {
 		return []string{"Kesalahan menyimpan jawaban sementara."}

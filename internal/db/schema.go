@@ -3,6 +3,7 @@ package db
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/jmoiron/sqlx"
@@ -10,36 +11,36 @@ import (
 )
 
 func InitDB(dsn string) (*sqlx.DB, error) {
-	// Gunakan PostgreSQL driver
 	db, err := sqlx.Connect("postgres", dsn)
 	if err != nil {
 		return nil, err
 	}
-
-	// Tes koneksi
 	if err := db.Ping(); err != nil {
 		return nil, err
 	}
-
-	// Atur connection pool
 	db.SetMaxOpenConns(25)
 	db.SetMaxIdleConns(5)
 
-	// --- SCHEMA CREATION ---
 	schema := `
-	-- Drop triggers dulu agar tidak konflik
-	DROP TRIGGER IF EXISTS update_timestamp ON data_entry_sessions;
-	DROP FUNCTION IF EXISTS update_timestamp CASCADE;
+	-- Fungsi & Trigger
+	CREATE OR REPLACE FUNCTION update_timestamp()
+	RETURNS TRIGGER AS $$
+	BEGIN
+		NEW.updated_at = CURRENT_TIMESTAMP;
+		RETURN NEW;
+	END;
+	$$ LANGUAGE plpgsql;
 
-	-- Tabel users
+	DROP TRIGGER IF EXISTS update_timestamp_sessions ON data_entry_sessions;
+	DROP TRIGGER IF EXISTS update_timestamp_penduduk ON data_penduduk;
+
+	-- Tabel-tabel dasar
 	CREATE TABLE IF NOT EXISTS users (
 		jid TEXT PRIMARY KEY,
 		number TEXT,
 		username TEXT,
 		previlege TEXT
 	);
-
-	-- Tabel pengaduan
 	CREATE TABLE IF NOT EXISTS pengaduan (
 		id SERIAL PRIMARY KEY,
 		user_jid TEXT REFERENCES users(jid),
@@ -48,7 +49,7 @@ func InitDB(dsn string) (*sqlx.DB, error) {
 		sent_time TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 	);
 
-	-- Lookup Tables
+	-- Tabel Lookup (17 tabel)
 	CREATE TABLE IF NOT EXISTS sex (sex_id INTEGER PRIMARY KEY, nama TEXT);
 	CREATE TABLE IF NOT EXISTS agama (agama_id INTEGER PRIMARY KEY, nama TEXT);
 	CREATE TABLE IF NOT EXISTS pendidikan_kk (pendidikan_kk_id INTEGER PRIMARY KEY, nama TEXT);
@@ -72,6 +73,7 @@ func InitDB(dsn string) (*sqlx.DB, error) {
 		jid TEXT PRIMARY KEY,
 		current_step INTEGER DEFAULT 1,
 		awaiting_answer BOOLEAN DEFAULT false,
+		current_flow TEXT,
 		sheet_row_num INTEGER,
 		dusun TEXT,
 		rt TEXT,
@@ -94,6 +96,7 @@ func InitDB(dsn string) (*sqlx.DB, error) {
 		suku_id INTEGER REFERENCES suku(suku_id),
 		nik_ayah TEXT,
 		nik_ibu TEXT,
+		
 		golongan_darah_id INTEGER REFERENCES golongan_darah(golongan_darah_id),
 		akta_lahir TEXT,
 		dokumen_passport TEXT,
@@ -112,13 +115,16 @@ func InitDB(dsn string) (*sqlx.DB, error) {
 		tag_card TEXT,
 		id_asuransi_id INTEGER REFERENCES id_asuransi(id_asuransi_id),
 		no_asuransi TEXT,
+		
 		created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
 		updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+		
 		surat_valid_nik TEXT,
 		surat_fields_pending TEXT,
 		surat_field_now TEXT,
 		surat_data_map TEXT,
 		surat_temp_answer TEXT,
+		
 		edit_field TEXT
 	);
 
@@ -163,23 +169,19 @@ func InitDB(dsn string) (*sqlx.DB, error) {
 		tag_card TEXT,
 		id_asuransi_id INTEGER REFERENCES id_asuransi(id_asuransi_id),
 		no_asuransi TEXT,
+		google_token TEXT,
 		created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
 		updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 	);
 
-	-- Create update timestamp function
-	-- Fungsi trigger update timestamp
-	CREATE OR REPLACE FUNCTION update_timestamp()
-	RETURNS TRIGGER AS $$
-	BEGIN
-		NEW.updated_at = CURRENT_TIMESTAMP;
-		RETURN NEW;
-	END;
-	$$ LANGUAGE plpgsql;
-
-	-- Trigger untuk auto-update kolom updated_at
-	CREATE TRIGGER update_timestamp
+	-- Trigger
+	CREATE TRIGGER update_timestamp_sessions
 		BEFORE UPDATE ON data_entry_sessions
+		FOR EACH ROW
+		EXECUTE FUNCTION update_timestamp();
+		
+	CREATE TRIGGER update_timestamp_penduduk
+		BEFORE UPDATE ON data_penduduk
 		FOR EACH ROW
 		EXECUTE FUNCTION update_timestamp();
 	`
@@ -193,6 +195,13 @@ func InitDB(dsn string) (*sqlx.DB, error) {
 	if err := populateLookupTables(db); err != nil {
 		return nil, fmt.Errorf("[ERROR] Failed to populate lookup tables: %v", err)
 	}
+
+	if err := EnsureFlowColumn(db); err != nil { return nil, err }
+	if err := EnsureEditFieldColumn(db); err != nil { return nil, err }
+	if err := EnsureSheetRowNumColumn(db); err != nil { return nil, err }
+	if err := EnsureSuratSessionColumns(db); err != nil { return nil, err }
+
+	if err := DropColumnIfExists(db, "data_entry_sessions", "current_menu"); err != nil { return nil, err }
 
 	return db, err
 }
@@ -255,18 +264,18 @@ func populateLookupTables(db *sqlx.DB) error {
 func insertDataFromJSON(db *sqlx.DB, filePath, tableName, idColumn string) error {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
-		return fmt.Errorf("[ERROR] Failed to read %s: %v", filePath, err)
+		return fmt.Errorf("[ERROR] Gagal membaca %s: %v", filePath, err)
 	}
 
 	var jsonData map[string][]map[string]interface{}
 	if err := json.Unmarshal(data, &jsonData); err != nil {
-		return fmt.Errorf("[ERROR] Failed to parse %s: %v", filePath, err)
+		return fmt.Errorf("[ERROR] Gagal parse %s: %v", filePath, err)
 	}
 
 	var records []map[string]interface{}
 	for _, v := range jsonData {
 		records = v
-		break
+		break 
 	}
 
 	for _, record := range records {
@@ -274,9 +283,39 @@ func insertDataFromJSON(db *sqlx.DB, filePath, tableName, idColumn string) error
 			"INSERT INTO %s (%s, nama) VALUES ($1, $2) ON CONFLICT (%s) DO UPDATE SET nama = EXCLUDED.nama",
 			tableName, idColumn, idColumn)
 		if _, err := db.Exec(query, record["id"], record["nama"]); err != nil {
-			return fmt.Errorf("failed to insert into %s: %v", tableName, err)
+			return fmt.Errorf("gagal insert ke %s: %v", tableName, err)
 		}
 	}
 
+	return nil
+}
+
+func DropColumnIfExists(dbConn *sqlx.DB, tableName, columnName string) error {
+	var exists bool
+	query := fmt.Sprintf(`
+		SELECT EXISTS (
+			SELECT 1 
+			FROM information_schema.columns 
+			WHERE table_schema = 'public'
+			AND table_name = '%s' 
+			AND column_name = '%s'
+		);
+	`, tableName, columnName)
+	err := dbConn.QueryRow(query).Scan(&exists)
+	if err != nil {
+		return fmt.Errorf("failed to check %s column: %v", columnName, err)
+	}
+
+	if exists {
+		log.Printf("[DEBUG] Column '%s' ditemukan di table '%s', menghapusnya...", columnName, tableName)
+		_, err = dbConn.Exec(fmt.Sprintf(`
+			ALTER TABLE %s 
+			DROP COLUMN %s;
+		`, tableName, columnName))
+		if err != nil {
+			return fmt.Errorf("failed to drop %s column: %v", columnName, err)
+		}
+		log.Printf("[DEBUG] Berhasil menghapus %s column dari %s table", columnName, tableName)
+	}
 	return nil
 }

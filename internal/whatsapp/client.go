@@ -1,3 +1,4 @@
+// file: internal/whatsapp/client.go
 package whatsapp
 
 import (
@@ -5,9 +6,12 @@ import (
 	"log"
 	"os"
 
-	"github.com/jmoiron/sqlx"
+	"github.com/jmoiron/sqlx" // <-- PERBAIKAN 1: Tambahkan import 'sqlx'
 	_ "github.com/lib/pq"
 	"github.com/mdp/qrterminal"
+	"github.com/sinavarasina/SAS-BOT/internal/bot/router"
+	// "github.com/sinavarasina/SAS-BOT/internal/db" // <-- PERBAIKAN 2: Hapus import 'db'
+	"github.com/sinavarasina/SAS-BOT/internal/sheets"
 
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/store/sqlstore"
@@ -33,8 +37,14 @@ func NewClient(dsn string, ctx context.Context) (*whatsmeow.Client, error) {
 	return client, nil
 }
 
-// StartClient menghubungkan klien dan menangani login
-func StartClient(ctx context.Context, client *whatsmeow.Client) error {
+// InitAndStart mendaftarkan handler DAN menghubungkan klien
+// (Tanda tangan fungsi ini sekarang valid karena 'sqlx' sudah di-import)
+func InitAndStart(ctx context.Context, client *whatsmeow.Client, appDB *sqlx.DB, sheetsClient *sheets.SheetsClient, botRouter *router.BotRouter) error {
+	
+	// Daftarkan handler
+	client.AddEventHandler(EventHandler(botRouter, appDB))
+
+	// Hubungkan
 	if client.Store.ID == nil {
 		if err := QRLogin(ctx, client); err != nil {
 			return err

@@ -3,14 +3,13 @@ package datadiri
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/sinavarasina/SAS-BOT/internal/bot/common"
+	"log"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
 )
 
-// Step mendefinisikan satu langkah dalam alur
 type Step struct {
 	Question string
 	Field    string
@@ -18,30 +17,27 @@ type Step struct {
 	Options  map[int]string
 }
 
-// Steps FSM (Finite State Machine) untuk 19 langkah
 var Steps = map[int]Step{
-	common.STEP_DUSUN:        {"Masukkan Dusun:", "dusun", false, nil},
-	common.STEP_RT:           {"Masukkan RT (contoh: 001):", "rt", false, nil},
-	common.STEP_NAMA:         {"Masukkan Nama:", "nama", false, nil},
-	common.STEP_NO_KK:        {"Masukkan No. KK (16 digit):", "no_kk", false, nil},
-	common.STEP_NIK:          {"Masukkan NIK (16 digit):", "nik", false, nil},
-	common.STEP_SEX:          {"Pilih Jenis Kelamin:", "sex_id", false, loadOptions("6_sex.json", "sex")},
-	common.STEP_TEMPAT_LAHIR: {"Masukkan Tempat Lahir:", "tempat_lahir", false, nil},
-	common.STEP_TANGGAL_LAHIR:  {"Masukkan Tanggal Lahir (DD-MM-YYYY):", "tanggal_lahir", true, nil},
-	common.STEP_AGAMA:        {"Pilih Agama:", "agama_id", false, loadOptions("9_agama.json", "agama")},
-	common.STEP_PENDIDIKAN_KK: {"Pilih Pendidikan Dalam KK:", "pendidikan_kk_id", false, loadOptions("10_pendidikan_kk.json", "pendidikan_kk")},
-	common.STEP_PENDIDIKAN_SEDANG: {"Pilih Pendidikan Sedang Ditempuh:", "pendidikan_sedang_id", false, loadOptions("11_pendidikan_sedang.json", "pendidikan_sedang")},
-	common.STEP_PEKERJAAN:      {"Pilih Pekerjaan:", "pekerjaan_id", false, loadOptions("12_pekerjaan.json", "pekerjaan")},
-	common.STEP_STATUS_KAWIN: {"Pilih Status Kawin:", "status_kawin_id", false, loadOptions("13_status_kawin.json", "status_kawin")},
-	common.STEP_KK_LEVEL:     {"Pilih Status Hubungan Dalam KK:", "kk_level_id", false, loadOptions("14_kk_level.json", "kk_level")},
-	common.STEP_WARGANEGARA:  {"Pilih Warganegara:", "warganegara_id", false, loadOptions("15_warganegara.json", "warganegara")},
-	common.STEP_NAMA_AYAH:    {"Masukkan Nama Ayah:", "nama_ayah", false, nil},
-	common.STEP_NAMA_IBU:     {"Masukkan Nama Ibu:", "nama_ibu", false, nil},
-	common.STEP_STATUS_DASAR: {"Pilih Status Dasar:", "status_dasar_id", false, loadOptions("18_status_dasar.json", "status_dasar")},
-	common.STEP_SUKU:         {"Pilih Suku:", "suku_id", false, loadOptions("19_suku.json", "suku")},
+	1:  {"Masukkan Dusun:", "dusun", false, loadOptions("1_dusun.json", "dusun")},
+	2:  {"Masukkan RT (contoh: 001):", "rt", false, nil},
+	3:  {"Masukkan Nama:", "nama", false, nil},
+	4:  {"Masukkan No. KK (16 digit):", "no_kk", false, nil},
+	5:  {"Masukkan NIK (16 digit):", "nik", false, nil},
+	6:  {"Pilih Jenis Kelamin:", "sex_id", false, loadOptions("6_sex.json", "sex")},
+	7:  {"Masukkan Tempat Lahir:", "tempat_lahir", false, nil},
+	8:  {"Masukkan Tanggal Lahir (DD-MM-YYYY):", "tanggal_lahir", true, nil},
+	9:  {"Pilih Agama:", "agama_id", false, loadOptions("9_agama.json", "agama")},
+	10: {"Pilih Pendidikan Dalam KK:", "pendidikan_kk_id", false, loadOptions("10_pendidikan_kk.json", "pendidikan_kk")},
+	11: {"Pilih Pendidikan Sedang Ditempuh:", "pendidikan_sedang_id", false, loadOptions("11_pendidikan_sedang.json", "pendidikan_sedang")},
+	12: {"Pilih Pekerjaan:", "pekerjaan_id", false, loadOptions("12_pekerjaan.json", "pekerjaan")},
+	13: {"Pilih Status Kawin:", "status_kawin_id", false, loadOptions("13_status_kawin.json", "status_kawin")},
+	14: {"Pilih Status Hubungan Dalam KK:", "kk_level_id", false, loadOptions("14_kk_level.json", "kk_level")},
+	15: {"Pilih Warganegara:", "warganegara_id", false, loadOptions("15_warganegara.json", "warganegara")},
+	16: {"Masukkan Nama Ayah:", "nama_ayah", false, nil},
+	17: {"Masukkan Nama Ibu:", "nama_ibu", false, nil},
+	18: {"Pilih Status Dasar:", "status_dasar_id", false, loadOptions("18_status_dasar.json", "status_dasar")},
+	19: {"Pilih Suku:", "suku_id", false, loadOptions("19_suku.json", "suku")},
 }
-
-// loadOptions memuat data dari file JSON (sama seperti 'loadJSONOptions' lama Anda)
 func loadOptions(fileName, key string) map[int]string {
 	options := make(map[int]string)
 	filePath := filepath.Join("json", fileName)
@@ -60,11 +56,24 @@ func loadOptions(fileName, key string) map[int]string {
 				options[id] = nama
 			}
 		}
+	} else {
+		var records []map[string]interface{}
+		if errAlt := json.Unmarshal(file, &records); errAlt == nil {
+			keyGuess := strings.Split(fileName, "_")[1]
+			keyGuess = strings.TrimSuffix(keyGuess, ".json")
+			if key == keyGuess || (key == "dusun" && fileName == "1_dusun.json") || (key == "sex" && fileName == "6_sex.json") || (key == "agama" && fileName == "9_agama.json") || (key == "pendidikan_kk" && fileName == "10_pendidikan_kk.json") || (key == "pendidikan_sedang" && fileName == "11_pendidikan_sedang.json") || (key == "pekerjaan" && fileName == "12_pekerjaan.json") || (key == "status_kawin" && fileName == "13_status_kawin.json") || (key == "kk_level" && fileName == "14_kk_level.json") || (key == "warganegara" && fileName == "15_warganegara.json") || (key == "status_dasar" && fileName == "18_status_dasar.json") || (key == "suku" && fileName == "19_suku.json") {
+				 for _, opt := range records {
+					id := int(opt["id"].(float64))
+					nama := opt["nama"].(string)
+					options[id] = nama
+				}
+			}
+		} else {
+			log.Printf("[ERROR] Gagal parse JSON %s: %v", fileName, err)
+		}
 	}
 	return options
 }
-
-// FormatQuestion memformat pertanyaan untuk pengguna
 func FormatQuestion(step Step) string {
 	if step.Options != nil {
 		var builder strings.Builder

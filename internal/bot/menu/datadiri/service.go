@@ -1,3 +1,4 @@
+// file: internal/bot/menu/datadiri/service.go
 package datadiri
 
 import (
@@ -5,7 +6,7 @@ import (
 	"log"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/sinavarasina/SAS-BOT/internal/bot/common"
+	"github.com/sinavarasina/SAS-BOT/internal/bot/common" // <-- Import ini SEKARANG DIGUNAKAN
 	"github.com/sinavarasina/SAS-BOT/internal/db"
 	"github.com/sinavarasina/SAS-BOT/internal/sheets"
 )
@@ -16,10 +17,14 @@ type Service struct {
 	SheetsClient *sheets.SheetsClient
 }
 
-// NewService membuat instance service baru
-func NewService(db *sqlx.DB, sheets *sheets.SheetsClient) *Service {
-	return &Service{DB: db, SheetsClient: sheets}
+// --- PERBAIKAN: Ganti parameter NewService ---
+func NewService(ctx *common.ServiceContext) *Service {
+	return &Service{
+		DB:           ctx.DB,
+		SheetsClient: ctx.SheetsClient,
+	}
 }
+// --- AKHIR PERBAIKAN ---
 
 // CheckNIKExists memeriksa apakah NIK sudah ada
 func (s *Service) CheckNIKExists(nik, jid string) (string, error) {
@@ -52,12 +57,10 @@ func (s *Service) SaveDataToDBAndSheets(jid string) error {
 		return err
 	}
 
-	// 1. Simpan ke Database (PostgreSQL)
 	if err := db.SaveDataPenduduk(s.DB, *fullSession); err != nil {
 		return fmt.Errorf("maaf, terjadi kesalahan besar saat menyimpan ke database: %v", err)
 	}
 
-	// 2. Simpan ke Google Sheet (di background)
 	go func() {
 		nik := fullSession.NIK.String
 		rowNum, err := s.SheetsClient.FindRowByNIK(nik)

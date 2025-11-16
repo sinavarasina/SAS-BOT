@@ -1,5 +1,7 @@
 package common
 
+import "fmt" 
+
 // GetMainMenu mengembalikan teks menu utama
 func GetMainMenu() string {
 	return `*SINDANG ANOM SERVICE - BOT*

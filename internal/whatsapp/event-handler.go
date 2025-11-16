@@ -1,3 +1,4 @@
+// file: internal/whatsapp/event-handler.go
 package whatsapp
 
 import (
@@ -8,12 +9,15 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/sinavarasina/SAS-BOT/internal/bot/router"
+	// (Import 'db' dan 'sheets' tidak diperlukan di sini)
 	"go.mau.fi/whatsmeow"
+	waProto "go.mau.fi/whatsmeow/binary/proto"
+	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
+	"google.golang.org/protobuf/proto"
 )
 
-// EventHandler sekarang hanya menerima router
-func EventHandler(botRouter *router.botRouter, appDB *sqlx.DB) func(interface{}) {
+func EventHandler(botRouter *router.BotRouter, appDB *sqlx.DB) func(interface{}) {
 	return func(evt interface{}) {
 		switch v := evt.(type) {
 		case *events.Message:
@@ -21,7 +25,10 @@ func EventHandler(botRouter *router.botRouter, appDB *sqlx.DB) func(interface{})
 				return
 			}
 			
-			chatJID := v.Info.Chat.String()
+			// --- PERBAIKAN: Hapus 'chatJID' yang tidak terpakai ---
+			// chatJID := v.Info.Chat.String() 
+			// --- AKHIR PERBAIKAN ---
+			
 			senderJID := v.Info.Sender.String()
 			username := v.Info.PushName
 			idx := strings.Index(senderJID, "@")
@@ -30,7 +37,6 @@ func EventHandler(botRouter *router.botRouter, appDB *sqlx.DB) func(interface{})
 				number = senderJID[:idx]
 			}
 
-			// Ekstrak pesan
 			text := v.Message.GetConversation()
 			if text == "" && v.Message.ExtendedTextMessage != nil {
 				text = v.Message.ExtendedTextMessage.GetText()
@@ -45,14 +51,13 @@ func EventHandler(botRouter *router.botRouter, appDB *sqlx.DB) func(interface{})
 				if reply == "" {
 					continue
 				}
-				// (Kita gunakan SendAsync dari sender.go)
-				SendAsync(context.Background(), botRouter.ctx.WAClient, v.Info.Chat, reply, "private")
+				SendAsync(context.Background(), botRouter.Ctx.WAClient, v.Info.Chat, reply, "private")
 			}
 		}
 	}
 }
 
-// (Pindahkan SendAsync dari sender.go ke sini agar lebih mudah)
+// SendAsync mengirim pesan di background
 func SendAsync(ctx context.Context, client *whatsmeow.Client, chat types.JID, text, msgType string) {
 	go func() {
 		ctx, cancel := context.WithTimeout(ctx, 10*time.Second)

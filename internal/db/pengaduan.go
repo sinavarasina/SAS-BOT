@@ -6,13 +6,13 @@ import (
 )
 
 type Pengaduan struct {
-	UserJID    string `db:"user_jid"`
-	Deskripsi  string `db:"deskripsi"`
-	PictPath string `db:"pict_path"`
+	UserJID   string `db:"user_jid"`
+	Deskripsi string `db:"deskripsi"`
+	PictPath  string `db:"pict_path"`
 }
 
 func SavePengaduan(dbConn *sqlx.DB, aduan Pengaduan) (int, error) {
-	var newID int 
+	var newID int
 	err := dbConn.QueryRowx(`
 	INSERT INTO pengaduan (user_jid, deskripsi, pict_path)
 	VALUES ($1, $2, $3)

@@ -1,0 +1,20 @@
+{
+  "nama_desa": "Sindang Anom",
+  "kecamatan": "Sekampung Udik",
+  "kabupaten": "Lampung Timur",
+  "jam_operasional": "Senin - Jumat, 08:00 - 15:00 WIB",
+  "perangkat_desa": [
+    {
+      "jabatan": "Kepala Desa",
+      "nama": "Aminudin"
+    },
+    {
+      "jabatan": "Sekretaris Desa (Sekdes)",
+      "nama": "(Nama Sekdes)"
+    },
+    {
+      "jabatan": "Kasi Pelayanan",
+      "nama": "(Isi Nama)"
+    }
+  ]
+}

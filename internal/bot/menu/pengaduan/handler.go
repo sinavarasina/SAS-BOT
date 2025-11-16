@@ -1,7 +1,9 @@
+// file: internal/bot/menu/pengaduan/handler.go
 package pengaduan
 
 import (
 	"log"
+	"strings" // <-- PERBAIKAN: Tambahkan import 'strings'
 
 	"github.com/sinavarasina/SAS-BOT/internal/bot/common"
 	"github.com/sinavarasina/SAS-BOT/internal/db"
@@ -9,18 +11,16 @@ import (
 	"go.mau.fi/whatsmeow/types"
 )
 
-// PengaduanHandler mengelola alur pengaduan
+// (Struct PengaduanHandler dan NewHandler tidak berubah)
 type PengaduanHandler struct {
 	Service *Service
 }
-
-// NewHandler membuat handler baru untuk pengaduan
 func NewHandler(ctx *common.ServiceContext) *PengaduanHandler {
 	service := NewService(ctx)
 	return &PengaduanHandler{Service: service}
 }
 
-// HandleText adalah router utama untuk input teks
+// HandleText (Tidak berubah)
 func (h *PengaduanHandler) HandleText(session *db.DataEntrySession, text string) []string {
 	switch session.CurrentStep {
 	case common.STEP_PENGADUAN_MENU:
@@ -31,11 +31,8 @@ func (h *PengaduanHandler) HandleText(session *db.DataEntrySession, text string)
 		return h.handleCariID(session, text)
 	case common.STEP_ULASAN_PENGADUAN:
 		return h.HandleReview(session, text)
-	
 	case common.STEP_PENGADUAN_WAITING:
-		// User mengirim teks padahal kita menunggu gambar
 		return []string{"Mohon kirimkan *gambar* pengaduan, bukan teks. Atau ketik 'reset' untuk batal."}
-	
 	default:
 		log.Printf("[WARN] Alur Pengaduan menerima langkah tidak dikenal: %d", session.CurrentStep)
 		db.DeleteDataEntrySession(h.Service.Ctx.DB, session.JID)
@@ -43,25 +40,24 @@ func (h *PengaduanHandler) HandleText(session *db.DataEntrySession, text string)
 	}
 }
 
-// HandleImage adalah router utama untuk input gambar
+// HandleImage (Tidak berubah)
 func (h *PengaduanHandler) HandleImage(session *db.DataEntrySession, imageMsg *proto.ImageMessage, messageID string, chatJID types.JID) []string {
 	if session.CurrentStep == common.STEP_PENGADUAN_WAITING {
 		return h.Service.HandleImagePengaduan(session, imageMsg, messageID, chatJID)
 	}
-	
 	log.Printf("[WARN] Modul Pengaduan menerima gambar di langkah %d (seharusnya tidak).", session.CurrentStep)
 	return []string{"Maaf, saya tidak mengharapkan gambar saat ini."}
 }
 
-// handleMenuUtama menangani "1. Ajukan" atau "2. Cek"
+// handleMenuUtama (Tidak berubah)
 func (h *PengaduanHandler) handleMenuUtama(session *db.DataEntrySession, text string) []string {
 	switch text {
-	case "1": // 1. Ajukan Pengaduan
+	case "1":
 		if err := db.UpdateStepOnly(h.Service.Ctx.DB, session.JID, common.STEP_PENGADUAN_VALIDASI_NIK); err != nil {
 			return []string{"Maaf, terjadi kesalahan sistem."}
 		}
 		return []string{"Untuk mengajukan pengaduan, silakan masukkan **NIK 16 digit** Anda untuk verifikasi:"}
-	case "2": // 2. Cek Progres Pengaduan
+	case "2":
 		if err := db.UpdateStepOnly(h.Service.Ctx.DB, session.JID, common.STEP_PENGADUAN_CARI_ID); err != nil {
 			return []string{"Maaf, terjadi kesalahan sistem."}
 		}
@@ -71,18 +67,16 @@ func (h *PengaduanHandler) handleMenuUtama(session *db.DataEntrySession, text st
 	}
 }
 
-// handleValidasiNik memvalidasi NIK sebelum meminta gambar
+// handleValidasiNik (Tidak berubah)
 func (h *PengaduanHandler) handleValidasiNik(session *db.DataEntrySession, text string) []string {
 	if len(text) != 16 {
 		return []string{"Format NIK salah. Harap masukkan 16 digit NIK Anda:"}
 	}
-	
 	isRegistered, err := db.CheckNIKExistsInPenduduk(h.Service.Ctx.DB, text)
 	if err != nil {
 		log.Printf("[ERROR] Gagal mengecek NIK di DB permanen: %v", err)
 		return []string{"Maaf, terjadi kesalahan sistem saat validasi NIK."}
 	}
-
 	if isRegistered {
 		if err := db.UpdateStepOnly(h.Service.Ctx.DB, session.JID, common.STEP_PENGADUAN_WAITING); err != nil {
 			return []string{"Maaf, terjadi kesalahan sistem."}
@@ -96,9 +90,9 @@ func (h *PengaduanHandler) handleValidasiNik(session *db.DataEntrySession, text 
 	}
 }
 
-// handleCariID menangani permintaan status
+// handleCariID (Tidak berubah)
 func (h *PengaduanHandler) handleCariID(session *db.DataEntrySession, text string) []string {
-	unikID := strings.ToUpper(text)
+	unikID := strings.ToUpper(text) // <-- 'strings' sekarang sudah di-import
 	statusMsg, err := h.Service.GetPengaduanStatus(unikID)
 	if err != nil {
 		return []string{err.Error()}
