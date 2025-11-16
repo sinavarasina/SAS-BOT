@@ -9,7 +9,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/sinavarasina/SAS-BOT/internal/bot/router"
-	// (Import 'db' dan 'sheets' tidak diperlukan di sini)
+	"github.com/sinavarasina/SAS-BOT/internal/utils"
 	"go.mau.fi/whatsmeow"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
 	"go.mau.fi/whatsmeow/types"
@@ -17,7 +17,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func EventHandler(botRouter *router.BotRouter, appDB *sqlx.DB) func(interface{}) {
+func EventHandler(botRouter *router.BotRouter, appDB *sqlx.DB, limiter *utils.RateLimiter) func(interface{}) {
 	return func(evt interface{}) {
 		switch v := evt.(type) {
 		case *events.Message:
@@ -25,11 +25,13 @@ func EventHandler(botRouter *router.BotRouter, appDB *sqlx.DB) func(interface{})
 				return
 			}
 			
-			// --- PERBAIKAN: Hapus 'chatJID' yang tidak terpakai ---
-			// chatJID := v.Info.Chat.String() 
-			// --- AKHIR PERBAIKAN ---
-			
 			senderJID := v.Info.Sender.String()
+
+			if !limiter.Allow(senderJID) {
+				log.Printf("[RATE-LIMIT] Pesan dari %s diabaikan (terlalu cepat)", senderJID)
+				return // Hentikan pemrosesan pesan
+			}
+
 			username := v.Info.PushName
 			idx := strings.Index(senderJID, "@")
 			number := senderJID

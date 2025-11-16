@@ -1,4 +1,3 @@
-// file: cmd/sas-bot/main.go
 package main
 
 import (
@@ -7,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/joho/godotenv"
 	"github.com/sinavarasina/SAS-BOT/internal/bot/common" 
@@ -15,6 +15,7 @@ import (
 	"github.com/sinavarasina/SAS-BOT/internal/db"
 	"github.com/sinavarasina/SAS-BOT/internal/sheets"
 	"github.com/sinavarasina/SAS-BOT/internal/uploader"
+	"github.com/sinavarasina/SAS-BOT/internal/utils"
 	"github.com/sinavarasina/SAS-BOT/internal/whatsapp"
 )
 
@@ -50,6 +51,9 @@ func main() {
 		os.Getenv("R2_BUCKET_NAME"),
 		os.Getenv("R2_PUBLIC_URL"),
 	)
+
+	limiter := utils.NewRateLimiter(3, 10*time.Second)
+	log.Println("[INFO] Rate Limiter (5 pesan / 10 detik) diaktifkan.")
 	imgbbUploader := uploader.NewImgbbUploader(os.Getenv("IMGBB_API_KEY"))
 	geminiService := gemini.NewGeminiService(os.Getenv("GEMINI_API_KEY"))
 
@@ -66,13 +70,14 @@ func main() {
 		WAClient:      waClient,
 		R2Uploader:    r2Uploader,
 		ImgbbUploader: imgbbUploader,
+		Limiter:      limiter,
 	}
 
 	// 5. Buat Router Utama
 	botRouter := router.NewRouter(serviceCtx, geminiService)
 
 	// 6. Daftarkan Event Handler dan Mulai Koneksi
-	if err := whatsapp.InitAndStart(ctx, waClient, appDB, sheetsClient, botRouter); err != nil {
+	if err := whatsapp.InitAndStart(ctx, waClient, appDB, sheetsClient, botRouter, limiter); err != nil {
 		log.Fatal("Error at whatsapp.InitAndStart(), Message :", err)
 	}
 	

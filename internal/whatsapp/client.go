@@ -6,12 +6,13 @@ import (
 	"log"
 	"os"
 
-	"github.com/jmoiron/sqlx" // <-- PERBAIKAN 1: Tambahkan import 'sqlx'
+	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/mdp/qrterminal"
 	"github.com/sinavarasina/SAS-BOT/internal/bot/router"
-	// "github.com/sinavarasina/SAS-BOT/internal/db" // <-- PERBAIKAN 2: Hapus import 'db'
 	"github.com/sinavarasina/SAS-BOT/internal/sheets"
+	"github.com/sinavarasina/SAS-BOT/internal/utils"
+
 
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/store/sqlstore"
@@ -37,12 +38,9 @@ func NewClient(dsn string, ctx context.Context) (*whatsmeow.Client, error) {
 	return client, nil
 }
 
-// InitAndStart mendaftarkan handler DAN menghubungkan klien
-// (Tanda tangan fungsi ini sekarang valid karena 'sqlx' sudah di-import)
-func InitAndStart(ctx context.Context, client *whatsmeow.Client, appDB *sqlx.DB, sheetsClient *sheets.SheetsClient, botRouter *router.BotRouter) error {
+func InitAndStart(ctx context.Context, client *whatsmeow.Client, appDB *sqlx.DB, sheetsClient *sheets.SheetsClient, botRouter *router.BotRouter, limiter *utils.RateLimiter) error {
 	
-	// Daftarkan handler
-	client.AddEventHandler(EventHandler(botRouter, appDB))
+	client.AddEventHandler(EventHandler(botRouter, appDB, limiter))
 
 	// Hubungkan
 	if client.Store.ID == nil {

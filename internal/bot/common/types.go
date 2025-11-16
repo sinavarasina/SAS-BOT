@@ -5,6 +5,7 @@ import (
 	"github.com/sinavarasina/SAS-BOT/internal/db"
 	"github.com/sinavarasina/SAS-BOT/internal/sheets"
 	"github.com/sinavarasina/SAS-BOT/internal/uploader"
+	"github.com/sinavarasina/SAS-BOT/internal/utils"
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/binary/proto"
 	"go.mau.fi/whatsmeow/types"
@@ -17,6 +18,7 @@ type ServiceContext struct {
 	WAClient      *whatsmeow.Client
 	R2Uploader    *uploader.R2Uploader
 	ImgbbUploader *uploader.ImgbbUploader
+	Limiter      *utils.RateLimiter
 }
 
 // MenuHandler adalah antarmuka yang harus dipatuhi oleh setiap modul menu
