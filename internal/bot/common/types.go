@@ -7,7 +7,7 @@ import (
 	"github.com/sinavarasina/SAS-BOT/internal/uploader"
 	"github.com/sinavarasina/SAS-BOT/internal/utils"
 	"go.mau.fi/whatsmeow"
-	"go.mau.fi/whatsmeow/binary/proto"
+	waE2E "go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/types"
 )
 
@@ -24,5 +24,5 @@ type ServiceContext struct {
 // MenuHandler adalah antarmuka yang harus dipatuhi oleh setiap modul menu
 type MenuHandler interface {
 	HandleText(session *db.DataEntrySession, text string) []string
-	HandleImage(session *db.DataEntrySession, imageMsg *proto.ImageMessage, messageID string, chatJID types.JID) []string
+	HandleImage(session *db.DataEntrySession, imageMsg *waE2E.ImageMessage, messageID string, chatJID types.JID) []string
 }

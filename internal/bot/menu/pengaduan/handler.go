@@ -6,7 +6,7 @@ import (
 
 	"github.com/sinavarasina/SAS-BOT/internal/bot/common"
 	"github.com/sinavarasina/SAS-BOT/internal/db"
-	"go.mau.fi/whatsmeow/binary/proto"
+	waE2E "go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/types"
 )
 
@@ -38,7 +38,7 @@ func (h *PengaduanHandler) HandleText(session *db.DataEntrySession, text string)
 	}
 }
 
-func (h *PengaduanHandler) HandleImage(session *db.DataEntrySession, imageMsg *proto.ImageMessage, messageID string, chatJID types.JID) []string {
+func (h *PengaduanHandler) HandleImage(session *db.DataEntrySession, imageMsg *waE2E.ImageMessage, messageID string, chatJID types.JID) []string {
 	if session.CurrentStep == common.STEP_PENGADUAN_WAITING {
 		return h.Service.HandleImagePengaduan(session, imageMsg, messageID, chatJID)
 	}

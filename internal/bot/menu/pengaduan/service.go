@@ -11,7 +11,7 @@ import (
 	"github.com/sinavarasina/SAS-BOT/internal/bot/common"
 	"github.com/sinavarasina/SAS-BOT/internal/db"
 	"go.mau.fi/whatsmeow"
-	waProto "go.mau.fi/whatsmeow/binary/proto"
+	waE2E "go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/types"
 	"google.golang.org/protobuf/proto"
 )
@@ -27,7 +27,7 @@ func NewService(ctx *common.ServiceContext) *Service {
 }
 
 // HandleImagePengaduan adalah fungsi utama yang memproses gambar pengaduan
-func (s *Service) HandleImagePengaduan(session *db.DataEntrySession, imageMsg *waProto.ImageMessage, messageID string, chatJID types.JID) []string {
+func (s *Service) HandleImagePengaduan(session *db.DataEntrySession, imageMsg *waE2E.ImageMessage, messageID string, chatJID types.JID) []string {
 	log.Printf("[DEBUG] Processing image complaint from %s", session.JID)
 
 	data, err := s.Ctx.WAClient.Download(context.Background(), imageMsg)
@@ -107,7 +107,7 @@ func (s *Service) GetPengaduanStatus(unikID string) (string, error) {
 func sendMessageSafe(client *whatsmeow.Client, chat types.JID, text string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	_, err := client.SendMessage(ctx, chat, &waProto.Message{
+	_, err := client.SendMessage(ctx, chat, &waE2E.Message{
 		Conversation: proto.String(text),
 	})
 	if err != nil {
