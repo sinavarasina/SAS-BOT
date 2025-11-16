@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"go.mau.fi/whatsmeow"
@@ -16,9 +17,11 @@ import (
 )
 
 func SendMessage(client *whatsmeow.Client, jid string, msg string) error {
-	recipient, err := types.ParseJID(jid)
+	cleanJID := CleanUserJID(jid)
+
+	recipient, err := types.ParseJID(cleanJID)
 	if err != nil {
-		log.Printf("[SURAT-SEND] JID tidak valid: %s", jid)
+		log.Printf("[SURAT-SEND] JID tidak valid: %s", cleanJID)
 		return err
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -35,9 +38,11 @@ func SendMessage(client *whatsmeow.Client, jid string, msg string) error {
 }
 
 func SendFile(client *whatsmeow.Client, jid string, path string, caption string) error {
-	recipient, err := types.ParseJID(jid)
+	cleanJID := CleanUserJID(jid)
+
+	recipient, err := types.ParseJID(cleanJID)
 	if err != nil {
-		log.Printf("[SURAT-SEND] JID tidak valid: %s", jid)
+		log.Printf("[SURAT-SEND] JID tidak valid: %s", cleanJID)
 		return err
 	}
 	file, err := os.Open(path)
@@ -79,4 +84,15 @@ func SendFile(client *whatsmeow.Client, jid string, path string, caption string)
 	}
 	log.Printf("[SURAT-SEND] File terkirim ke %s: %s", jid, path)
 	return nil
+}
+
+func CleanUserJID(jid string) string {
+	parts := strings.Split(jid, "@")
+	user := parts[0]
+
+	if strings.Contains(user, ":") {
+		user = strings.Split(user, ":")[0]
+	}
+
+	return user + "@s.whatsapp.net"
 }
