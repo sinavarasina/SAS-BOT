@@ -20,8 +20,10 @@ import (
 )
 
 // wht u think if im doin like this? ~by sina
-const LIMITCOUNT = 3
-const LIMITTIME = 10
+const (
+	LIMITCOUNT = 3
+	LIMITTIME  = 10
+)
 
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
