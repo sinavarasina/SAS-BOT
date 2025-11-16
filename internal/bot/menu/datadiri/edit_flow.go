@@ -20,7 +20,7 @@ func (h *DataDiriHandler) handleEditFlow(session *db.DataEntrySession, text stri
 		if normText == "valid" {
 			// User selesai mengedit, panggil logika simpan
 			// Ini adalah logika yang sama dengan di 'confirmation.go'
-			if err := h.Service.SaveDataPenduduk(session.JID); err != nil {
+			if err := h.Service.SaveDataToDBAndSheets(session.JID); err != nil {
 				log.Printf("[ERROR] Gagal menyimpan data penduduk setelah edit: %v", err)
 				return []string{"Maaf, terjadi kesalahan sistem saat menyimpan data."}
 			}

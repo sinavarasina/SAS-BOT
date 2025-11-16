@@ -6,6 +6,7 @@ import (
 	"log"
 	"strings"
 	"time"
+	"context"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -616,4 +617,17 @@ func EnsureColumn(dbConn *sqlx.DB, tableName, columnName, columnType string) err
 		log.Printf("[DEBUG] Added %s column to %s table", columnName, tableName)
 	}
 	return nil
+}
+
+func GetSessionByJID(db *sqlx.DB, jid string) (*DataEntrySession, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	session := &DataEntrySession{}
+	query := `SELECT * FROM data_entry_sessions WHERE jid = $1`
+	err := db.GetContext(ctx, session, query, jid)
+	if err != nil {
+		return nil, err
+	}
+	return session, nil
 }

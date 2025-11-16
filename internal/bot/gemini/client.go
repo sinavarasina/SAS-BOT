@@ -18,7 +18,7 @@ type GeminiClient struct {
 func NewGeminiClient(apiKey string) *GeminiClient {
 	return &GeminiClient{
 		APIKey: apiKey,
-		URL:    fmt.Sprintf("https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key=%s", apiKey),
+		URL:    fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=%s", apiKey),
 	}
 }
 
@@ -27,28 +27,33 @@ func (c *GeminiClient) GenerateContent(systemPrompt, userQuestion string) (strin
 		return "Maaf, fitur AI sedang nonaktif (API Key tidak ada).", nil
 	}
 
+	fullPrompt := systemPrompt + "\n\n---\n\n" + userQuestion
+
 	payload := map[string]interface{}{
 		"contents": []map[string]interface{}{
-			{"parts": []map[string]string{{"text": systemPrompt}}},
-			{"parts": []map[string]string{{"text": userQuestion}}},
+			{
+				"role": "user",
+				"parts": []map[string]string{
+					{"text": fullPrompt},
+				},
+			},
 		},
 	}
+
 	body, err := json.Marshal(payload)
 	if err != nil {
 		return "", fmt.Errorf("gagal marshal request Gemini: %w", err)
 	}
-
 
 	req, err := http.NewRequestWithContext(context.TODO(), "POST", c.URL, bytes.NewBuffer(body))
 	if err != nil {
 		return "", fmt.Errorf("gagal membuat request Gemini: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
-	
+
 	client := &http.Client{}
 	resp, err := client.Do(req)
-	
-	
+
 	if err != nil {
 		return "", fmt.Errorf("gagal request ke Gemini: %w", err)
 	}
@@ -59,6 +64,7 @@ func (c *GeminiClient) GenerateContent(systemPrompt, userQuestion string) (strin
 		return "", fmt.Errorf("gagal membaca respons Gemini: %w", err)
 	}
 
+	// Struct untuk unmarshal respons
 	var result struct {
 		Candidates []struct {
 			Content struct {
@@ -67,17 +73,26 @@ func (c *GeminiClient) GenerateContent(systemPrompt, userQuestion string) (strin
 				} `json:"parts"`
 			} `json:"content"`
 		} `json:"candidates"`
+		// Menambahkan penanganan error dari API
+		Error struct {
+			Message string `json:"message"`
+		} `json:"error"`
 	}
 
 	if err := json.Unmarshal(respBody, &result); err != nil {
 		log.Printf("[GEMINI-ERROR] Gagal unmarshal: %v. Respons: %s", err, string(respBody))
-		return "Maaf, format respons dari AI tidak valid.", nil
+		return "", fmt.Errorf("gagal unmarshal respons Gemini: %w", err)
+	}
+
+	if result.Error.Message != "" {
+		log.Printf("[GEMINI-WARN] AI tidak memberikan jawaban. Respons: %s", string(respBody))
+		return "Maaf, saya tidak bisa memproses permintaan Anda saat ini. 😥", nil
 	}
 
 	if len(result.Candidates) > 0 && len(result.Candidates[0].Content.Parts) > 0 {
 		return result.Candidates[0].Content.Parts[0].Text, nil
 	}
-	
-	log.Printf("[GEMINI-WARN] AI tidak memberikan jawaban. Respons: %s", string(respBody))
-	return "Maaf, AI tidak memberikan jawaban. Coba tanyakan hal lain.", nil
+
+	log.Printf("[GEMINI-WARN] Respons AI kosong atau tidak valid: %s", string(respBody))
+	return "Maaf, terjadi kesalahan saat memproses jawaban. 🤖", nil
 }
