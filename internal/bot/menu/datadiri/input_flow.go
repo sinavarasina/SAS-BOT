@@ -128,4 +128,3 @@ func (h *DataDiriHandler) handleCheckpointSuku(session *db.DataEntrySession, tex
 		}
 	}
 }
-

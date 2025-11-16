@@ -17,8 +17,8 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func EventHandler(botRouter *router.BotRouter, appDB *sqlx.DB, limiter *utils.RateLimiter) func(interface{}) {
-	return func(evt interface{}) {
+func EventHandler(botRouter *router.BotRouter, appDB *sqlx.DB, limiter *utils.RateLimiter) func(any) {
+	return func(evt any) {
 		switch v := evt.(type) {
 		case *events.Message:
 			if v.Info.IsFromMe {

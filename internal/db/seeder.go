@@ -148,7 +148,7 @@ func insertOrUpdateDataDiri(dbConn *sqlx.DB, data CSVDataDiri, tanggalLahir time
 		updated_at = NOW()
 	`
 
-	_, err := dbConn.NamedExec(query, map[string]interface{}{
+	_, err := dbConn.NamedExec(query, map[string]any{
 		"nik":             data.NIK,
 		"no_kk":           data.NoKK,
 		"nama":            data.Nama,
