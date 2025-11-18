@@ -10,6 +10,24 @@ import (
 
 // handleInputFlow menangani alur 19 langkah
 func (h *DataDiriHandler) handleInputFlow(session *db.DataEntrySession, text string) []string {
+
+	//Cek apakah NIK sudah diisi
+	if session.CurrentStep == STEP_NIK { // STEP_NIK = 5
+		// Cek apakah field NIK di sesi sudah terisi
+		val, err := db.GetSessionField(h.Service.DB, session.JID, "nik")
+		if err == nil && val.Valid && val.String != "" {
+			log.Printf("[DEBUG] NIK %s sudah diisi (dari router), lanjut ke STEP_SEX (6)", val.String)
+			
+			// Langsung lompat ke langkah berikutnya
+			nextStep := STEP_SEX // STEP_SEX = 6
+			if err := db.UpdateStepOnly(h.Service.DB, session.JID, nextStep); err != nil {
+				return []string{"Maaf, terjadi kesalahan sistem."}
+			}
+			return []string{FormatQuestion(Steps[nextStep])}
+		}
+		// Jika NIK belum diisi (error atau not valid), maka alur normal
+	}
+
 	stepInfo, ok := Steps[session.CurrentStep]
 	if !ok {
 		// Jika langkah tidak ada di map (misal > 19), anggap selesai dan pindah ke konfirmasi
@@ -28,7 +46,7 @@ func (h *DataDiriHandler) handleInputFlow(session *db.DataEntrySession, text str
 		return []string{err.Error()}
 	}
 
-	if session.CurrentStep == common.STEP_NIK {
+	if session.CurrentStep == STEP_NIK {
 		errMsg, err := h.Service.CheckNIKExists(value.(string), session.JID)
 		if err != nil {
 			if err := db.UpdateStepOnly(h.Service.DB, session.JID, common.STEP_NIK_DUPLIKATE); err != nil {
@@ -42,7 +60,7 @@ func (h *DataDiriHandler) handleInputFlow(session *db.DataEntrySession, text str
 		return []string{"Maaf, terjadi kesalahan saat menyimpan data."}
 	}
 
-	if session.CurrentStep == common.STEP_SUKU {
+	if session.CurrentStep == STEP_SUKU {
 		if err := db.UpdateStepOnly(h.Service.DB, session.JID, common.STEP_CHECKPOINT_SUKU); err != nil {
 			return []string{"Maaf, terjadi kesalahan sistem."}
 		}
@@ -75,10 +93,10 @@ func (h *DataDiriHandler) handleNikDuplikat(session *db.DataEntrySession, text s
 
 	switch normText {
 	case "edit nik":
-		if err := db.UpdateStepOnly(h.Service.DB, session.JID, common.STEP_NIK); err != nil {
+		if err := db.UpdateStepOnly(h.Service.DB, session.JID, STEP_NIK); err != nil {
 			return []string{"Maaf, terjadi kesalahan sistem."}
 		}
-		return []string{FormatQuestion(Steps[common.STEP_NIK])}
+		return []string{FormatQuestion(Steps[STEP_NIK])}
 
 	case "stop":
 		if err := db.DeleteDataEntrySession(h.Service.DB, session.JID); err != nil {
@@ -107,7 +125,7 @@ func (h *DataDiriHandler) handleCheckpointSuku(session *db.DataEntrySession, tex
 		return []string{"Ketik 'valid' jika sudah benar atau ketik 'edit' untuk mengubah data.\n\n" + data}
 
 	case "lanjut":
-		nextStep := common.STEP_SUKU + 1
+		nextStep := STEP_SUKU + 1
 
 		nextStepInfo, ok := Steps[nextStep]
 		if !ok {

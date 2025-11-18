@@ -92,18 +92,6 @@ type DataEntrySession struct {
 
 // GetOrCreateDataEntrySession retrieves an existing session or creates a new one.
 func GetOrCreateDataEntrySession(dbConn *sqlx.DB, jid string) (*DataEntrySession, error) {
-	if err := EnsureColumn(dbConn, "data_entry_sessions", "edit_field", "TEXT"); err != nil {
-		return nil, err
-	}
-	if err := EnsureColumn(dbConn, "data_entry_sessions", "sheet_row_num", "INTEGER"); err != nil {
-		return nil, err
-	}
-	if err := EnsureColumn(dbConn, "data_entry_sessions", "current_flow", "TEXT"); err != nil {
-		return nil, err
-	}
-	if err := EnsureSuratSessionColumns(dbConn); err != nil {
-		return nil, err
-	}
 
 	var session DataEntrySession
 	query := `SELECT * FROM data_entry_sessions WHERE jid = $1`
@@ -404,6 +392,19 @@ func GetFormattedSessionData(dbConn *sqlx.DB, jid string) (string, error) {
 	appendNumberedField(39, "No. Asuransi", session.NoAsuransi, sql.NullString{})
 
 	return strings.TrimSpace(result.String()), nil
+}
+
+//memperbarui langkah DAN status awaiting_answer
+func UpdateSessionState(dbConn *sqlx.DB, jid string, step int, awaiting bool) error {
+	log.Printf("[DEBUG] Updating state to Step: %d, Awaiting: %t for jid: %s", step, awaiting, jid)
+	query := `
+        UPDATE data_entry_sessions SET
+            current_step = $1,
+            awaiting_answer = $2,
+            updated_at = NOW()
+        WHERE jid = $3`
+	_, err := dbConn.Exec(query, step, awaiting, jid)
+	return err
 }
 
 func FormatDate(t sql.NullTime) string {

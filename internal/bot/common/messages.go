@@ -15,6 +15,10 @@ Menu yang tersedia:
 Silakan pilih menu dengan mengetik nomor yang sesuai.`
 }
 
+func GetNikNotFoundMenu(nik string) string {
+	return fmt.Sprintf("⚠️ NIK `%s` tidak terdaftar.\n\nSilakan pilih:\n1.  Ulangi Masukkan NIK (jika salah ketik)\n2.  Daftar Baru dengan NIK ini\n\nKetik '1' atau '2'.", nik)
+}
+
 // GetSubmenuDataDiri mengembalikan submenu data diri
 func GetSubmenuDataDiri() string {
 	return `*Menu Data Diri*
@@ -52,7 +56,7 @@ Silakan pilih nomor atau ketik 'reset' untuk kembali ke menu utama.`
 // GetUlasanMessage mengembalikan pertanyaan ulasan
 func GetUlasanMessage(serviceName string) string {
 	return fmt.Sprintf("✅ Terima kasih! Proses untuk *%s* telah selesai.\n\n"+
-		"⭐ Sebagai langkah terakhir, mohon berikan ulasan Anda (1-5) untuk layanan ini:\n"+
+		"⭐ Sebagai langkah terakhir, mohon berikan ulasan Anda (1-5) untuk seberapa informatif layanan ini:\n"+
 		"(1 = Sangat Buruk, 5 = Sangat Baik)", serviceName)
 }
 
