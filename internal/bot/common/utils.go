@@ -4,6 +4,7 @@ import (
 	"strings"
 	"unicode"
 )
+
 // NormalizeInput membersihkan teks input
 func NormalizeInput(text string) string {
 	return strings.TrimSpace(strings.ToLower(text))
