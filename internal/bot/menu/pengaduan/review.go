@@ -20,9 +20,12 @@ func (h *PengaduanHandler) HandleReview(session *db.DataEntrySession, text strin
 
 	go h.Service.Ctx.SheetsClient.AppendUlasan("ulasan_pengaduan", serviceName, rating, session.JID)
 
-	if err := db.DeleteDataEntrySession(h.Service.Ctx.DB, session.JID); err != nil {
-		log.Printf("[ERROR] Gagal menghapus sesi setelah ulasan: %v", err)
+	if err := db.ResetSessionToMainMenu(h.Service.Ctx.DB, session.JID); err != nil {
+		log.Printf("[ERROR] Gagal reset sesi: %v", err)
 	}
-
-	return []string{common.GetUlasanThanksMessage()}
+	// Pesan konfirmasi + Menu Utama
+	return []string{
+		"Terima kasih! Ulasan Anda sangat berarti. ⭐",
+		common.GetMainMenu(), // Tampilkan menu lagi
+	}
 }

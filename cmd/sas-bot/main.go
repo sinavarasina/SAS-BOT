@@ -21,7 +21,7 @@ import (
 
 // wht u think if im doin like this? ~by sina
 const (
-	LIMITCOUNT = 3
+	LIMITCOUNT = 5
 	LIMITTIME  = 15
 )
 

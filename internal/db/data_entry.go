@@ -639,3 +639,18 @@ func GetSessionByJID(db *sqlx.DB, jid string) (*DataEntrySession, error) {
 	}
 	return session, nil
 }
+
+func ResetSessionToMainMenu(dbConn *sqlx.DB, jid string) error {
+	query := `
+		UPDATE data_entry_sessions SET
+			current_step = 3, 
+			current_flow = NULL,
+			awaiting_answer = FALSE,
+			updated_at = NOW(),
+			-- Reset field form (opsional, tapi disarankan agar bersih)
+			edit_field = NULL, sheet_row_num = NULL,
+			surat_fields_pending = NULL, surat_field_now = NULL, surat_data_map = NULL
+		WHERE jid = $1`
+	_, err := dbConn.Exec(query, jid)
+	return err
+}

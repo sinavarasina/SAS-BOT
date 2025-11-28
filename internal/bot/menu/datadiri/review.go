@@ -23,10 +23,12 @@ func (h *DataDiriHandler) HandleReview(session *db.DataEntrySession, text string
 	// Kirim ulasan ke Google Sheet di background
 	go h.Service.SheetsClient.AppendUlasan("ulasan_input_diri", serviceName, rating, session.JID)
 
-	// Hapus sesi dan akhiri percakapan
-	if err := db.DeleteDataEntrySession(h.Service.DB, session.JID); err != nil {
-		log.Printf("[ERROR] Gagal menghapus sesi setelah ulasan: %v", err)
+	if err := db.ResetSessionToMainMenu(h.Service.DB, session.JID); err != nil {
+    log.Printf("[ERROR] Gagal reset sesi: %v", err)
 	}
-
-	return []string{common.GetUlasanThanksMessage()}
+// Pesan konfirmasi + Menu Utama
+	return []string{
+    "Terima kasih! Ulasan Anda sangat berarti. ⭐",
+    common.GetMainMenu(), // Tampilkan menu lagi
+	}
 }
