@@ -1,81 +1,70 @@
 package gemini
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
-	"os"
 	"strings"
 )
 
 type GeminiService struct {
-	client         *GeminiClient
-	villageContext string
+	client *GeminiClient
 }
 
-// InfoDesa struct untuk mem-parsing info_desa.json
-type InfoDesa struct {
-	NamaDesa       string `json:"nama_desa"`
-	Kecamatan      string `json:"kecamatan"`
-	Kabupaten      string `json:"kabupaten"`
-	JamOperasional string `json:"jam_operasional"`
-	PerangkatDesa  []struct {
-		Jabatan string `json:"jabatan"`
-		Nama    string `json:"nama"`
-	} `json:"perangkat_desa"`
-}
+//punya rey sebelumnya digunakan disini, jadi ga pake json lagi 
+const villageContext = `
+KONTEKS DESA SINDANG ANOM:
+- Lokasi: Kec. Sekampung Udik, Kab. Lampung Timur.
+- Kepala Desa: Aminudin.
+- Jam Kantor: Senin - Jumat, 08:00 - 15:00 WIB.
+- Kontak: 081368774938 / desaindang.anom@gmail.com.
+
+LAYANAN SURAT:
+1. Pengantar KTP/KK (Gratis, 1-2 hari)
+2. Ket. Usaha (Bayar, 3-5 hari)
+3. SKTM (Gratis, 2-7 hari)
+4. Domisili (Bayar, 1-2 hari)
+5. Kematian (Gratis, Hari sama)
+6. Kelahiran (Gratis, 1-3 hari)
+
+MENU UTAMA BOT:
+1. Data Diri
+2. Pengajuan Surat
+3. Pengaduan
+`
 
 func NewGeminiService(apiKey string) *GeminiService {
-	client := NewGeminiClient(apiKey)
-	context := loadVillageContext("knowledge/info_desa.json")
 	return &GeminiService{
-		client:         client,
-		villageContext: context,
+		client: NewGeminiClient(apiKey),
 	}
 }
 
-func loadVillageContext(filePath string) string {
-	data, err := os.ReadFile(filePath)
-	if err != nil {
-		log.Printf("[WARN] Gagal memuat %s: %v. Gemini tidak akan memiliki konteks desa.", filePath, err)
-		return "Informasi tentang desa tidak tersedia."
-	}
+func (s *GeminiService) HandleGeminiPrompt(userText string) string {
+	systemPrompt := fmt.Sprintf(`%s
 
-	var info InfoDesa
-	if err := json.Unmarshal(data, &info); err != nil {
-		log.Printf("[WARN] Gagal mem-parsing %s: %v. Konteks tidak akan dimuat.", filePath, err)
-		return "Informasi tentang desa tidak tersedia (format JSON salah)."
-	}
+PERAN & INSTRUKSI:
+Kamu adalah 'SAS-BOT', asisten AI resmi Desa Sindang Anom. Tugasmu hanya dua:
 
-	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("Nama Desa: %s, Kecamatan: %s, Kabupaten: %s.\n", info.NamaDesa, info.Kecamatan, info.Kabupaten))
-	sb.WriteString(fmt.Sprintf("Jam operasional kantor: %s.\n", info.JamOperasional))
-	sb.WriteString("Perangkat Desa:\n")
-	for _, p := range info.PerangkatDesa {
-		sb.WriteString(fmt.Sprintf("- %s: %s\n", p.Jabatan, p.Nama))
-	}
-	log.Println("[INFO] Konteks info_desa.json berhasil dimuat untuk Gemini.")
-	return sb.String()
-}
+1. JIKA USER MENYAPA / MINTA BANTUAN UMUM (misal: "halo", "p", "tolong", "menu"):
+   - JANGAN coba menjawab atau berhalusinasi.
+   - Cukup sapa balik dengan ramah dan arahkan mereka untuk mengetik angka menu (1, 2, atau 3).
 
-// HandleGeminiPrompt adalah satu-satunya fungsi yang dipanggil oleh router
-func (s *GeminiService) HandleGeminiPrompt(question string) string {
-	systemPrompt := fmt.Sprintf(`Kamu adalah 'SAS-BOT', asisten AI resmi Desa Sindang Anom.
-Peranmu ada dua:
-1.  **Menjawab Pertanyaan:** Jika pengguna bertanya tentang informasi desa (misal: "siapa kades?", "jam buka"), jawab berdasarkan KONTEKS di bawah.
-2.  **Mengarahkan ke Menu:** Jika pengguna hanya menyapa (misal: "halo", "hi", "p") atau meminta bantuan umum (misal: "tolong", "bantu"), JANGAN menjawab pertanyaannya. Balas dengan sapaan ramah dan arahkan mereka untuk menggunakan menu utama.
+2. JIKA USER BERTANYA INFO DESA (misal: "siapa kades?", "jam buka", "syarat sktm"):
+   - Jawab LANGSUNG dan SINGKAT berdasarkan data KONTEKS di atas.
+   - Jika jawaban tidak ada di konteks, minta maaf dan sarankan hubungi kontak kantor.
 
-Gaya Bahasa: Gunakan bahasa Indonesia yang ramah, sopan, dan dinamis. Hindari kata 'Tentu'.
+GAYA BAHASA:
+- Gunakan Bahasa Indonesia yang luwes, sopan, dan menggunakan emoji.
+- HARAM menggunakan kata "Tentu" atau "Baiklah" di awal kalimat.
+- Maksimal jawaban 2-3 kalimat.
 
---- KONTEKS INFORMASI DESA ---
-%s
---- AKHIR KONTEKS ---
-`, s.villageContext)
+PERTANYAAN USER: '%s'`, villageContext, userText)
 
-	response, err := s.client.GenerateContent(systemPrompt, question)
+	// Eksekusi request ke Gemini
+	response, err := s.client.GenerateContent(systemPrompt, userText)
 	if err != nil {
 		log.Printf("[GEMINI-ERROR] %v", err)
-		return "Maaf, sedang ada gangguan teknis pada layanan AI kami."
+		return "Maaf, server AI sedang sibuk. 😓 Silakan ketik angka menu (1, 2, atau 3) untuk melanjutkan manual."
 	}
-	return response
+
+	return strings.TrimSpace(response)
 }

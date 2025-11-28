@@ -22,7 +22,7 @@ import (
 // wht u think if im doin like this? ~by sina
 const (
 	LIMITCOUNT = 3
-	LIMITTIME  = 10
+	LIMITTIME  = 15
 )
 
 func main() {

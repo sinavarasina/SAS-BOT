@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	// "math/rand"
 
 	"github.com/sinavarasina/SAS-BOT/internal/bot/common"
 	"github.com/sinavarasina/SAS-BOT/internal/bot/gemini"
@@ -251,11 +252,28 @@ switch session.CurrentStep {
 // SendAsync (Salinan dari event-handler.go)
 func SendAsync(ctx context.Context, client *whatsmeow.Client, chat types.JID, text, msgType string) {
 	go func() {
+		typingSecs := len(text) / 20 
+		if typingSecs < 1 {
+			typingSecs = 1
+		}
+
+		if typingSecs > 3 {
+			typingSecs = 3 // Maksimal nunggu 3 detik agar tidak dianggap spam 
+		}
+
+		if err := client.SendChatPresence(chat, types.ChatPresenceComposing, types.ChatPresenceMediaText); err != nil {
+			log.Printf("[WARN] Gagal kirim presence: %v", err)
+		}
+
+		time.Sleep(time.Duration(typingSecs) * time.Second)
+
 		ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 		defer cancel()
 
 		msg := &waE2E.Message{Conversation: googleProto.String(text)}
 		_, err := client.SendMessage(ctx, chat, msg)
+		//status 'typing' to false 
+		_ = client.SendChatPresence(chat, types.ChatPresencePaused, types.ChatPresenceMediaText) 
 
 		if err != nil {
 			log.Printf("[ERROR] Gagal kirim (%s) ke %s: %v", msgType, chat.String(), err)
