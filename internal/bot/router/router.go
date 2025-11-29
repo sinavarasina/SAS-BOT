@@ -87,7 +87,8 @@ func (r *BotRouter) Route(jid string, text string, imageMsg *waE2E.ImageMessage,
 		r.sessionCache.Delete(jid)
 		log.Printf("[CACHE] DELETED %s (Reset)", jid)
 
-		if err := db.UpdateStepOnly(r.Ctx.DB, jid, common.STEP_AWAL_WAIT_NIK); err != nil { /*...*/ }
+		if err := db.UpdateStepOnly(r.Ctx.DB, jid, common.STEP_AWAL_WAIT_NIK); err != nil { /*...*/
+		}
 		return []string{"Sesi Anda telah direset.\n\nSelamat datang! 🤖 Silakan masukkan NIK 16 digit Anda untuk memulai:"}
 	}
 
@@ -135,69 +136,80 @@ func (r *BotRouter) Route(jid string, text string, imageMsg *waE2E.ImageMessage,
 		}
 		log.Printf("[WARN] Sesi AwaitingAnswer=true tetapi CurrentFlow=%s tidak dikenal. Mereset sesi.", session.CurrentFlow.String)
 		db.DeleteDataEntrySession(r.Ctx.DB, jid)
-		if err := db.UpdateStepOnly(r.Ctx.DB, jid, common.STEP_AWAL_WAIT_NIK); err != nil { /*...*/ }
+		if err := db.UpdateStepOnly(r.Ctx.DB, jid, common.STEP_AWAL_WAIT_NIK); err != nil { /*...*/
+		}
 		return []string{"Terjadi kesalahan, sesi Anda telah direset. Silakan masukkan NIK 16 digit Anda untuk memulai:"}
 	}
 
-switch session.CurrentStep {
+	switch session.CurrentStep {
 
 	case common.STEP_AWAL_WAIT_NIK: // State: 1 (Menunggu NIK)
 		// Validasi format NIK
 		if len(text) != 16 || !common.IsNumeric(text) {
 			return []string{"Format NIK salah. Harap masukkan 16 digit NIK Anda:"}
 		}
-		
+
 		nik := text
 		dataPenduduk, err := db.GetDataPendudukByNIK(r.Ctx.DB, nik)
-		
-		if err != nil { 
+
+		if err != nil {
 			// NIK Tidak Ditemukan
 			log.Printf("[DEBUG] NIK %s tidak ditemukan: %v", nik, err)
 			// Simpan NIK yang gagal untuk opsi "Daftar Baru"
-			if err := db.UpdateSessionField(r.Ctx.DB, jid, "surat_temp_answer", nik); err != nil { /*...*/ }
+			if err := db.UpdateSessionField(r.Ctx.DB, jid, "surat_temp_answer", nik); err != nil { /*...*/
+			}
 			// Pindah ke state "NIK Not Found"
-			if err := db.UpdateSessionState(r.Ctx.DB, jid, common.STEP_AWAL_NIK_NOT_FOUND, false); err != nil { /*...*/ }
+			if err := db.UpdateSessionState(r.Ctx.DB, jid, common.STEP_AWAL_NIK_NOT_FOUND, false); err != nil { /*...*/
+			}
 			return []string{common.GetNikNotFoundMenu(nik)}
-		
-		} else { 
+
+		} else {
 			//NIK Ditemukan (Login Sukses)
 			log.Printf("[DEBUG] NIK %s ditemukan untuk %s", nik, dataPenduduk.Nama.String)
 			// Simpan NIK valid
-			if err := db.UpdateSessionField(r.Ctx.DB, jid, "surat_valid_nik", nik); err != nil { /*...*/ }
+			if err := db.UpdateSessionField(r.Ctx.DB, jid, "surat_valid_nik", nik); err != nil { /*...*/
+			}
 			// Pindah ke state "Menu Utama"
-			if err := db.UpdateSessionState(r.Ctx.DB, jid, common.STEP_AWAL_MENU_UTAMA, false); err != nil { /*...*/ }
+			if err := db.UpdateSessionState(r.Ctx.DB, jid, common.STEP_AWAL_MENU_UTAMA, false); err != nil { /*...*/
+			}
 			return []string{"Selamat datang kembali, " + dataPenduduk.Nama.String + "! 👋\n\n" + common.GetMainMenu()}
 		}
 
 	case common.STEP_AWAL_NIK_NOT_FOUND: // State: 2
 		switch text {
 		case "1": // Ulangi NIK
-			if err := db.UpdateStepOnly(r.Ctx.DB, jid, common.STEP_AWAL_WAIT_NIK); err != nil { /*...*/ }
+			if err := db.UpdateStepOnly(r.Ctx.DB, jid, common.STEP_AWAL_WAIT_NIK); err != nil { /*...*/
+			}
 			return []string{"Baik, silakan masukkan kembali NIK 16 digit Anda:"}
-		
+
 		case "2": // Daftar Baru
 			// Ambil NIK yang gagal
 			failedNik, err := db.GetSessionField(r.Ctx.DB, jid, "surat_temp_answer")
 			if err != nil || !failedNik.Valid {
-				if err := db.UpdateStepOnly(r.Ctx.DB, jid, common.STEP_AWAL_WAIT_NIK); err != nil { /*...*/ }
+				if err := db.UpdateStepOnly(r.Ctx.DB, jid, common.STEP_AWAL_WAIT_NIK); err != nil { /*...*/
+				}
 				return []string{"Terjadi kesalahan saat mengambil NIK Anda. Silakan masukkan NIK lagi:"}
 			}
 
 			// Mulai Sesi Data Diri Baru (mengatur AwaitingAnswer=true)
-			if err := db.StartNewSession(r.Ctx.DB, jid); err != nil { return []string{"Kesalahan sistem..."} }
-			
+			if err := db.StartNewSession(r.Ctx.DB, jid); err != nil {
+				return []string{"Kesalahan sistem..."}
+			}
+
 			// Pra-isi NIK
-			if err := db.UpdateDataEntrySession(r.Ctx.DB, jid, "nik", failedNik.String); err != nil { /*...*/ }
-			
+			if err := db.UpdateDataEntrySession(r.Ctx.DB, jid, "nik", failedNik.String); err != nil { /*...*/
+			}
+
 			// Mulai dari STEP_DUSUN (step 1 dari datadiri)
-			startStep := datadiri.STEP_DUSUN 
-			if err := db.UpdateStepOnly(r.Ctx.DB, jid, startStep); err != nil { /*...*/ }
+			startStep := datadiri.STEP_DUSUN
+			if err := db.UpdateStepOnly(r.Ctx.DB, jid, startStep); err != nil { /*...*/
+			}
 
 			return []string{
 				"Baik, kita mulai pendaftaran menggunakan NIK `" + failedNik.String + "`.\n\n" +
-				datadiri.FormatQuestion(datadiri.Steps[startStep]),
+					datadiri.FormatQuestion(datadiri.Steps[startStep]),
 			}
-		
+
 		default:
 			failedNik, _ := db.GetSessionField(r.Ctx.DB, jid, "surat_temp_answer")
 			return []string{"Pilihan tidak valid. " + common.GetNikNotFoundMenu(failedNik.String)}
@@ -208,29 +220,36 @@ switch session.CurrentStep {
 		case "1": // Menu Data Diri
 			// Ambil NIK yang sudah tervalidasi
 			nik, err := db.GetSessionField(r.Ctx.DB, jid, "surat_valid_nik")
-			if err != nil || !nik.Valid { 
+			if err != nil || !nik.Valid {
 				db.UpdateStepOnly(r.Ctx.DB, jid, common.STEP_AWAL_WAIT_NIK)
 				return []string{"Sesi NIK Anda hilang. Silakan masukkan NIK Anda lagi:"}
 			}
-			
+
 			// Muat data penduduk ke sesi
 			data, err := db.GetDataPendudukByNIK(r.Ctx.DB, nik.String)
-			if err != nil { return []string{"Gagal mengambil data penduduk Anda. Silakan 'reset'."} }
-			if err := db.LoadSessionFromPenduduk(r.Ctx.DB, jid, *data); err != nil { return []string{"Gagal memuat sesi. Silakan 'reset'."} }
-			
+			if err != nil {
+				return []string{"Gagal mengambil data penduduk Anda. Silakan 'reset'."}
+			}
+			if err := db.LoadSessionFromPenduduk(r.Ctx.DB, jid, *data); err != nil {
+				return []string{"Gagal memuat sesi. Silakan 'reset'."}
+			}
+
 			dataStr, _ := db.GetFormattedSessionData(r.Ctx.DB, jid)
-			
+
 			// Langsung lompat ke konfirmasi/edit
-			if err := db.UpdateSessionFlow(r.Ctx.DB, jid, string(common.FlowDataDiri), common.STEP_KONFIRMASI_DATA_DIRI); err != nil { /*...*/ }
-			
+			if err := db.UpdateSessionFlow(r.Ctx.DB, jid, string(common.FlowDataDiri), common.STEP_KONFIRMASI_DATA_DIRI); err != nil { /*...*/
+			}
+
 			return []string{"Berikut adalah data diri Anda yang terdaftar:\n\n" + dataStr, "\n\nKetik 'valid' untuk konfirmasi (jika tidak ada perubahan) atau 'edit' untuk mengubah data."}
 
 		case "2": // Menu Surat
-			if err := db.UpdateSessionFlow(r.Ctx.DB, jid, string(common.FlowSurat), common.STEP_SURAT_MENU_UTAMA); err != nil { /*...*/ }
+			if err := db.UpdateSessionFlow(r.Ctx.DB, jid, string(common.FlowSurat), common.STEP_SURAT_MENU_UTAMA); err != nil { /*...*/
+			}
 			return []string{common.GetSubmenuSurat()}
 
 		case "3": // Menu Pengaduan
-			if err := db.UpdateSessionFlow(r.Ctx.DB, jid, string(common.FlowPengaduan), common.STEP_PENGADUAN_MENU); err != nil { /*...*/ }
+			if err := db.UpdateSessionFlow(r.Ctx.DB, jid, string(common.FlowPengaduan), common.STEP_PENGADUAN_MENU); err != nil { /*...*/
+			}
 			return []string{common.GetSubmenuPengaduan()}
 
 		default: // Panggil Gemini (Asinkron)
@@ -244,7 +263,8 @@ switch session.CurrentStep {
 		}
 
 	default:
-		if err := db.UpdateStepOnly(r.Ctx.DB, jid, common.STEP_AWAL_WAIT_NIK); err != nil { /*...*/ }
+		if err := db.UpdateStepOnly(r.Ctx.DB, jid, common.STEP_AWAL_WAIT_NIK); err != nil { /*...*/
+		}
 		return []string{"Selamat datang! 🤖 Silakan masukkan NIK 16 digit Anda untuk memulai:"}
 	}
 }

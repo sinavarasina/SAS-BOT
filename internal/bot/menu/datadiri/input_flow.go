@@ -17,7 +17,7 @@ func (h *DataDiriHandler) handleInputFlow(session *db.DataEntrySession, text str
 		val, err := db.GetSessionField(h.Service.DB, session.JID, "nik")
 		if err == nil && val.Valid && val.String != "" {
 			log.Printf("[DEBUG] NIK %s sudah diisi (dari router), lanjut ke STEP_SEX (6)", val.String)
-			
+
 			// Langsung lompat ke langkah berikutnya
 			nextStep := STEP_SEX // STEP_SEX = 6
 			if err := db.UpdateStepOnly(h.Service.DB, session.JID, nextStep); err != nil {

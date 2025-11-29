@@ -394,7 +394,7 @@ func GetFormattedSessionData(dbConn *sqlx.DB, jid string) (string, error) {
 	return strings.TrimSpace(result.String()), nil
 }
 
-//memperbarui langkah DAN status awaiting_answer
+// memperbarui langkah DAN status awaiting_answer
 func UpdateSessionState(dbConn *sqlx.DB, jid string, step int, awaiting bool) error {
 	log.Printf("[DEBUG] Updating state to Step: %d, Awaiting: %t for jid: %s", step, awaiting, jid)
 	query := `
