@@ -25,7 +25,10 @@ go.work
 go.work.sum
 
 # env file
-#.env
+.env
+
+# csv
+csv/datadiri.csv
 
 # Editor/IDE
 # .idea/
