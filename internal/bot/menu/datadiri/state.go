@@ -19,7 +19,7 @@ type Step struct {
 
 var Steps = map[int]Step{
 	// Data Inti (1-19)
-	1:  {"Masukkan Dusun:", "dusun", false, loadOptions("1_dusun.json", "dusun")},
+	1:  {"Masukkan Dusun:", "dusun", false, nil},
 	2:  {"Masukkan RT (contoh: 001):", "rt", false, nil},
 	3:  {"Masukkan Nama:", "nama", false, nil},
 	4:  {"Masukkan No. KK (16 digit):", "no_kk", false, nil},

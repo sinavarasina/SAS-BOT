@@ -142,7 +142,7 @@ func (h *DataDiriHandler) handleCheckpointSuku(session *db.DataEntrySession, tex
 
 	default:
 		return []string{
-			"Mohon ketik 'lanjut' untuk meneruskan input data (sampai field ke-39) atau 'cukup' untuk menyelesaikan sekarang.",
+			"Mohon ketik 'cukup' untuk menyelesaikan sekarang.",
 		}
 	}
 }
