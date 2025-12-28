@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 	"sync"
-	"time"
+	// "time"
 	// "math/rand"
 
 	"github.com/sinavarasina/SAS-BOT/internal/bot/common"
@@ -257,7 +257,7 @@ func (r *BotRouter) Route(jid string, text string, imageMsg *waE2E.ImageMessage,
 			go func(ctx *common.ServiceContext, chat types.JID, prompt string) {
 				geminiResponse := r.gemini.HandleGeminiPrompt(prompt)
 				finalReply := geminiResponse + "\n\n" + common.GetMainMenu()
-				SendAsync(context.Background(), ctx.WAClient, chat, finalReply, "gemini_reply")
+				common.SmartSend(context.Background(), ctx.WAClient, chat, finalReply)
 			}(r.Ctx, chatJID, text)
 			return replies
 		}
