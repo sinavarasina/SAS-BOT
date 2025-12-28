@@ -18,6 +18,8 @@ const (
 	IJIN_KELUARGA  JenisSurat = "sk_ijin_keluarga.tex"
 	IZIN_KERAMAIAN JenisSurat = "sk_izin_keramaian.tex"
 	KELAHIRAN      JenisSurat = "sk_kelahiran.tex"
+	SKCK           JenisSurat = "sk_skck.tex"
+	BEDA_NAMA      JenisSurat = "sk_beda_nama.tex"
 )
 
 var JenisSuratMap = map[string]JenisSurat{
@@ -28,6 +30,8 @@ var JenisSuratMap = map[string]JenisSurat{
 	"5": IJIN_KELUARGA,
 	"6": IZIN_KERAMAIAN,
 	"7": KELAHIRAN,
+	"8": SKCK,
+	"9": BEDA_NAMA,
 }
 
 var NamaSuratmap = map[JenisSurat]string{
@@ -38,6 +42,8 @@ var NamaSuratmap = map[JenisSurat]string{
 	IJIN_KELUARGA:  "Surat Keterangan Ijin Keluarga",
 	IZIN_KERAMAIAN: "Surat Keterangan Izin Keramaian",
 	KELAHIRAN:      "Surat Keterangan Kelahiran",
+	SKCK:						"Surat Pengantar SKCK",
+	BEDA_NAMA:			"Surat Keterangan Beda Nama"
 }
 
 // BaseFields adalah data yang kita AMBIL OTOMATIS dari DB
@@ -68,6 +74,15 @@ var SuratFields = map[JenisSurat][]string{
 		"NAMA_IBU", "TTL_IBU", "AGAMA_IBU", "ALAMAT_IBU",
 		"NAMA_AYAH", "TTL_AYAH", "AGAMA_AYAH", "ALAMAT_AYAH",
 	},
+	SKCK: {
+		"SUKU_BANGSA", "NAMA_ORTU", "TANDA_ISTIMEWA", "KEPERLUAN", "CATATAN_SKCK",
+	},
+	BEDA_NAMA: {
+		"SUMBER_DATA_1", // Sumber data BENAR (misal: KTP)
+		"SUMBER_DATA_2", // Sumber data SALAH (misal: Ijazah)
+		// Kita asumsikan Data 1 diambil dari DB user (Benar), kita tanya Data 2 (Salah/Beda)
+		"NAMA_2", "TTL_2", "NIK_2", "PEKERJAAN_2", "ALAMAT_2",
+	},
 }
 
 // FieldPrompts adalah daftar pertanyaan untuk setiap field
@@ -77,6 +92,8 @@ var FieldPrompts = map[string]string{
 	"ALAMATDOM":      "Tuliskan alamat domisili atau lokasi usaha:",
 	"DUSUN":          "Tuliskan nama dusun tempat tinggal Anda:",
 	"TTLnU":          "Tuliskan tempat & tanggal lahir atau umur (misal: Bandar Lampung, 19 Juni 1975 / 49 tahun):",
+
+	//kematian 
 	"FNAMAnAL":       "Tuliskan nama lengkap almarhum/almarhumah:",
 	"BINoBINTI":      "Tuliskan Bin/Binti (nama ayah/almarhum):",
 	"POSISITERAKHIR": "Tuliskan tempat tinggal atau posisi terakhir almarhum:",
@@ -125,6 +142,22 @@ var FieldPrompts = map[string]string{
 	"TTL_AYAH":     "Tempat & Tanggal Lahir Ayah:",
 	"AGAMA_AYAH":   "Agama Ayah:",
 	"ALAMAT_AYAH":  "Alamat Ayah:",
+
+	// --- SKCK ---
+	"SUKU_BANGSA":    "Suku Bangsa (misal: Indonesia/Jawa):",
+	"NAMA_ORTU":      "Nama Orang Tua:",
+	"TANDA_ISTIMEWA": "Tanda Istimewa / Ciri Fisik (misal: Tahi lalat di pipi / - ):",
+	"KEPERLUAN":      "Keperluan pembuatan SKCK (misal: Melamar Pekerjaan):",
+	"CATATAN_SKCK":   "Catatan Prilaku (misal: Berkelakuan Baik / Tidak pernah tersangkut pidana):",
+
+	// --- BEDA NAMA ---
+	"SUMBER_DATA_1": "Sebutkan Dokumen yang datanya BENAR/SESUAI KTP (misal: KTP & KK):",
+	"SUMBER_DATA_2": "Sebutkan Dokumen yang datanya SALAH/BERBEDA (misal: Ijazah / Akta Cerai):",
+	"NAMA_2":        "Tuliskan NAMA yang tertulis pada dokumen SALAH tersebut:",
+	"TTL_2":         "Tuliskan TEMPAT TANGGAL LAHIR pada dokumen SALAH tersebut:",
+	"NIK_2":         "Tuliskan NIK pada dokumen SALAH tersebut (jika ada, atau strip '-'):",
+	"PEKERJAAN_2":   "Tuliskan PEKERJAAN pada dokumen SALAH tersebut:",
+	"ALAMAT_2":      "Tuliskan ALAMAT pada dokumen SALAH tersebut:",
 }
 
 // GetPrompt mengambil pertanyaan untuk field
@@ -171,12 +204,19 @@ func BuildDataMap(data db.DataPenduduk) map[string]string {
 		"NIK_WALI":       data.NIK.String,
 		"PEKERJAAN_WALI": data.PekerjaanNama.String,
 		"ALAMAT_WALI":    alamatLengkap,
+
+		//Autofill untuk temlate beda nama
+		"NAMA_1":      data.Nama.String,
+		"TTL_1":       ttl,
+		"NIK_1":       data.NIK.String,
+		"PEKERJAAN_1": data.PekerjaanNama.String,
+		"ALAMAT_1":    alamatLengkap,
 	}
 }
 
 func GetFieldList(data db.DataPenduduk, jenis JenisSurat) []string {
 	// Jika jenis surat tidak perlu pengecekan BaseFields (semua manual atau list fixed), return langsung
-	if jenis == KEMATIAN || jenis == IJIN_KELUARGA || jenis == IZIN_KERAMAIAN || jenis == KELAHIRAN {
+	if jenis == KEMATIAN || jenis == IJIN_KELUARGA || jenis == IZIN_KERAMAIAN || jenis == KELAHIRAN || jenis == SKCK || jenis == BEDA_NAMA {
 		return SuratFields[jenis]
 	}
 

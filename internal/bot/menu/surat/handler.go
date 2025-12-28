@@ -80,7 +80,7 @@ func (h *SuratHandler) handleMenuUtama(session *db.DataEntrySession, text string
 		// Pastikan list ini sesuai dengan map di state.go
 		return []string{
 			"NIK Tervalidasi. Silakan pilih jenis surat:\n" +
-				"1. Surat Domisili\n2. Surat Usaha\n3. SKTM Umum\n4. Surat Kematian\n5. Surat Ijin Keluarga\n6. Surat Izin Keramaian\n7. Surat Kelahiran",
+				"1. Surat Domisili\n2. Surat Usaha\n3. SKTM Umum\n4. Surat Kematian\n5. Surat Ijin Keluarga\n6. Surat Izin Keramaian\n7. Surat Kelahiran\n8. Surat Pengantar SKCK\n9. Surat Keterangan Beda Nama",
 		}
 
 	case "2": // 2. Cek Progres Surat
