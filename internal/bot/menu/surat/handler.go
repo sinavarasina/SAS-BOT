@@ -32,7 +32,7 @@ func (h *SuratHandler) HandleText(session *db.DataEntrySession, text string) []s
 	case common.STEP_SURAT_INPUT_DATA:
 		return h.handleInputFlow(session, text)
 	case common.STEP_SURAT_KONFIRMASI_FIELD:
-		return h.handleKonfirmasiField(session, text)
+		return h.handleKonfirmasiFinal(session, text)
 	case common.STEP_SURAT_CEK_PROGRES:
 		return h.handleCekProgres(session, text)
 	case common.STEP_ULASAN_SURAT:

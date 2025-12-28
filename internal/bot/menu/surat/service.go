@@ -66,7 +66,15 @@ func (s *Service) HandleSuratGeneration(session *db.DataEntrySession) []string {
 		log.Printf("[ERROR] Gagal pindah ke langkah ulasan: %v", err)
 	}
 
-	return []string{common.GetUlasanMessage(namaSurat)}
+	infoMsg := fmt.Sprintf(
+		"✅ *Permintaan Diterima*\n\n"+
+			"📄 Jenis: %s\n"+
+			"🆔 *ID Surat: %s*\n\n"+
+			"Mohon tunggu sebentar, sistem sedang membuat dan mengirimkan file PDF surat Anda...",
+		namaSurat, unikID,
+	)
+
+	return []string{infoMsg, common.GetUlasanMessage(namaSurat)}
 }
 
 // GetSuratStatus mengambil status dari sheets

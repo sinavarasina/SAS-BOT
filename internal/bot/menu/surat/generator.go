@@ -14,8 +14,30 @@ import (
 	"go.mau.fi/whatsmeow"
 )
 
+func escapeLatex(text string) string {
+	replacer := strings.NewReplacer(
+		"&", "\\&",
+		"%", "\\%",
+		"$", "\\$",
+		"#", "\\#",
+		"_", "\\_",
+		"{", "\\{",
+		"}", "\\}",
+		"~", "\\textasciitilde{}",
+		"^", "\\textasciicircum{}",
+		"\\", "\\textbackslash{}",
+	)
+	return replacer.Replace(text)
+}
+
 func fillTemplate(content string, data map[string]string) string {
 	for key, value := range data {
+		cleanValue := value
+		
+		if key != "LOGOPATH" {
+			cleanValue = escapeLatex(value)
+		}
+
 		if key == "ALASANPERLU" {
 			content = strings.ReplaceAll(content, "{{"+key+"}}", " "+value+" ")
 		} else {
@@ -87,11 +109,11 @@ func GenerateAsync(
 		log.Printf("[SURAT] PDF selesai dibuat: %s", pdfPath)
 
 		// 1. Kirim ke Pengguna
-		err = SendFile(client, jid, pdfPath,
-			fmt.Sprintf("Surat *%s* Anda telah selesai dibuat.\nNomor Unik Surat: *%s*", NamaSuratmap[template], uniqueID))
+		caption := fmt.Sprintf("✅ Surat *%s* Anda telah selesai.\n🆔 ID: *%s*", NamaSuratmap[template], uniqueID)
+		err = SendFile(client, jid, pdfPath, caption)
 		if err != nil {
-			log.Printf("[SURAT-ERROR] Gagal mengirim file PDF ke user: %v", err)
-			_ = SendMessage(client, jid, "File berhasil dibuat tapi gagal dikirim. Silakan hubungi admin.")
+			log.Printf("[SURAT-ERROR] Gagal kirim WA ke user: %v", err)
+			_ = SendMessage(client, jid, "File PDF sudah jadi, tapi gagal dikirim via WA. Silakan cek status nanti.")
 		}
 
 		// 2. Kirim ke Perangkat Desa
@@ -106,6 +128,7 @@ func GenerateAsync(
 		// 3. Upload ke R2
 		fileURL, err := UploadPDFToR2(pdfPath, pdfName, r2Uploader)
 		if err != nil {
+			log.Printf("[R2-ERROR] Gagal upload: %v", err)
 			fileURL = "Gagal Upload"
 		}
 
@@ -115,6 +138,7 @@ func GenerateAsync(
 		sheetsClient.AppendSuratLog(string(template), data["NAMA"], uniqueID, tgl, "Belum Diproses", fileURL)
 
 		// 5. Hapus file sementara
+		time.Sleep(2 * time.Second)
 		os.Remove(texPath)
 		os.Remove(pdfPath)
 		os.Remove(strings.Replace(texPath, ".tex", ".log", 1))

@@ -10,65 +10,68 @@ import (
 
 // handleInputFlow menangani pengiriman pertanyaan
 func (h *SuratHandler) handleInputFlow(session *db.DataEntrySession, text string) []string {
-	// 2. Simpan jawaban sementara
-	if err := db.UpdateSessionField(h.Service.Ctx.DB, session.JID, "surat_temp_answer", text); err != nil {
-		return []string{"Kesalahan menyimpan jawaban sementara."}
+	// 1. Ambil field yang sedang diisi saat ini
+	currentField, _ := db.GetSessionField(h.Service.Ctx.DB, session.JID, "surat_field_now")
+	fieldName := currentField.String
+
+	// 2. Ambil Data Map yang sudah ada, lalu update dengan input user
+	dataMapJSON, _ := db.GetSessionField(h.Service.Ctx.DB, session.JID, "surat_data_map")
+	var dataMap map[string]string
+	json.Unmarshal([]byte(dataMapJSON.String), &dataMap)
+
+	// Simpan input user ke map
+	dataMap[fieldName] = text
+
+	// Simpan balik map ke database
+	updatedMap, _ := json.Marshal(dataMap)
+	db.UpdateSessionField(h.Service.Ctx.DB, session.JID, "surat_data_map", string(updatedMap))
+
+	// 3. Cek apakah masih ada field selanjutnya?
+	pendingFieldsStr, _ := db.GetSessionField(h.Service.Ctx.DB, session.JID, "surat_fields_pending")
+	fields := strings.Split(pendingFieldsStr.String, ",")
+
+	nextFieldName := NextField(fields, fieldName)
+
+	if nextFieldName != "" {
+		// KASUS A: Masih ada field berikutnya
+		// Update pointer field sekarang ke field berikutnya
+		db.UpdateSessionField(h.Service.Ctx.DB, session.JID, "surat_field_now", nextFieldName)
+		
+		// Langsung tanya pertanyaan berikutnya
+		return []string{GetPrompt(nextFieldName)}
 	}
 
-	// 3. Lanjut ke konfirmasi
-	if err := db.UpdateStepOnly(h.Service.Ctx.DB, session.JID, common.STEP_SURAT_KONFIRMASI_FIELD); err != nil {
-		return []string{"Maaf, terjadi kesalahan sistem."}
+	// KASUS B: Semua field sudah terisi -> Tampilkan REKAP FINAL
+	// Pindah ke step konfirmasi akhir
+	db.UpdateStepOnly(h.Service.Ctx.DB, session.JID, common.STEP_SURAT_KONFIRMASI_FIELD)
+
+	// Buat ringkasan data agar user bisa cek sebelum cetak
+	summary := "*KONFIRMASI DATA SURAT*\nMohon periksa data berikut:\n\n"
+	
+	// Kita iterate sesuai urutan field yang diminta (fields) agar rapi
+	for _, k := range fields {
+		val := dataMap[k]
+		// Bersihkan underscore biar enak dibaca (opsional)
+		label := strings.ReplaceAll(k, "_", " ")
+		summary += fmt.Sprintf("• *%s*: %s\n", label, val)
 	}
-	return []string{fmt.Sprintf("Anda mengisi: *%s*\n\nKetik 'ya' untuk lanjut, atau 'edit' untuk mengulangi.", text)}
+
+	summary += "\nKetik *'Lanjut'* untuk memproses surat, atau *'Batal'* untuk mengulangi dari awal."
+	
+	return []string{summary}
 }
 
-func (h *SuratHandler) handleKonfirmasiField(session *db.DataEntrySession, text string) []string {
-	normText := common.NormalizeInput(text)
-	currentField := session.SuratFieldNow.String
-	fieldList := strings.Split(session.SuratFieldsPending.String, ",")
+func (h *SuratHandler) handleKonfirmasiFinal(session *db.DataEntrySession, text string) []string {
+	input := strings.ToLower(strings.TrimSpace(text))
 
-	switch normText {
-
-	case "edit":
-		if err := db.UpdateStepOnly(h.Service.Ctx.DB, session.JID, common.STEP_SURAT_INPUT_DATA); err != nil {
-			return []string{"Maaf, terjadi kesalahan sistem."}
-		}
-		return []string{GetPrompt(currentField)}
-
-	case "ya":
-		tempAnswer := session.SuratTempAnswer.String
-
-		dataMap := make(map[string]string)
-		_ = json.Unmarshal([]byte(session.SuratDataMap.String), &dataMap)
-		dataMap[currentField] = tempAnswer
-
-		next := NextField(fieldList, currentField)
-
-		// Jika masih ada field berikutnya
-		if next != "" {
-			dataMapBytes, _ := json.Marshal(dataMap)
-
-			if err := db.UpdateSessionField(h.Service.Ctx.DB, session.JID, "surat_data_map", string(dataMapBytes)); err != nil {
-				return []string{"Kesalahan menyimpan data map."}
-			}
-			if err := db.UpdateSessionField(h.Service.Ctx.DB, session.JID, "surat_field_now", next); err != nil {
-				return []string{"Kesalahan menyimpan field berikutnya."}
-			}
-			if err := db.UpdateStepOnly(h.Service.Ctx.DB, session.JID, common.STEP_SURAT_INPUT_DATA); err != nil {
-				return []string{"Maaf, terjadi kesalahan sistem."}
-			}
-
-			return []string{GetPrompt(next)}
-		}
-
-		// Jika tidak ada field berikutnya → proses surat
-		dataMapBytes, _ := json.Marshal(dataMap)
-		if err := db.UpdateSessionField(h.Service.Ctx.DB, session.JID, "surat_data_map", string(dataMapBytes)); err != nil {
-			return []string{"Kesalahan menyimpan data map akhir."}
-		}
+	if input == "lanjut" || input == "ya" || input == "ok" {
+		// User setuju, GENERATE SURAT SEKARANG
 		return h.Service.HandleSuratGeneration(session)
-
-	default:
-		return []string{"Pilihan tidak valid. Ketik 'ya' atau 'edit'."}
+	} else if input == "batal" || input == "reset" {
+		// User ingin ulang
+		db.DeleteDataEntrySession(h.Service.Ctx.DB, session.JID)
+		return []string{"Pengajuan dibatalkan. Silakan ketik menu untuk mulai lagi."}
+	} else {
+		return []string{"Jawaban tidak dikenali. Ketik *'Lanjut'* untuk proses atau *'Batal'* untuk membatalkan."}
 	}
 }
