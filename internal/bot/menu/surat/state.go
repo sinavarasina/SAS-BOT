@@ -11,27 +11,33 @@ import (
 type JenisSurat string
 
 const (
-	DOMISILI        JenisSurat = "sk_domisili.tex"
-	USAHA           JenisSurat = "sk_usaha.tex"
-	SKTM_UMUM       JenisSurat = "sktm_umum.tex"
-	SKTM_TANGGUNGAN JenisSurat = "sktm_tanggungan.tex"
-	KEMATIAN        JenisSurat = "sk_kematian.tex"
+	DOMISILI       JenisSurat = "sk_domisili.tex"
+	USAHA          JenisSurat = "sk_usaha.tex"
+	SKTM_UMUM      JenisSurat = "sktm_umum.tex"
+	KEMATIAN       JenisSurat = "sk_kematian.tex"
+	IJIN_KELUARGA  JenisSurat = "sk_ijin_keluarga.tex"
+	IZIN_KERAMAIAN JenisSurat = "sk_izin_keramaian.tex"
+	KELAHIRAN      JenisSurat = "sk_kelahiran.tex"
 )
 
 var JenisSuratMap = map[string]JenisSurat{
 	"1": DOMISILI,
 	"2": USAHA,
 	"3": SKTM_UMUM,
-	"4": SKTM_TANGGUNGAN,
-	"5": KEMATIAN,
+	"4": KEMATIAN,
+	"5": IJIN_KELUARGA,
+	"6": IZIN_KERAMAIAN,
+	"7": KELAHIRAN,
 }
 
 var NamaSuratmap = map[JenisSurat]string{
-	DOMISILI:        "Surat Keterangan Domisili",
-	USAHA:           "Surat Keterangan Usaha",
-	SKTM_UMUM:       "SKTM Umum",
-	SKTM_TANGGUNGAN: "SKTM Tanggungan",
-	KEMATIAN:        "Surat Keterangan Kematian",
+	DOMISILI:       "Surat Keterangan Domisili",
+	USAHA:          "Surat Keterangan Usaha",
+	SKTM_UMUM:      "SKTM Umum",
+	KEMATIAN:       "Surat Keterangan Kematian",
+	IJIN_KELUARGA:  "Surat Keterangan Ijin Keluarga",
+	IZIN_KERAMAIAN: "Surat Keterangan Izin Keramaian",
+	KELAHIRAN:      "Surat Keterangan Kelahiran",
 }
 
 // BaseFields adalah data yang kita AMBIL OTOMATIS dari DB
@@ -44,50 +50,81 @@ var SuratFields = map[JenisSurat][]string{
 	DOMISILI:  {"ALASANPERLU"},
 	USAHA:     {"TTLnU", "ALAMATDOM", "DUSUN"},
 	SKTM_UMUM: {"TTLnU", "ALASANPERLU"},
-	SKTM_TANGGUNGAN: {
-		"NAMA.P", "JK.P", "TTL.P", "NIK.P", "PEKERJAAN.P", "AGAMA.P", "STATUS.P", "ALAMAT.P",
-		"NAMA.C", "JK.C", "TTL.C", "NIK.C", "PEKERJAAN.C", "AGAMA.C", "ALAMAT.C",
-		"ALASANPERLU",
-	},
 	KEMATIAN: {
 		"FNAMAnAL", "BINoBINTI", "TTLnU", "AGAMA", "PEKERJAAN", "POSISITERAKHIR",
 		"HARI", "TGL", "JAM", "TEMPAT", "ALASANMENINGGAL",
+	},
+	IJIN_KELUARGA: {
+		"HUBUNGAN_WALI", "NAMA_CPMI", "TTL_CPMI", "NIK_CPMI", "JK_CPMI", 
+		"PEKERJAAN_CPMI", "ALAMAT_CPMI", "NEGARA_TUJUAN",
+	},
+	IZIN_KERAMAIAN: {
+		"HP_PEMOHON", "JENIS_KESENIAN", "NAMA_PIMPINAN_HIBURAN", "HP_PIMPINAN", 
+		"ACARA_HAJATAN", "HARI_ACARA", "TGL_ACARA", "JAM_ACARA", "LOKASI_ACARA",
+		"NAMA_BABIN", // DITAMBAHKAN: Agar sesuai template source 11
+	},
+	KELAHIRAN: {
+		"HARI_LAHIR", "TGL_LAHIR", "TEMPAT_LAHIR", "JK_ANAK", "NAMA_ANAK", "ANAK_KE",
+		"NAMA_IBU", "TTL_IBU", "AGAMA_IBU", "ALAMAT_IBU",
+		"NAMA_AYAH", "TTL_AYAH", "AGAMA_AYAH", "ALAMAT_AYAH",
 	},
 }
 
 // FieldPrompts adalah daftar pertanyaan untuk setiap field
 var FieldPrompts = map[string]string{
-	"ALASANPERLU": "Tuliskan alasan Anda membutuhkan surat ini:",
-	"ALAMATDOM":   "Tuliskan alamat domisili atau lokasi usaha:",
-	"DUSUN":       "Tuliskan nama dusun tempat tinggal Anda:",
-	"TTLnU":       "Tuliskan tempat & tanggal lahir atau umur (misal: Bandar Lampung, 19 Juni 1975 / 49 tahun):",
-
-	// (Prompt untuk Kematian & SKTM Tanggungan)
-	"FNAMAnAL":        "Tuliskan nama lengkap almarhum/almarhumah:",
-	"BINoBINTI":       "Tuliskan Bin/Binti (nama ayah/almarhum):",
-	"POSISITERAKHIR":  "Tuliskan tempat tinggal atau posisi terakhir almarhum:",
-	"HARI":            "Tuliskan hari meninggalnya:",
-	"TGL":             "Tuliskan tanggal meninggalnya (misal: 04 November 2025):",
-	"JAM":             "Tuliskan jam meninggalnya:",
-	"TEMPAT":          "Tuliskan tempat meninggalnya:",
+	// Existing
+	"ALASANPERLU":    "Tuliskan alasan Anda membutuhkan surat ini:",
+	"ALAMATDOM":      "Tuliskan alamat domisili atau lokasi usaha:",
+	"DUSUN":          "Tuliskan nama dusun tempat tinggal Anda:",
+	"TTLnU":          "Tuliskan tempat & tanggal lahir atau umur (misal: Bandar Lampung, 19 Juni 1975 / 49 tahun):",
+	"FNAMAnAL":       "Tuliskan nama lengkap almarhum/almarhumah:",
+	"BINoBINTI":      "Tuliskan Bin/Binti (nama ayah/almarhum):",
+	"POSISITERAKHIR": "Tuliskan tempat tinggal atau posisi terakhir almarhum:",
+	"HARI":           "Tuliskan hari meninggalnya:",
+	"TGL":            "Tuliskan tanggal meninggalnya (misal: 04 November 2025):",
+	"JAM":            "Tuliskan jam meninggalnya:",
+	"TEMPAT":         "Tuliskan tempat meninggalnya:",
 	"ALASANMENINGGAL": "Tuliskan penyebab meninggalnya:",
-	"NAMA.P":          "Nama orang tua atau penanggung:",
-	"JK.P":            "Jenis kelamin orang tua/penanggung:",
-	"TTL.P":           "Tempat & tanggal lahir orang tua/penanggung:",
-	"NIK.P":           "NIK orang tua/penanggung:",
-	"PEKERJAAN.P":     "Pekerjaan orang tua/penanggung:",
-	"AGAMA.P":         "Agama orang tua/penanggung:",
-	"STATUS.P":        "Status hubungan dengan anak (misal: Ayah/Ibu):",
-	"ALAMAT.P":        "Alamat orang tua/penanggung:",
-	"NAMA.C":          "Nama anak:",
-	"JK.C":            "Jenis kelamin anak:",
-	"TTL.C":           "Tempat & tanggal lahir anak:",
-	"NIK.C":           "NIK anak:",
-	"PEKERJAAN.C":     "Pekerjaan anak:",
-	"AGAMA.C":         "Agama anak:",
-	"ALAMAT.C":        "Alamat anak:",
-	"AGAMA":           "Agama almarhum:",
-	"PEKERJAAN":       "Pekerjaan almarhum:",
+	"AGAMA":          "Agama almarhum:",
+	"PEKERJAAN":      "Pekerjaan almarhum:",
+
+	// Prompts untuk IJIN_KELUARGA
+	"HUBUNGAN_WALI":  "Hubungan Anda dengan CPMI (misal: Suami/Istri/Orang Tua):",
+	"NAMA_CPMI":      "Nama lengkap CPMI yang akan berangkat:",
+	"TTL_CPMI":       "Tempat & Tanggal Lahir CPMI:",
+	"NIK_CPMI":       "NIK CPMI:",
+	"JK_CPMI":        "Jenis Kelamin CPMI (Laki-laki/Perempuan):",
+	"PEKERJAAN_CPMI": "Pekerjaan CPMI saat ini:",
+	"ALAMAT_CPMI":    "Alamat lengkap CPMI:",
+	"NEGARA_TUJUAN":  "Negara tujuan bekerja:",
+
+	// Prompts untuk IZIN_KERAMAIAN
+	"HP_PEMOHON":            "Nomor HP Pemohon (Anda):",
+	"JENIS_KESENIAN":        "Jenis hiburan/kesenian yang akan digelar:",
+	"NAMA_PIMPINAN_HIBURAN": "Nama pimpinan hiburan/orkes:",
+	"HP_PIMPINAN":           "Nomor HP pimpinan hiburan:",
+	"ACARA_HAJATAN":         "Dalam rangka acara apa (misal: Khitanan/Pernikahan):",
+	"HARI_ACARA":            "Hari pelaksanaan acara:",
+	"TGL_ACARA":             "Tanggal pelaksanaan acara:",
+	"JAM_ACARA":             "Jam pelaksanaan acara (WIB):",
+	"LOKASI_ACARA":          "Lokasi lengkap acara:",
+	"NAMA_BABIN":            "Nama Babinkamtibmas yang bertugas:", // Prompt baru
+
+	// Prompts untuk KELAHIRAN
+	"HARI_LAHIR":   "Hari kelahiran anak:",
+	"TGL_LAHIR":    "Tanggal kelahiran anak:",
+	"TEMPAT_LAHIR": "Tempat kelahiran anak:",
+	"JK_ANAK":      "Jenis kelamin anak:",
+	"NAMA_ANAK":    "Nama lengkap anak:",
+	"ANAK_KE":      "Anak ke berapa:",
+	"NAMA_IBU":     "Nama lengkap Ibu:",
+	"TTL_IBU":      "Tempat & Tanggal Lahir Ibu:",
+	"AGAMA_IBU":    "Agama Ibu:",
+	"ALAMAT_IBU":   "Alamat Ibu:",
+	"NAMA_AYAH":    "Nama lengkap Ayah:",
+	"TTL_AYAH":     "Tempat & Tanggal Lahir Ayah:",
+	"AGAMA_AYAH":   "Agama Ayah:",
+	"ALAMAT_AYAH":  "Alamat Ayah:",
 }
 
 // GetPrompt mengambil pertanyaan untuk field
@@ -109,24 +146,37 @@ func BuildDataMap(data db.DataPenduduk) map[string]string {
 	alamatLengkap := fmt.Sprintf("Dusun %s, RT %s", data.Dusun.String, data.RT.String)
 
 	return map[string]string{
+		// Base Keys
 		"NAMA":      data.Nama.String,
 		"TTL":       ttl,
-		"TTLnU":     ttl, // (Isi TTLnU dengan data pemohon)
+		"TTLnU":     ttl,
 		"JK":        jk,
 		"AGAMA":     data.AgamaNama.String,
 		"NIK":       data.NIK.String,
 		"PEKERJAAN": data.PekerjaanNama.String,
 		"ALAMAT":    alamatLengkap,
 		"TANGGAL":   time.Now().Format("02 January 2006"),
+		
+		// Auto-fill Mapping untuk Template Izin Keramaian (Pemohon = User)
+		"NAMA_PEMOHON":      data.Nama.String,
+		"TTL_PEMOHON":       ttl,
+		"PEKERJAAN_PEMOHON": data.PekerjaanNama.String,
+		"NIK_PEMOHON":       data.NIK.String,
+		"ALAMAT_PEMOHON":    alamatLengkap,
 
-		"NAMA.P":   data.NamaAyah.String,
-		"NIK.P":    data.NikAyah.String,
-		"ALAMAT.P": alamatLengkap,
+		// Auto-fill Mapping untuk Template Ijin Keluarga (Wali = User)
+		"NAMA_WALI":      data.Nama.String,
+		"JK_WALI":        jk,
+		"TTL_WALI":       ttl,
+		"NIK_WALI":       data.NIK.String,
+		"PEKERJAAN_WALI": data.PekerjaanNama.String,
+		"ALAMAT_WALI":    alamatLengkap,
 	}
 }
 
 func GetFieldList(data db.DataPenduduk, jenis JenisSurat) []string {
-	if jenis == KEMATIAN || jenis == SKTM_TANGGUNGAN {
+	// Jika jenis surat tidak perlu pengecekan BaseFields (semua manual atau list fixed), return langsung
+	if jenis == KEMATIAN || jenis == IJIN_KELUARGA || jenis == IZIN_KERAMAIAN || jenis == KELAHIRAN {
 		return SuratFields[jenis]
 	}
 

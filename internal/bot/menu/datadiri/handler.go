@@ -75,10 +75,12 @@ func (h *DataDiriHandler) handleSubmenu(session *db.DataEntrySession, text strin
 		}
 		return []string{FormatQuestion(Steps[STEP_DUSUN])}
 	case "2":
-		if err := db.UpdateStepOnly(h.Service.DB, session.JID, common.STEP_EDIT_CARI_NIK); err != nil {
-			return []string{"Maaf, terjadi kesalahan sistem."}
+		nik := session.SuratValidNik.String 
+		if nik == ""{
+			return []string{"Sesi NIK tidak valid silahkan ketik 'reset'."}
 		}
-		return []string{"Silakan masukkan **NIK 16 digit** yang datanya ingin Anda edit:"}
+
+		return h.handleEditCariNik(session,nik)
 	default:
 		return []string{"Pilihan tidak valid. Silakan pilih 1 atau 2, atau ketik 'reset'."}
 	}

@@ -49,10 +49,11 @@ func (h *PengaduanHandler) HandleImage(session *db.DataEntrySession, imageMsg *w
 func (h *PengaduanHandler) handleMenuUtama(session *db.DataEntrySession, text string) []string {
 	switch text {
 	case "1":
-		if err := db.UpdateStepOnly(h.Service.Ctx.DB, session.JID, common.STEP_PENGADUAN_VALIDASI_NIK); err != nil {
+		if err := db.UpdateStepOnly(h.Service.Ctx.DB, session.JID, common.STEP_PENGADUAN_WAITING); err != nil {
 			return []string{"Maaf, terjadi kesalahan sistem."}
 		}
-		return []string{"Untuk mengajukan pengaduan, silakan masukkan **NIK 16 digit** Anda untuk verifikasi:"}
+		return []string{"NIK Anda terverifikasi. Silakan kirimkan *satu foto* pengaduan Anda, dan *tulis deskripsi* di bagian caption/keterangan gambar tersebut."}
+
 	case "2":
 		if err := db.UpdateStepOnly(h.Service.Ctx.DB, session.JID, common.STEP_PENGADUAN_CARI_ID); err != nil {
 			return []string{"Maaf, terjadi kesalahan sistem."}
@@ -63,27 +64,6 @@ func (h *PengaduanHandler) handleMenuUtama(session *db.DataEntrySession, text st
 	}
 }
 
-func (h *PengaduanHandler) handleValidasiNik(session *db.DataEntrySession, text string) []string {
-	if len(text) != 16 {
-		return []string{"Format NIK salah. Harap masukkan 16 digit NIK Anda:"}
-	}
-	isRegistered, err := db.CheckNIKExistsInPenduduk(h.Service.Ctx.DB, text)
-	if err != nil {
-		log.Printf("[ERROR] Gagal mengecek NIK di DB permanen: %v", err)
-		return []string{"Maaf, terjadi kesalahan sistem saat validasi NIK."}
-	}
-	if isRegistered {
-		if err := db.UpdateStepOnly(h.Service.Ctx.DB, session.JID, common.STEP_PENGADUAN_WAITING); err != nil {
-			return []string{"Maaf, terjadi kesalahan sistem."}
-		}
-		return []string{"NIK Anda terverifikasi. Silakan kirimkan *satu foto* pengaduan Anda, dan *tulis deskripsi* di bagian caption/keterangan gambar tersebut."}
-	} else {
-		if err := db.DeleteDataEntrySession(h.Service.Ctx.DB, session.JID); err != nil {
-			log.Printf("[ERROR] Gagal hapus sesi setelah NIK tidak ditemukan: %v", err)
-		}
-		return []string{"NIK Anda tidak terdaftar di sistem kami.\n\nSilakan pilih *Menu 1 (Data Diri)* untuk melakukan input data diri terlebih dahulu sebelum membuat pengaduan.\n\n" + common.GetMainMenu()}
-	}
-}
 
 func (h *PengaduanHandler) handleCariID(session *db.DataEntrySession, text string) []string {
 	unikID := strings.ToUpper(text)

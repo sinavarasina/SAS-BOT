@@ -56,10 +56,31 @@ func (h *SuratHandler) HandleImage(session *db.DataEntrySession, imageMsg *waE2E
 func (h *SuratHandler) handleMenuUtama(session *db.DataEntrySession, text string) []string {
 	switch text {
 	case "1": // 1. Ajukan Surat
-		if err := db.UpdateStepOnly(h.Service.Ctx.DB, session.JID, common.STEP_SURAT_VALIDASI_NIK); err != nil {
+		nik := session.SuratValidNik.String
+
+		if nik == ""{
+			return []string{"Sesi NIK tidak valid. Silakan ketik 'reset' dan login ulang."}
+		}
+
+		dataPenduduk, err := db.GetDataPendudukByNIK(h.Service.Ctx.DB, text)
+		if err != nil {
+			return []string{"NIK Anda tidak terdaftar. Silakan pilih Menu 1 untuk Input Data Diri dahulu.\n\n" + common.GetMainMenu()}
+		}
+
+		dataMap := BuildDataMap(db.DataPenduduk(*dataPenduduk))
+		dataMapBytes, _ := json.Marshal(dataMap)
+		if err := db.UpdateSessionField(h.Service.Ctx.DB, session.JID, "surat_data_map", string(dataMapBytes)); err != nil {
+			return []string{"Kesalahan menyimpan data map. Coba lagi."}
+		}
+
+		if err := db.UpdateStepOnly(h.Service.Ctx.DB, session.JID, common.STEP_SURAT_PILIH_JENIS); err != nil {
 			return []string{"Maaf, terjadi kesalahan sistem."}
 		}
-		return []string{"Baik, silakan masukkan **NIK 16 digit** Anda untuk validasi data:"}
+		return []string{
+			"NIK Tervalidasi. Silakan pilih jenis surat:\n" +
+				"1. Surat Domisili\n2. Surat Usaha\n3. SKTM Umum\n4. SKTM Tanggungan\n5. Surat Kematian",
+		}
+
 	case "2": // 2. Cek Progres Surat
 		if err := db.UpdateStepOnly(h.Service.Ctx.DB, session.JID, common.STEP_SURAT_CEK_PROGRES); err != nil {
 			return []string{"Maaf, terjadi kesalahan sistem."}
@@ -67,34 +88,6 @@ func (h *SuratHandler) handleMenuUtama(session *db.DataEntrySession, text string
 		return []string{"Silakan masukkan *Nomor Unik Surat* Anda (contoh: 1234):"}
 	default:
 		return []string{"Pilihan tidak valid. Silakan pilih 1 atau 2."}
-	}
-}
-
-// handleValidasiNik memvalidasi NIK dan meng-auto-fill data
-func (h *SuratHandler) handleValidasiNik(session *db.DataEntrySession, text string) []string {
-	dataPenduduk, err := db.GetDataPendudukByNIK(h.Service.Ctx.DB, text)
-	if err != nil {
-		if err := db.DeleteDataEntrySession(h.Service.Ctx.DB, session.JID); err != nil { /*...*/
-		}
-		return []string{"NIK Anda tidak terdaftar. Silakan pilih Menu 1 untuk Input Data Diri dahulu.\n\n" + common.GetMainMenu()}
-	}
-
-	if err := db.UpdateSessionField(h.Service.Ctx.DB, session.JID, "surat_valid_nik", text); err != nil {
-		return []string{"Kesalahan menyimpan NIK. Coba lagi."}
-	}
-
-	dataMap := BuildDataMap(db.DataPenduduk(*dataPenduduk))
-	dataMapBytes, _ := json.Marshal(dataMap)
-	if err := db.UpdateSessionField(h.Service.Ctx.DB, session.JID, "surat_data_map", string(dataMapBytes)); err != nil {
-		return []string{"Kesalahan menyimpan data map. Coba lagi."}
-	}
-
-	if err := db.UpdateStepOnly(h.Service.Ctx.DB, session.JID, common.STEP_SURAT_PILIH_JENIS); err != nil {
-		return []string{"Maaf, terjadi kesalahan sistem."}
-	}
-	return []string{
-		"NIK Tervalidasi. Silakan pilih jenis surat:\n" +
-			"1. Surat Domisili\n2. Surat Usaha\n3. SKTM Umum\n4. SKTM Tanggungan\n5. Surat Kematian",
 	}
 }
 
