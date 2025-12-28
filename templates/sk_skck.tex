@@ -1,0 +1,93 @@
+\documentclass[a4paper, 12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[left=2.5cm, right=2.5cm, top=2cm, bottom=2.5cm]{geometry} 
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{times} 
+\usepackage{parskip} 
+\usepackage[none]{hyphenat} 
+\usepackage{tabularx}
+
+% --- KONFIGURASI KOP SURAT ---
+\pagestyle{fancy}
+\fancyhf{} 
+\renewcommand{\headrulewidth}{1.5pt} 
+
+\fancyhead[C]{%
+    \sffamily 
+    \begin{tabular*}{\textwidth}{@{}l@{\hspace{0.5cm}}l@{}} 
+        \raisebox{-0.5\height}{\includegraphics[width=1.8cm]{{{LOGOPATH}}}} &
+        \parbox[c]{0.8\textwidth}{ 
+            \centering
+            \textbf{PEMERINTAH KABUPATEN LAMPUNG TIMUR} \\
+            \textbf{KECAMATAN SEKAMPUNG UDIK} \\
+            \textbf{DESA SINDANG ANOM} \\
+            \small Alamat : Jalan Pasar Desa Sindang Anom Kode Pos 34183
+        }
+    \end{tabular*}
+}
+\cfoot{} 
+\setlength{\headheight}{2.2cm} 
+
+\begin{document}
+
+% --- HEADER SURAT DINAS ---
+\vspace{0.5cm}
+\rmfamily
+
+% Menggunakan minipage untuk membagi header kiri (Nomor) dan kanan (Tanggal/Kepada)
+\noindent
+\begin{minipage}[t]{0.55\textwidth}
+    \begin{tabular}{@{}ll}
+        Nomor & : 300/ \hspace{0.5cm} / 12/2007/ {{TAHUN}} \\
+        Lampiran & : - \\
+        Perihal & : \textbf{PERMOHONAN SKCK} \\
+    \end{tabular}
+\end{minipage}%
+\begin{minipage}[t]{0.45\textwidth}
+    Sindang Anom, {{TANGGAL_SURAT}} \\ % Tanggal di atas sesuai scan 
+    Kepada Yth,\\
+    \textbf{Kapolsek Sekampung Udik}\\
+    Di - \\
+    \hspace{0.5cm} Tempat
+\end{minipage}
+
+\vspace{0.8cm}
+Yang bertanda tangan dibawah ini Kepala Desa Sindang Anom Kecamatan Sekampung Udik Kabupaten Lampung Timur, mohon kepada Kapolsek Sekampung Udik untuk dapat menerbitkan SKCK kepada: [cite: 171, 172]
+
+\vspace{0.3cm}
+\begin{tabularx}{\textwidth}{l l X}
+    1. & Nama & : {{NAMA}} \\
+    2. & Jenis Kelamin & : {{JK}} \\
+    3. & Tempat Tgl Lahir & : {{TTL}} \\
+    4. & Suku/Bangsa & : {{SUKU_BANGSA}} \\ % 
+    5. & Agama & : {{AGAMA}} \\
+    6. & Pekerjaan & : {{PEKERJAAN}} \\
+    7. & NIK & : {{NIK}} \\
+    8. & Alamat & : {{ALAMAT}} \\
+    9. & Nama Orang Tua & : {{NAMA_ORTU}} \\
+    10. & Tanda Istimewa & : {{TANDA_ISTIMEWA}} \\
+    11. & Keperluan & : \textbf{{{KEPERLUAN}}} \\
+\end{tabularx}
+\vspace{0.3cm}
+
+\textbf{Catatan:} \\
+\textbf{{{CATATAN_SKCK}}} \\ % "PERSYARATAN MELAMAR KERJA" [cite: 175]
+Selama dalam pembinaan kami yang bersangkutan berkelakuan baik. [cite: 176]
+
+Demikian surat Permohonan SKCK ini dan atas bantuan serta kerjasamanya kami ucapkan banyak terimakasih.
+
+\vspace{1cm}
+
+% --- TANDA TANGAN (BLOCK KANAN - TEXT CENTERED) ---
+\begin{flushright}
+    \begin{minipage}{0.5\textwidth}
+        \centering
+        Kepala Desa Sindang Anom \\
+        \vspace{2.5cm} 
+        \textbf{{{SIGNER.NAME}}}
+    \end{minipage}
+\end{flushright}
+
+\end{document}

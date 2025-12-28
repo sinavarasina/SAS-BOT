@@ -1,0 +1,90 @@
+\documentclass[a4paper, 12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[left=2.5cm, right=2.5cm, top=2cm, bottom=2.5cm]{geometry} 
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{times} 
+\usepackage{parskip} 
+\usepackage[none]{hyphenat} 
+\usepackage{tabularx}
+
+% --- KONFIGURASI KOP SURAT ---
+\pagestyle{fancy}
+\fancyhf{} 
+\renewcommand{\headrulewidth}{1.5pt} 
+
+\fancyhead[C]{%
+    \sffamily 
+    \begin{tabular*}{\textwidth}{@{}l@{\hspace{0.5cm}}l@{}} 
+        \raisebox{-0.5\height}{\includegraphics[width=1.8cm]{{{LOGOPATH}}}} &
+        \parbox[c]{0.8\textwidth}{ 
+            \centering
+            \textbf{PEMERINTAH KABUPATEN LAMPUNG TIMUR} \\
+            \textbf{KECAMATAN SEKAMPUNG UDIK} \\
+            \textbf{DESA SINDANG ANOM} \\
+            \small Alamat : Jalan Pasar Desa Sindang Anom Kode Pos 34183
+        }
+    \end{tabular*}
+}
+\cfoot{} 
+\setlength{\headheight}{2.2cm} 
+
+\begin{document}
+
+% --- JUDUL ---
+\vspace{0.5cm} 
+\begin{center}
+    \rmfamily 
+    \large\textbf{\underline{SURAT KETERANGAN}} \\ % Judul hanya SURAT KETERANGAN [cite: 183]
+    \normalsize Nomor : 470/ \hspace{1cm} / 12/2007/ {{TAHUN}}
+\end{center}
+\vspace{0.5cm}
+
+% --- ISI ---
+\rmfamily
+Yang bertanda tangan dibawah ini Kepala Desa Sindang Anom Kecamatan Sekampung Udik Kabupaten Lampung Timur, dengan ini menerangkan bahwa: [cite: 186]
+\vspace{0.3cm}
+
+% DATA 1
+\textbf{1.} \\
+\begin{tabularx}{\textwidth}{l X}
+    \makebox[5cm][l]{Nama} & : {{NAMA_1}} \\
+    \makebox[5cm][l]{Tempat tanggal lahir} & : {{TTL_1}} \\
+    \makebox[5cm][l]{NIK} & : {{NIK_1}} \\
+    \makebox[5cm][l]{Pekerjaan} & : {{PEKERJAAN_1}} \\
+    \makebox[5cm][l]{Alamat} & : {{ALAMAT_1}} \\
+\end{tabularx}
+\vspace{0.3cm}
+
+% DATA 2
+\textbf{2.} \\
+\begin{tabularx}{\textwidth}{l X}
+    \makebox[5cm][l]{Nama} & : {{NAMA_2}} \\
+    \makebox[5cm][l]{Tempat tanggal lahir} & : {{TTL_2}} \\
+    \makebox[5cm][l]{NIK} & : {{NIK_2}} \\
+    \makebox[5cm][l]{Pekerjaan} & : {{PEKERJAAN_2}} \\
+    \makebox[5cm][l]{Alamat} & : {{ALAMAT_2}} \\
+\end{tabularx}
+\vspace{0.5cm}
+
+Nama tersebut di atas adalah benar warga desa kami. Bahwa telah terjadi perbedaan penulisan nama pada \textbf{Poin 1} adalah data identitas yang bersangkutan yang tertera pada {{SUMBER_DATA_1}} dan data pada \textbf{Poin 2} adalah data yang bersangkutan yang tertera pada {{SUMBER_DATA_2}}. Namun kedua data tersebut adalah data pada \textbf{SATU ORANG YANG SAMA}. 
+
+Untuk itu kami mohon kepada pihak-pihak yang berkepentingan untuk kiranya dapat membantu dan maklum adanya.
+
+Demikian surat Keterangan ini dibuat dengan sebenarnya serta dapat dipergunakan sebagaimana mestinya.
+
+\vspace{1.5cm}
+
+% --- TANDA TANGAN (BLOCK KANAN - TEXT CENTERED) ---
+\begin{flushright}
+    \begin{minipage}{0.5\textwidth}
+        \centering
+        Sindang Anom, {{TANGGAL_SURAT}} \\
+        Kepala Desa Sindang Anom \\
+        \vspace{2.5cm} 
+        \textbf{{{SIGNER.NAME}}}
+    \end{minipage}
+\end{flushright}
+
+\end{document}
