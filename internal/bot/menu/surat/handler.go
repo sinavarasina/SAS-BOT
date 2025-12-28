@@ -27,8 +27,6 @@ func (h *SuratHandler) HandleText(session *db.DataEntrySession, text string) []s
 	switch session.CurrentStep {
 	case common.STEP_SURAT_MENU_UTAMA:
 		return h.handleMenuUtama(session, text)
-	case common.STEP_SURAT_VALIDASI_NIK:
-		return h.handleValidasiNik(session, text)
 	case common.STEP_SURAT_PILIH_JENIS:
 		return h.handlePilihJenis(session, text)
 	case common.STEP_SURAT_INPUT_DATA:

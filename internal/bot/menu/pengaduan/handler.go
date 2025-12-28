@@ -23,8 +23,6 @@ func (h *PengaduanHandler) HandleText(session *db.DataEntrySession, text string)
 	switch session.CurrentStep {
 	case common.STEP_PENGADUAN_MENU:
 		return h.handleMenuUtama(session, text)
-	case common.STEP_PENGADUAN_VALIDASI_NIK:
-		return h.handleValidasiNik(session, text)
 	case common.STEP_PENGADUAN_CARI_ID:
 		return h.handleCariID(session, text)
 	case common.STEP_ULASAN_PENGADUAN:
@@ -49,6 +47,9 @@ func (h *PengaduanHandler) HandleImage(session *db.DataEntrySession, imageMsg *w
 func (h *PengaduanHandler) handleMenuUtama(session *db.DataEntrySession, text string) []string {
 	switch text {
 	case "1":
+		if session.SuratValidNik.String == "" {
+			return []string{"Sesi NIK tidak valid. Silakan ketik 'reset' dan login ulang."}
+		}
 		if err := db.UpdateStepOnly(h.Service.Ctx.DB, session.JID, common.STEP_PENGADUAN_WAITING); err != nil {
 			return []string{"Maaf, terjadi kesalahan sistem."}
 		}
