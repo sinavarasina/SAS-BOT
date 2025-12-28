@@ -39,9 +39,9 @@ func fillTemplate(content string, data map[string]string) string {
 		}
 
 		if key == "ALASANPERLU" {
-			content = strings.ReplaceAll(content, "{{"+key+"}}", " "+value+" ")
+			content = strings.ReplaceAll(content, "{{"+key+"}}", " "+cleanValue+" ")
 		} else {
-			content = strings.ReplaceAll(content, "{{"+key+"}}", value)
+			content = strings.ReplaceAll(content, "{{"+key+"}}", cleanValue)
 		}
 	}
 	return content
