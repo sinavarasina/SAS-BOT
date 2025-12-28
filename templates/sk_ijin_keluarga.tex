@@ -1,0 +1,95 @@
+\documentclass[a4paper, 12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[left=2.5cm, right=2.5cm, top=2cm, bottom=2.5cm]{geometry} 
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{times} 
+\usepackage{parskip} 
+\usepackage[none]{hyphenat} 
+\usepackage{tabularx}
+
+% --- KONFIGURASI KOP SURAT ---
+\pagestyle{fancy}
+\fancyhf{} 
+\renewcommand{\headrulewidth}{1.5pt} 
+
+\fancyhead[C]{%
+    \sffamily 
+    \begin{tabular*}{\textwidth}{@{}l@{\hspace{0.5cm}}l@{}} 
+        \raisebox{-0.5\height}{\includegraphics[width=1.8cm]{{{LOGOPATH}}}} &
+        \parbox[c]{0.8\textwidth}{ 
+            \centering
+            \textbf{PEMERINTAH KABUPATEN LAMPUNG TIMUR} \\
+            \textbf{KECAMATAN SEKAMPUNG UDIK} \\
+            \textbf{DESA SINDANG ANOM} \\
+            \small Alamat : Jalan Pasar Desa Sindang Anom Kode Pos 34183
+        }
+    \end{tabular*}
+}
+\cfoot{} 
+\setlength{\headheight}{2.2cm} 
+
+\begin{document}
+
+% --- JUDUL ---
+\vspace{0.5cm} 
+\begin{center}
+    \rmfamily 
+    \large\textbf{\underline{SURAT KETERANGAN IZIN KELUARGA}} \\
+    \normalsize Nomor : 470/ \hspace{1cm} / 12/2007/ {{TAHUN}}
+\end{center}
+\vspace{0.5cm}
+
+% --- ISI ---
+\rmfamily
+Yang bertanda tangan dibawah ini:
+\vspace{0.3cm}
+
+\begin{tabularx}{\textwidth}{l X}
+    \makebox[5cm][l]{Nama} & : {{NAMA_WALI}} \\
+    \makebox[5cm][l]{Jenis Kelamin} & : {{JK_WALI}} \\
+    \makebox[5cm][l]{Tempat Tgl Lahir} & : {{TTL_WALI}} \\
+    \makebox[5cm][l]{NIK} & : {{NIK_WALI}} \\
+    \makebox[5cm][l]{Pekerjaan} & : {{PEKERJAAN_WALI}} \\
+    \makebox[5cm][l]{Alamat} & : {{ALAMAT_WALI}} \\
+\end{tabularx}
+\vspace{0.3cm}
+
+Dengan ini memberikan ijin kepada {{HUBUNGAN_WALI}} :
+\vspace{0.2cm}
+
+\begin{tabularx}{\textwidth}{l X}
+    \makebox[5cm][l]{Nama} & : {{NAMA_CPMI}} \\
+    \makebox[5cm][l]{Tempat Tgl Lahir} & : {{TTL_CPMI}} \\
+    \makebox[5cm][l]{NIK} & : {{NIK_CPMI}} \\
+    \makebox[5cm][l]{Jenis Kelamin} & : {{JK_CPMI}} \\
+    \makebox[5cm][l]{Pekerjaan} & : {{PEKERJAAN_CPMI}} \\
+    \makebox[5cm][l]{Alamat} & : {{ALAMAT_CPMI}} \\
+\end{tabularx}
+\vspace{0.3cm}
+
+Dengan ini mengetahui / menyetujui dan memberikan izin kepada {{HUBUNGAN_WALI}} saya tersebut diatas untuk menjadi CPMI dengan Negara tujuan \textbf{{{NEGARA_TUJUAN}}} dan akan memberi dukungan sepenuhnya serta tanggung jawab bilamana terjadi suatu hal yang melanggar hukum, yang dapat merugikan perusahaan atau agensi yang ada di Negara {{NEGARA_TUJUAN}}.
+
+Demikian surat ijin ini saya buat dengan sebenar-benarnya dan dapat saya pertanggung jawabkan.
+\vspace{1cm}
+
+% --- TANDA TANGAN (BLOCK KANAN SEMUA) ---
+\begin{flushright}
+    \begin{minipage}{0.5\textwidth}
+        \centering
+        Sindang Anom, {{TANGGAL_SURAT}} \\
+        Yang Memberi Ijin \\
+        \vspace{2cm} 
+        \textbf{{{NAMA_WALI}}} % Tanda tangan Keluarga (Materai biasanya di sini)
+        
+        \vspace{1cm} % Jarak antar tanda tangan
+        
+        Mengetahui,\\
+        Kepala Desa Sindang Anom \\
+        \vspace{2cm}
+        \textbf{{{SIGNER.NAME}}}
+    \end{minipage}
+\end{flushright}
+
+\end{document}

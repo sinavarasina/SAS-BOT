@@ -1,0 +1,98 @@
+\documentclass[a4paper, 12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[left=2.5cm, right=2.5cm, top=2cm, bottom=2.5cm]{geometry} 
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{times} 
+\usepackage{parskip} 
+\usepackage[none]{hyphenat} 
+\usepackage{tabularx}
+
+% --- KONFIGURASI KOP SURAT ---
+\pagestyle{fancy}
+\fancyhf{} 
+\renewcommand{\headrulewidth}{1.5pt} 
+
+\fancyhead[C]{%
+    \sffamily 
+    \begin{tabular*}{\textwidth}{@{}l@{\hspace{0.5cm}}l@{}} 
+        \raisebox{-0.5\height}{\includegraphics[width=1.8cm]{{{LOGOPATH}}}} &
+        \parbox[c]{0.8\textwidth}{ 
+            \centering
+            \textbf{PEMERINTAH KABUPATEN LAMPUNG TIMUR} \\
+            \textbf{KECAMATAN SEKAMPUNG UDIK} \\
+            \textbf{DESA SINDANG ANOM} \\
+            \small Alamat : Jalan Pasar Desa Sindang Anom Kode Pos 34183
+        }
+    \end{tabular*}
+}
+\cfoot{} 
+\setlength{\headheight}{2.2cm} 
+
+\begin{document}
+
+% --- JUDUL ---
+\vspace{0.5cm} 
+\begin{center}
+    \rmfamily 
+    \large\textbf{\underline{SURAT KETERANGAN KELAHIRAN}} \\
+    \normalsize Nomor : 470/ \hspace{1cm} / 12/2007/ {{TAHUN}}
+\end{center}
+\vspace{0.5cm}
+
+% --- ISI ---
+\rmfamily
+Yang bertanda tangan dibawah ini Kepala Desa Sindang Anom Kecamatan Sekampung Udik Kabupaten Lampung Timur menerangkan bahwa:
+\vspace{0.3cm}
+
+\begin{tabularx}{\textwidth}{l X}
+    \makebox[5cm][l]{Hari} & : {{HARI_LAHIR}} \\
+    \makebox[5cm][l]{Tanggal} & : {{TGL_LAHIR}} \\
+    \makebox[5cm][l]{Di} & : {{TEMPAT_LAHIR}} \\
+\end{tabularx}
+\vspace{0.2cm}
+
+Telah lahir seorang anak \textbf{{{JK_ANAK}}} bernama:
+\vspace{0.2cm}
+
+\begin{center}
+    \textbf{\large {{NAMA_ANAK}}} \\
+    ( Anak ke-{{ANAK_KE}} )
+\end{center}
+\vspace{0.2cm}
+
+Dari seorang ibu bernama:
+\begin{tabularx}{\textwidth}{l X}
+    \makebox[5cm][l]{Nama} & : {{NAMA_IBU}} \\
+    \makebox[5cm][l]{Tempat tanggal lahir} & : {{TTL_IBU}} \\
+    \makebox[5cm][l]{Agama} & : {{AGAMA_IBU}} \\
+    \makebox[5cm][l]{Alamat} & : {{ALAMAT_IBU}} \\
+\end{tabularx}
+\vspace{0.2cm}
+
+Istri dari:
+\begin{tabularx}{\textwidth}{l X}
+    \makebox[5cm][l]{Nama} & : {{NAMA_AYAH}} \\
+    \makebox[5cm][l]{Tempat tanggal lahir} & : {{TTL_AYAH}} \\
+    \makebox[5cm][l]{Agama} & : {{AGAMA_AYAH}} \\
+    \makebox[5cm][l]{Alamat} & : {{ALAMAT_AYAH}} \\
+\end{tabularx}
+\vspace{0.5cm}
+
+Demikian Surat Keterangan Kelahiran ini dibuat dengan sebenarnya, serta untuk dipergunakan sebagaimana mestinya.
+
+\vspace{1.5cm}
+
+% --- TANDA TANGAN (BLOCK KANAN - TEXT CENTERED) ---
+\begin{flushright}
+    \begin{minipage}{0.5\textwidth}
+        \centering
+        Sindang Anom, {{TANGGAL_SURAT}} \\
+        Kepala Desa Sindang Anom \\
+        \vspace{2.5cm} 
+        \textbf{{{SIGNER.NAME}}}
+    \end{minipage}
+\end{flushright}
+
+\end{document}
