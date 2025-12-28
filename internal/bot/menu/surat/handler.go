@@ -56,13 +56,15 @@ func (h *SuratHandler) handleMenuUtama(session *db.DataEntrySession, text string
 	case "1": // 1. Ajukan Surat
 		nik := session.SuratValidNik.String
 
-		if nik == ""{
+		if nik == "" {
 			return []string{"Sesi NIK tidak valid. Silakan ketik 'reset' dan login ulang."}
 		}
 
-		dataPenduduk, err := db.GetDataPendudukByNIK(h.Service.Ctx.DB, text)
+		// PERBAIKAN DI SINI: Gunakan variabel 'nik', JANGAN 'text'
+		dataPenduduk, err := db.GetDataPendudukByNIK(h.Service.Ctx.DB, nik)
 		if err != nil {
-			return []string{"NIK Anda tidak terdaftar. Silakan pilih Menu 1 untuk Input Data Diri dahulu.\n\n" + common.GetMainMenu()}
+			// Fallback jika NIK di session ternyata tidak ada di tabel penduduk
+			return []string{"NIK Anda (" + nik + ") tidak terdaftar di database penduduk. Silakan pilih Menu 1 untuk Input Data Diri dahulu.\n\n" + common.GetMainMenu()}
 		}
 
 		dataMap := BuildDataMap(db.DataPenduduk(*dataPenduduk))
@@ -74,9 +76,11 @@ func (h *SuratHandler) handleMenuUtama(session *db.DataEntrySession, text string
 		if err := db.UpdateStepOnly(h.Service.Ctx.DB, session.JID, common.STEP_SURAT_PILIH_JENIS); err != nil {
 			return []string{"Maaf, terjadi kesalahan sistem."}
 		}
+		
+		// Pastikan list ini sesuai dengan map di state.go
 		return []string{
 			"NIK Tervalidasi. Silakan pilih jenis surat:\n" +
-				"1. Surat Domisili\n2. Surat Usaha\n3. SKTM Umum\n4. SKTM Tanggungan\n5. Surat Kematian",
+				"1. Surat Domisili\n2. Surat Usaha\n3. SKTM Umum\n4. Surat Kematian\n5. Surat Ijin Keluarga\n6. Surat Izin Keramaian\n7. Surat Kelahiran",
 		}
 
 	case "2": // 2. Cek Progres Surat
