@@ -43,6 +43,10 @@ func main() {
 		"DROP TABLE IF EXISTS whatsmeow_device CASCADE;",
 		"DROP TABLE IF EXISTS whatsmeow_version CASCADE;",
 		"DROP TABLE IF EXISTS whatsmeow_identity_keys CASCADE",
+		"DROP TABLE IF EXISTS whatsmeow_chat_settings CASCADE",
+		"DROP TABLE IF EXISTS whatsmeow_lid_map CASCADE",
+		"DROP TABLE IF EXISTS whatsmeow_event_buffer CASCADE",
+		"DROP TABLE IF EXISTS whatsmeow_privacy_tokens CASCADE",
 	}
 
 	// 4. Eksekusi Penghapusan
