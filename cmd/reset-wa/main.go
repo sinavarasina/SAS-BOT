@@ -37,7 +37,7 @@ func main() {
 		"DROP TABLE IF EXISTS whatsmeow_history_sync_gen CASCADE;",
 		"DROP TABLE IF EXISTS whatsmeow_identities CASCADE;",
 		"DROP TABLE IF EXISTS whatsmeow_message_secrets CASCADE;",
-		"DROP TABLE IF EXISTS whatsmeow_prekeys CASCADE;",
+		"DROP TABLE IF EXISTS whatsmeow_pre_keys CASCADE;",
 		"DROP TABLE IF EXISTS whatsmeow_sender_keys CASCADE;",
 		"DROP TABLE IF EXISTS whatsmeow_sessions CASCADE;",
 		"DROP TABLE IF EXISTS whatsmeow_device CASCADE;",
