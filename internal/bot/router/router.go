@@ -15,10 +15,10 @@ import (
 	"github.com/sinavarasina/SAS-BOT/internal/bot/menu/pengaduan"
 	"github.com/sinavarasina/SAS-BOT/internal/bot/menu/surat"
 	"github.com/sinavarasina/SAS-BOT/internal/db"
-	"go.mau.fi/whatsmeow"
+	// "go.mau.fi/whatsmeow"
 	waE2E "go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/types"
-	googleProto "google.golang.org/protobuf/proto"
+	// googleProto "google.golang.org/protobuf/proto"
 )
 
 type BotRouter struct {
