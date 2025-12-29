@@ -74,22 +74,22 @@ Dengan ini mengetahui / menyetujui dan memberikan izin kepada {{HUBUNGAN_WALI}} 
 Demikian surat ijin ini saya buat dengan sebenar-benarnya dan dapat saya pertanggung jawabkan.
 \vspace{1cm}
 
-% --- TANDA TANGAN (BLOCK KANAN SEMUA) ---
-\begin{flushright}
-    \begin{minipage}{0.5\textwidth}
-        \centering
-        Sindang Anom, {{TANGGAL_SURAT}} \\
-        Yang Memberi Ijin \\
-        \vspace{2cm} 
-        \textbf{{{NAMA_WALI}}} % Tanda tangan Keluarga (Materai biasanya di sini)
-        
-        \vspace{1cm} % Jarak antar tanda tangan
-        
-        Mengetahui,\\
-        Kepala Desa Sindang Anom \\
-        \vspace{2cm}
-        \textbf{{{SIGNER.NAME}}}
-    \end{minipage}
-\end{flushright}
+% --- TANDA TANGAN 3 POSISI (SEGITIGA) ---
+\noindent
+\begin{tabularx}{\textwidth}{@{} >{\centering\arraybackslash}X >{\centering\arraybackslash}X @{}}
+    & Sindang Anom, {{TANGGAL_SURAT}} \tabularnewline
+    Yang Diberi Ijin & Yang Memberi Ijin \tabularnewline
+    \vspace{2cm} & \vspace{2cm} \tabularnewline
+    \textbf{{{NAMA_CPMI}}} & \textbf{{{NAMA_WALI}}} \tabularnewline
+\end{tabularx}
+
+\vspace{0.5cm}
+
+\begin{center}
+    Mengetahui,\\
+    Kepala Desa Sindang Anom \\
+    \vspace{2.5cm}
+    \textbf{{{SIGNER.NAME}}}
+\end{center}
 
 \end{document}

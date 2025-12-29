@@ -1,29 +1,24 @@
 \documentclass[a4paper, 12pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage[left=2.5cm, right=2.5cm, top=2cm, bottom=2.5cm]{geometry}
+\usepackage[left=2.5cm, right=2.5cm, top=2cm, bottom=2.5cm]{geometry} 
 \usepackage{graphicx}
 \usepackage{fancyhdr}
-\usepackage{helvet} 
 \usepackage{times} 
 \usepackage{parskip} 
 \usepackage[none]{hyphenat} 
 \usepackage{tabularx}
 
-
+% --- KONFIGURASI KOP SURAT (SAMA DENGAN SEBELUMNYA) ---
 \pagestyle{fancy}
-\fancyhf{} % Hapus semua header/footer default
-\renewcommand{\headrulewidth}{1.5pt} % Garis tebal di bawah kop
+\fancyhf{} 
+\renewcommand{\headrulewidth}{1.5pt} 
 
 \fancyhead[C]{%
-    \sffamily % Font Sans-serif untuk KOP
-    \begin{tabular*}{\textwidth}{@{}l@{\hspace{0.5cm}}l@{}} % Tabel: Logo [spasi] Teks
-        % Kolom 1: Logo
-        % \raisebox untuk menengahkan logo secara vertikal dengan blok teks
+    \sffamily 
+    \begin{tabular*}{\textwidth}{@{}l@{\hspace{0.5cm}}l@{}} 
         \raisebox{-0.5\height}{\includegraphics[width=1.8cm]{{{LOGOPATH}}}} &
-        
-        % Kolom 2: Blok Teks (rata kiri)
-        \parbox[c]{0.8\textwidth}{ % parbox[c] = tengahkan vertikal
+        \parbox[c]{0.8\textwidth}{ 
             \centering
             \textbf{PEMERINTAH KABUPATEN LAMPUNG TIMUR} \\
             \textbf{KECAMATAN SEKAMPUNG UDIK} \\
@@ -32,55 +27,64 @@
         }
     \end{tabular*}
 }
-\cfoot{} % Hapus footer
-\setlength{\headheight}{2.2cm} % Sesuaikan tinggi header agar pas
-% -----------------------------------------
+\cfoot{} 
+\setlength{\headheight}{2.2cm} 
 
-% --- START DOKUMEN ---
 \begin{document}
 
 % --- JUDUL SURAT ---
-\vspace{1cm} 
+\vspace{0.5cm} 
 \begin{center}
     \rmfamily 
     \large\textbf{\underline{SURAT KETERANGAN TIDAK MAMPU}} \\
-    \normalsize Nomor : 420/ \hspace{1cm} / 12/2007/ \hspace{1.5cm}
+    \normalsize Nomor : 420/ \hspace{1cm} / 12/2007/ {{TAHUN}}
 \end{center}
 \vspace{0.5cm}
 
 % --- ISI SURAT ---
 \rmfamily
 Yang bertanda tangan dibawah ini Kepala Desa Sindang Anom Kecamatan Sekampung Udik Kabupaten Lampung Timur, Menerangkan bahwa:
-\vspace{0.5cm}
+\vspace{0.3cm}
 
 \begin{tabularx}{\textwidth}{l X}
-    \makebox[5cm][l]{N a m a} & : {{NAMA}} \\
-    \makebox[5cm][l]{Tempat Tgl Lahir/Umur} & : {{TTLnU}} \\
-    \makebox[5cm][l]{NIK} & : {{NIK}} \\
-    \makebox[5cm][l]{Pekerjaan} & : {{PEKERJAAN}} \\
-    \makebox[5cm][l]{Alamat} & : {{ALAMAT}} \\
+    \makebox[5.5cm][l]{N a m a} & : {{NAMA}} \\
+    \makebox[5.5cm][l]{Tempat Tgl Lahir/Umur} & : {{TTL_UMUR}} \\ % Contoh: LAMPUNG TIMUR, 26 Januari 2023 / 2 Tahun
+    \makebox[5.5cm][l]{NIK} & : {{NIK}} \\
+    \makebox[5.5cm][l]{Pekerjaan} & : {{PEKERJAAN}} \\
+    \makebox[5.5cm][l]{Alamat} & : {{ALAMAT}} \\
 \end{tabularx}
-\vspace{0.5cm}
+\vspace{0.3cm}
 
-Nama tersebut adalah warga Desa Sindang Anom Kecamatan Sekampung Udik Kabupaten Lampung Timur , dan menurut pengamatan kami keluarga tersebut tergolong dalam Keluarga Miskin/Tidak Mampu.
-\vspace{0.5cm}
+Nama tersebut adalah warga Desa Sindang Anom Kecamatan Sekampung Udik Kabupaten Lampung Timur, dan menurut pengamatan kami keluarga tersebut tergolong dalam \textbf{Keluarga Miskin/Tidak Mampu}.
 
 Surat Keterangan ini diminta oleh yang bersangkutan untuk: \\
-\textbf{{{ALASANPERLU}}}
+\textbf{{{KEPERLUAN}}}
+% Contoh isi: PERSYARATAN PENGAJUAN BPJS PBI KRITERIA BALITA PROGRAM BUPATI KARTU SEHAT MAKMUR (KSM)
+
+Demikian surat keterangan ini dibuat dengan sebenarnya dan untuk dipergunakan sebagaimana mestinya.
+\vspace{1cm}
+
+% --- TANDA TANGAN 3 PIHAK ---
+\noindent
+\begin{tabularx}{\textwidth}{@{} >{\centering\arraybackslash}X >{\centering\arraybackslash}X @{}}
+    & Sindang Anom, {{TANGGAL_SURAT}} \tabularnewline
+    
+    TKSK Kec. Sekampung Udik & Kepala Desa Sindang Anom \tabularnewline
+    \vspace{2cm} & \vspace{2cm} \tabularnewline
+    
+    \textbf{{{NAMA_TKSK}}} & \textbf{{{SIGNER.NAME}}} \tabularnewline
+    NR : {{NR_TKSK}} & \tabularnewline
+\end{tabularx}
+
 \vspace{0.5cm}
 
-Demikian surat keterangan ini dibuat dengan sebenarnya dan untuk di pergunakan sebagaimana mestinya.
-\vspace{1.5cm}
-
-% --- TANDA TANGAN (STANDAR) ---
-\begin{flushright}
-    \begin{minipage}{0.5\textwidth}
-        \centering
-        Sindang Anom, {{TANGGAL_SURAT}} \\
-        Kepala Desa Sindang Anom \\
-        \vspace{2.5cm} 
-        \textbf{{{SIGNER.NAME}}}
-    \end{minipage}
-\end{flushright}
+% Tanda Tangan Camat (Tengah Bawah)
+\begin{center}
+    MENGETAHUI \\
+    Camat Sekampung Udik \\
+    \vspace{2cm}
+    \textbf{{{NAMA_CAMAT}}} \\
+    NIP. {{NIP_CAMAT}}
+\end{center}
 
 \end{document}

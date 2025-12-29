@@ -106,7 +106,7 @@ var FieldPrompts = map[string]string{
 	"PEKERJAAN":      "Pekerjaan almarhum:",
 
 	// Prompts untuk IJIN_KELUARGA
-	"HUBUNGAN_WALI":  "Hubungan Anda dengan CPMI (misal: Suami/Istri/Orang Tua):",
+	"HUBUNGAN_WALI":  "Hubungan Anda dengan CPMI (misal: CPMI itu siapa anda? Suami/Istri/Orang Tua):",
 	"NAMA_CPMI":      "Nama lengkap CPMI yang akan berangkat:",
 	"TTL_CPMI":       "Tempat & Tanggal Lahir CPMI:",
 	"NIK_CPMI":       "NIK CPMI:",
