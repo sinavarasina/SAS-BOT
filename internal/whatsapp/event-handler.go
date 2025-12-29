@@ -10,7 +10,7 @@ import (
 	"github.com/sinavarasina/SAS-BOT/internal/bot/common"
 	"github.com/sinavarasina/SAS-BOT/internal/bot/router"
 	"github.com/sinavarasina/SAS-BOT/internal/utils"
-	"go.mau.fi/whatsmeow"
+	// "go.mau.fi/whatsmeow"
 	// waProto "go.mau.fi/whatsmeow/binary/proto"
 	// "go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
