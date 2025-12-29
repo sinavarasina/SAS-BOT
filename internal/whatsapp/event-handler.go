@@ -11,10 +11,10 @@ import (
 	"github.com/sinavarasina/SAS-BOT/internal/bot/router"
 	"github.com/sinavarasina/SAS-BOT/internal/utils"
 	"go.mau.fi/whatsmeow"
-	waProto "go.mau.fi/whatsmeow/binary/proto"
-	"go.mau.fi/whatsmeow/types"
+	// waProto "go.mau.fi/whatsmeow/binary/proto"
+	// "go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
-	googleProto "google.golang.org/protobuf/proto"
+	// googleProto "google.golang.org/protobuf/proto"
 )
 
 func EventHandler(botRouter *router.BotRouter, appDB *sqlx.DB, limiter *utils.RateLimiter) func(interface{}) {
