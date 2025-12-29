@@ -39,6 +39,11 @@ func NewGeminiService(apiKey string) *GeminiService {
 }
 
 func (s *GeminiService) HandleGeminiPrompt(userText string) string {
+	maxInputChars := 2000
+	if len(userText) > maxInputChars {
+		userText = userText[:maxInputChars] + "...(dipotong)"
+	}
+
 	systemPrompt := fmt.Sprintf(`%s
 
 PERAN & INSTRUKSI:
@@ -55,9 +60,7 @@ Kamu adalah 'SAS-BOT', asisten AI resmi Desa Sindang Anom. Tugasmu hanya dua:
 GAYA BAHASA:
 - Gunakan Bahasa Indonesia yang luwes, sopan, dan menggunakan emoji.
 - HARAM menggunakan kata "Tentu" atau "Baiklah" di awal kalimat.
-- Maksimal jawaban 2-3 kalimat.
-
-PERTANYAAN USER: '%s'`, villageContext, userText)
+- Maksimal jawaban 2-3 kalimat.`, villageContext)
 
 	// Eksekusi request ke Gemini
 	response, err := s.client.GenerateContent(systemPrompt, userText)

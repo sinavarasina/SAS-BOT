@@ -27,7 +27,7 @@ func (c *GeminiClient) GenerateContent(systemPrompt, userQuestion string) (strin
 		return "Maaf, fitur AI sedang nonaktif (API Key tidak ada).", nil
 	}
 
-	fullPrompt := systemPrompt + "\n\n---\n\n" + userQuestion
+	fullPrompt := systemPrompt + "\n\n---\n\nPERTANYAAN USER:\n" + userQuestion
 
 	payload := map[string]any{
 		"contents": []map[string]any{
@@ -44,6 +44,10 @@ func (c *GeminiClient) GenerateContent(systemPrompt, userQuestion string) (strin
 	if err != nil {
 		return "", fmt.Errorf("gagal marshal request Gemini: %w", err)
 	}
+
+	//timeout bot, while gemini server lagging
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 
 	req, err := http.NewRequestWithContext(context.TODO(), "POST", c.URL, bytes.NewBuffer(body))
 	if err != nil {
@@ -73,9 +77,10 @@ func (c *GeminiClient) GenerateContent(systemPrompt, userQuestion string) (strin
 				} `json:"parts"`
 			} `json:"content"`
 		} `json:"candidates"`
-		// Menambahkan penanganan error dari API
 		Error struct {
+			Code		int		 `json:"code"`
 			Message string `json:"message"`
+			Status  string `json:"status"`
 		} `json:"error"`
 	}
 
@@ -85,8 +90,14 @@ func (c *GeminiClient) GenerateContent(systemPrompt, userQuestion string) (strin
 	}
 
 	if result.Error.Message != "" {
-		log.Printf("[GEMINI-WARN] AI tidak memberikan jawaban. Respons: %s", string(respBody))
-		return "Maaf, saya tidak bisa memproses permintaan Anda saat ini. 😥", nil
+    log.Printf("[GEMINI-API-ERROR] Code: %d, Status: %s, Message: %s", result.Error.Code, result.Error.Status, result.Error.Message)
+    
+    // Cek kode error 429 (Too Many Requests) atau resource exhausted
+    if result.Error.Code == 429 || result.Error.Status == "RESOURCE_EXHAUSTED" {
+        return "⏳ Server AI sedang sibuk (antrian penuh). Mohon tunggu 1 menit lalu tanya lagi.", nil
+    }
+    
+    return "Maaf, sistem AI sedang gangguan teknis.", nil
 	}
 
 	if len(result.Candidates) > 0 && len(result.Candidates[0].Content.Parts) > 0 {
