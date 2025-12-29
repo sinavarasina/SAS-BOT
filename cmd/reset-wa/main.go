@@ -41,6 +41,7 @@ func main() {
 		"DROP TABLE IF EXISTS whatsmeow_sender_keys CASCADE;",
 		"DROP TABLE IF EXISTS whatsmeow_sessions CASCADE;",
 		"DROP TABLE IF EXISTS whatsmeow_device CASCADE;",
+		"DROP TABLE IF EXISTS whatsmeow_version CASCADE;",
 	}
 
 	// 4. Eksekusi Penghapusan
