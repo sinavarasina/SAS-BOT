@@ -22,6 +22,8 @@ func ResolveToPhoneJID(client *whatsmeow.Client, rawJID string) (types.JID, erro
 		return types.EmptyJID, fmt.Errorf("format JID salah: %v", err)
 	}
 
+	parsed = parsed.ToNonAD()
+
 	// 2. Jika ini LID (Multi-Device), kita coba cek apakah ada di database kontak
 	if parsed.Server == "lid" {
 		contact, err := client.Store.Contacts.GetContact(context.Background(), parsed)
