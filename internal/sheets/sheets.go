@@ -192,10 +192,18 @@ func (c *SheetsClient) AppendSuratLog(jenisSuratStr string, nama, unikID, tgl, s
 		sheetName = "SK_Usaha"
 	case "sktm_umum.tex":
 		sheetName = "SKTM_Umum"
-	case "sktm_tanggungan.tex":
-		sheetName = "SKTM_Tanggungan"
 	case "sk_kematian.tex":
 		sheetName = "SK_Kematian"
+	case "sk_ijin_keluarga.tex":
+		sheetName = "SK_Ijin_Keluarga"
+	case "sk_kelahiran.tex":
+		sheetName = "SK_Kelahiran"
+	case "sk_skck.tex":
+		sheetName = "SK_SKCK"
+	case "sk_beda_nama.tex":
+		sheetName = "SK_Beda_Nama"
+	case "sk_izin_keramaian.tex":
+		sheetName = "SK_Izin_Keramaian"
 	default:
 		log.Printf("[SHEETS-ERROR] Nama sheet tidak diketahui untuk jenis surat: %s", jenisSuratStr)
 		return
@@ -214,7 +222,7 @@ func (c *SheetsClient) AppendSuratLog(jenisSuratStr string, nama, unikID, tgl, s
 }
 
 func (c *SheetsClient) GetSuratStatus(unikID string) (string, error) {
-	sheetNames := []string{"SK_Domisili", "SK_Usaha", "SKTM_Umum", "SKTM_Tanggungan", "SK_Kematian"}
+	sheetNames := []string{"SK_Domisili", "SK_Usaha", "SKTM_Umum", "SK_Kematian", "SK_Ijin_Keluarga","SK_Kelahiran","SK_SKCK","SK_Beda_Nama","SK_Izin_Keramaian",}
 
 	for _, sheetName := range sheetNames {
 		readRange := fmt.Sprintf("%s!C:D", sheetName) // Kolom C (ID), Kolom D (Status)

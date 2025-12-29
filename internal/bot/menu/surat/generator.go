@@ -34,10 +34,12 @@ func fillTemplate(content string, data map[string]string) string {
 	for key, value := range data {
 		cleanValue := value
 		
+		// Jangan escape path logo karena itu path file sistem
 		if key != "LOGOPATH" {
 			cleanValue = escapeLatex(value)
 		}
 
+		// Handle khusus jika ada key ALASANPERLU (spasi tambahan)
 		if key == "ALASANPERLU" {
 			content = strings.ReplaceAll(content, "{{"+key+"}}", " "+cleanValue+" ")
 		} else {
@@ -65,13 +67,28 @@ func GenerateAsync(
 		return "", fmt.Errorf("gagal membaca template: %w", err)
 	}
 
+	// --- LOGIC TAMBAHAN (SOLUSI CRASH) ---
+	// 1. Setup Logo Path
 	relLogoPath := filepath.Join("..", "templates", "logo", "logo.jpg")
 	data["LOGOPATH"] = filepath.ToSlash(relLogoPath)
+	
+	// 2. Setup Nama Penandatangan (Kades)
 	signer := os.Getenv("SIGNER_NAME")
 	if signer == "" {
 		signer = "........................"
 	}
 	data["SIGNER.NAME"] = signer
+
+	// 3. Setup Tanggal Surat & Tahun (INJEKSI OTOMATIS)
+	// Tanpa ini, {{TANGGAL_SURAT}} akan tersisa di tex dan underscore-nya bikin crash
+	now := time.Now()
+	months := []string{"", "Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"}
+	monthStr := months[now.Month()]
+	
+	// Format: 29 Desember 2025
+	data["TANGGAL_SURAT"] = fmt.Sprintf("%d %s %d", now.Day(), monthStr, now.Year())
+	data["TAHUN"] = fmt.Sprintf("%d", now.Year())
+	// -------------------------------------
 
 	filled := fillTemplate(string(texBytes), data)
 	texPath := filepath.Join(tempDir, strings.Replace(pdfName, ".pdf", ".tex", 1))
@@ -86,24 +103,26 @@ func GenerateAsync(
 
 	go func() {
 		absTemp, _ := filepath.Abs(tempDir)
-		// pdfPath := strings.Replace(texPath, ".tex", ".pdf", 1)
-
+		
 		cmd := exec.Command("pdflatex",
 			"-interaction=nonstopmode",
 			"-output-directory", absTemp,
 			filepath.Base(texPath),
 		)
-		cmd.Dir = absTemp // Direktori kerja adalah 'temp/'
+		cmd.Dir = absTemp 
 
 		output, err := cmd.CombinedOutput()
 
+		// Cek apakah PDF benar-benar terbentuk
 		if _, statErr := os.Stat(pdfPath); os.IsNotExist(statErr) {
-			log.Printf("[Surat-Error] pdflatex gagal compile: %v\n%s", err, output)
-			_ = SendMessage(client, jid, fmt.Sprintf("Surat %s gagal dikompilasi.", template))
+			log.Printf("[Surat-Error] pdflatex gagal compile: %v\nOutput LaTeX:\n%s", err, output)
+			_ = SendMessage(client, jid, fmt.Sprintf("Maaf, Surat %s gagal dibuat karena kesalahan format.", template))
 			return
 		}
+		
 		if err != nil {
-			log.Printf("[SURAT-WARN] pdflatex selesai dengan peringatan (error): %v\n%s", err, output)
+			// Jika error tapi PDF ada, biasanya warning minor.
+			log.Printf("[SURAT-WARN] pdflatex warning: %v", err)
 		}
 
 		log.Printf("[SURAT] PDF selesai dibuat: %s", pdfPath)
@@ -120,9 +139,14 @@ func GenerateAsync(
 		nomorKades := os.Getenv("NOMOR_PERANGKAT_DESA")
 		if nomorKades != "" {
 			kadesJID := fmt.Sprintf("%s@s.whatsapp.net", nomorKades)
-			log.Printf("[SURAT] Mengirim salinan PDF ke Perangkat Desa (%s)", kadesJID)
+			// Gunakan NAMA_PEMOHON jika NAMA kosong (biasanya key di map berbeda)
+			namaPemohon := data["NAMA"]
+			if namaPemohon == "" {
+				namaPemohon = data["NAMA_PEMOHON"]
+			}
+			
 			_ = SendFile(client, kadesJID, pdfPath,
-				fmt.Sprintf("Laporan Surat Baru Dibuat:\nJenis: %s\nID Unik: %s\nAtas Nama: %s", NamaSuratmap[template], uniqueID, data["NAMA"]))
+				fmt.Sprintf("Laporan Surat Baru Dibuat:\nJenis: %s\nID Unik: %s\nAtas Nama: %s", NamaSuratmap[template], uniqueID, namaPemohon))
 		}
 
 		// 3. Upload ke R2
@@ -133,9 +157,14 @@ func GenerateAsync(
 		}
 
 		// 4. Log ke Sheet
+		// Gunakan NAMA_PEMOHON jika NAMA kosong
+		namaLog := data["NAMA"]
+		if namaLog == "" {
+			namaLog = data["NAMA_PEMOHON"]
+		}
 
-		tgl := time.Now().Format("02-01-2006")
-		sheetsClient.AppendSuratLog(string(template), data["NAMA"], uniqueID, tgl, "Belum Diproses", fileURL)
+		tglLog := time.Now().Format("02-01-2006")
+		sheetsClient.AppendSuratLog(string(template), namaLog, uniqueID, tglLog, "Belum Diproses", fileURL)
 
 		// 5. Hapus file sementara
 		time.Sleep(2 * time.Second)
