@@ -15,7 +15,6 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-//pengganti cleanJid 
 func ResolveToPhoneJID(client *whatsmeow.Client, rawJID string) (types.JID, error) {
 	// 1. Parse string input menjadi format JID yang benar
 	parsed, err := types.ParseJID(rawJID)
@@ -23,22 +22,16 @@ func ResolveToPhoneJID(client *whatsmeow.Client, rawJID string) (types.JID, erro
 		return types.EmptyJID, fmt.Errorf("format JID salah: %v", err)
 	}
 
-	// 2. Jika bukan LID (sudah format @s.whatsapp.net atau @g.us), pakai langsung
-	if parsed.Server != "lid" {
-		return parsed, nil
+	// 2. Jika ini LID (Multi-Device), kita coba cek apakah ada di database kontak
+	if parsed.Server == "lid" {
+		contact, err := client.Store.Contacts.GetContact(context.Background(), parsed)
+		
+		if err == nil && contact.Found {
+			return parsed, nil
+		}
 	}
 
-	// 3. Jika LID, cari data aslinya di Database (Store) bot
-	contact, err := client.Store.Contacts.GetContact(parsed)
-	
-	// 4. Jika ketemu, kembalikan JID asli (Nomor HP)
-	if err == nil && contact.Found {
-		log.Printf("[JID-RESOLVE] Sukses convert LID %s -> Phone %s", parsed.User, contact.JID.User)
-		return contact.JID, nil
-	}
-
-	// 5. Jika tidak ketemu di database (kasus langka), return error
-	return parsed, fmt.Errorf("gagal menemukan nomor HP untuk LID ini (user mungkin belum pernah chat bot)")
+	return parsed, nil
 }
 
 func SendMessage(client *whatsmeow.Client, jid string, msg string) error {
@@ -80,6 +73,7 @@ func SendFile(client *whatsmeow.Client, jid string, path string, caption string)
 		return err
 	}
 
+	// Perbesar timeout untuk upload file
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 	
