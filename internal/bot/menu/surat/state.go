@@ -43,7 +43,7 @@ var NamaSuratmap = map[JenisSurat]string{
 	IZIN_KERAMAIAN: "Surat Keterangan Izin Keramaian",
 	KELAHIRAN:      "Surat Keterangan Kelahiran",
 	SKCK:						"Surat Pengantar SKCK",
-	BEDA_NAMA:			"Surat Keterangan Beda Nama"
+	BEDA_NAMA:			"Surat Keterangan Beda Nama",
 }
 
 // BaseFields adalah data yang kita AMBIL OTOMATIS dari DB

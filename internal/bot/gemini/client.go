@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"time"
 )
 
 type GeminiClient struct {
@@ -49,7 +50,7 @@ func (c *GeminiClient) GenerateContent(systemPrompt, userQuestion string) (strin
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	req, err := http.NewRequestWithContext(context.TODO(), "POST", c.URL, bytes.NewBuffer(body))
+	req, err := http.NewRequestWithContext(ctx, "POST", c.URL, bytes.NewBuffer(body))
 	if err != nil {
 		return "", fmt.Errorf("gagal membuat request Gemini: %w", err)
 	}
